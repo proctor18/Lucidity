@@ -1,104 +1,62 @@
-import React, { useState, useRef } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TouchableOpacity, Dimensions } from 'react-native';
-import { GestureHandlerRootView, PanGestureHandler } from 'react-native-gesture-handler';
-import Animated, { useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.3;
+import { useState } from 'react';
+import Animated, { useSharedValue, useAnimatedStyle  , withSpring } from 'react-native-reanimated';
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState(0);
-  const translateX = useSharedValue(0);
+  const width = useSharedValue(64); // Define shared value for width
+  const [currentStep, setCurrentStep] = useState('stepOne');
+  const dialog = {
+    stepOne: {
+      title: "Effortless Tutor Booking Anytime, Anywhere",
+      subtitle: "Clear Learning, Achieved Simply"
+    },
+    stepTwo: {
+      title: "Effortless Tutor Booking Anytime, Anywhere",
+      subtitle: "Clear Learning, Achieved Simply"
+    },
+    stepThree: {
+      title: "Effortless Tutor Booking Anytime, Anywhere",
+      subtitle: "Clear Learning, Achieved Simply"
+    },
+  };
 
-  const content = [
-    {
-      subtitle: "Clear Learning, Achieved Simply",
-      title: "Effortless Tutor Booking Anytime, Anywhere.",
-    },
-    {
-      subtitle: "Personalized Learning",
-      title: "Find the Perfect Tutor for Your Needs",
-    },
-    {
-      subtitle: "Flexible Scheduling",
-      title: "Book Sessions at Your Convenience",
-    }
-  ];
-
-  const gestureHandler = useAnimatedGestureHandler({
-    onStart: (_, ctx) => {
-      ctx.startX = translateX.value;
-    },
-    onActive: (event, ctx) => {
-      translateX.value = ctx.startX + event.translationX;
-    },
-    onEnd: (event) => {
-      if (Math.abs(event.velocityX) < 500) {
-        if (event.translationX < -SWIPE_THRESHOLD && currentPage < content.length - 1) {
-          translateX.value = withSpring((currentPage + 1) * -SCREEN_WIDTH);
-          setCurrentPage(currentPage + 1);
-        } else if (event.translationX > SWIPE_THRESHOLD && currentPage > 0) {
-          translateX.value = withSpring((currentPage - 1) * -SCREEN_WIDTH);
-          setCurrentPage(currentPage - 1);
-        } else {
-          translateX.value = withSpring(currentPage * -SCREEN_WIDTH);
-        }
-      } else {
-        if (event.velocityX > 0 && currentPage > 0) {
-          translateX.value = withSpring((currentPage - 1) * -SCREEN_WIDTH);
-          setCurrentPage(currentPage - 1);
-        } else if (event.velocityX < 0 && currentPage < content.length - 1) {
-          translateX.value = withSpring((currentPage + 1) * -SCREEN_WIDTH);
-          setCurrentPage(currentPage + 1);
-        } else {
-          translateX.value = withSpring(currentPage * -SCREEN_WIDTH);
-        }
-      }
-    },
-  });
-
+  // Animated style for width
   const animatedStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ translateX: translateX.value }],
+      width: width.value,
     };
   });
 
+  function handlePress() {
+    width.value = width.value === 64 ? withSpring(164) : withSpring(64);
+  }
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <StatusBar style="auto" />
-        <View style={styles.imageContainer}>
-          {/* Placeholder for image */}
-        </View>
-        <PanGestureHandler onGestureEvent={gestureHandler}>
-          <Animated.View style={[styles.contentContainer, animatedStyle]}>
-            {content.map((item, index) => (
-              <View key={index} style={styles.page}>
-                <View style={styles.TextContainer}>
-                  <Text style={styles.subtitle}>{item.subtitle}</Text>
-                  <Text style={styles.title}>{item.title}</Text>
-                </View>
-              </View>
-            ))}
-          </Animated.View>
-        </PanGestureHandler>
-        <View style={styles.pagination}>
-          {content.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.circle,
-                index === currentPage && styles.activeCircle
-              ]}
-            />
-          ))}
-        </View>
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Get started</Text>
-        </TouchableOpacity>
+    <View style={styles.container}>
+      <StatusBar style="auto" />
+      <View style={styles.imageContainer}>
+        {/* Placeholder for image */}
       </View>
-    </GestureHandlerRootView>
+      <View style={styles.contentContainer}>
+        <View style={styles.TextContainer}>
+          <Text style={styles.subtitle}>{dialog[currentStep].subtitle}</Text>
+          <Text style={styles.title}>{dialog[currentStep].title}</Text>
+        </View>
+        <View style={styles.buttonContainer}>
+          <View style={styles.pagination}>
+            <View style={[styles.circle, styles.activeCircle]} />
+            <View style={styles.circle} />
+            <View style={styles.circle} />
+          </View>
+          <Animated.View style={animatedStyle}>
+            <TouchableOpacity style={[styles.button]} onPress={handlePress}>
+              <Text style={styles.buttonText}></Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -112,20 +70,16 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   imageContainer: {
-    backgroundColor: '#f0f0f0', // Placeholder color
+    backgroundColor: '#f0f0f0',
     height: 430,
     width: 345,
     borderRadius: 20,
     marginBottom: 20,
   },
   contentContainer: {
-    flexDirection: 'row',
-    width: SCREEN_WIDTH * 3,
-  },
-  page: {
-    width: SCREEN_WIDTH,
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 20,
+    width: '100%',
   },
   pagination: {
     flexDirection: 'row',
@@ -146,21 +100,22 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 10,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 18,
     textAlign: 'center',
     color: '#4B5563',
   },
   button: {
     backgroundColor: '#6D6D6D',
     paddingVertical: 15,
-    width: '90%',
-    borderRadius: 25,
+    height: 64,
+    borderRadius: 125,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   buttonText: {
@@ -169,9 +124,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   TextContainer: {
-    paddingHorizontal: 20,
+    marginBottom: 48,
+  },
+  buttonContainer: {
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    width: '100%',
     marginBottom: 32,
-    gap: 8,
-    alignItems: 'center',
   },
 });
