@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, Dimensions } from 'react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -14,6 +14,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function Onboarding() {
   const width = useSharedValue(64);
+  const borderRadius = useSharedValue(32);
   const [currentStep, setCurrentStep] = useState(0);
   const flatListRef = useRef(null);
   const scrollX = useSharedValue(0);
@@ -39,6 +40,8 @@ export default function Onboarding() {
   const animatedStyle = useAnimatedStyle(() => {
     return {
       width: width.value,
+      borderRadius: borderRadius.value,
+      backgroundColor: '#222',
     };
   });
 
@@ -73,6 +76,7 @@ export default function Onboarding() {
   function handlePress() {
     if (currentStep === dialog.length - 1) {
       width.value = withSpring(164);
+      borderRadius.value = withSpring(12);
     } else {
       flatListRef.current.scrollToIndex({ index: currentStep + 1, animated: true });
     }
@@ -92,8 +96,10 @@ export default function Onboarding() {
       setCurrentStep(viewableItems[0].index);
       if (viewableItems[0].index === dialog.length - 1) {
         width.value = withSpring(164);
+        borderRadius.value = withSpring(12);
       } else {
         width.value = withSpring(64);
+        borderRadius.value = withSpring(32);
       }
     }
   }).current;
@@ -126,19 +132,16 @@ export default function Onboarding() {
               />
             ))}
           </View>
-          <Animated.View style={animatedStyle}>
-            <TouchableOpacity style={[styles.button]} onPress={handlePress}>
-              <Text style={styles.buttonText}>
-                {currentStep === dialog.length - 1 ? 'Get Started' : ''}
-              </Text>
-            </TouchableOpacity>
+          <Animated.View style={[styles.button, animatedStyle]}>
+            <Text style={styles.buttonText} onPress={handlePress}>
+              {currentStep === dialog.length - 1 ? 'Get Started' : ''}
+            </Text>
           </Animated.View>
         </View>
       </View>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -175,7 +178,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 6,
   },
   activeCircle: {
-    backgroundColor: '#4B5563',
+    backgroundColor: '#222222',
     width: 24,
     borderRadius: 12,
   },
@@ -192,10 +195,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   button: {
-    backgroundColor: '#6D6D6D',
+    backgroundColor: '#222',
     paddingVertical: 15,
     height: 64,
-    borderRadius: 125,
+    // borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
