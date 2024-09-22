@@ -14,26 +14,27 @@ export const ROUTES: EachRoute[] = [
     noLink: true,
     items: [
       { title: "Introduction", href: "/introduction" },
-      {
-        title: "Installation",
-        href: "/installation",
-        items: [
-          { title: "Laravel", href: "/laravel" },
-          { title: "React", href: "/react" },
-          { title: "Gatsby", href: "/gatsby" },
-        ],
-      },
+      // {
+      //   title: "Installation",
+      //   href: "/installation",
+      //   items: [
+      //     { title: "Laravel", href: "/laravel" },
+      //     { title: "React", href: "/react" },
+      //     { title: "Gatsby", href: "/gatsby" },
+      //     { title: "Test", href: "/test" },
+      //   ],
+      // },
     ],
   },
   {
-    title: "Server Actions",
-    href: "/server-actions",
+    title: "Contributions",
+    href: "/contributions",
     noLink: true,
     items: [
-      { title: "getSession", href: "/getSession" },
-      { title: "getToken", href: "/getToken" },
+      { title: "Contributing to Documentation", href: "/documentation" }, //What happend here why does this work ? 
     ],
   },
+
 ];
 
 type Page = { title: string; href: string };
