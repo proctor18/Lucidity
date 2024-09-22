@@ -40,7 +40,7 @@ export const ROUTES: EachRoute[] = [
     noLink : true, 
     items : [
       {title: "react-native-reanimated" , href : "/react-native-reanimated"} , 
-      {title: "react-router" , href : "routing"} , 
+      {title: "react-router" , href : "/routing"} , 
     ],
   }
 
