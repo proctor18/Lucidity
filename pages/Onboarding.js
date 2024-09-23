@@ -9,10 +9,14 @@ import Animated, {
   Extrapolate
 } from 'react-native-reanimated';
 import { useAnimatedScrollHandler } from 'react-native-reanimated';
+import 'react-native-gesture-handler';
+import { NavigationContainer } from '@react-navigation/native'; // Import NavigationContainer
+import { createStackNavigator } from '@react-navigation/stack'; // Correct stack navigator import
+
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-export default function Onboarding() {
+export default function Onboarding({navigation}) {
   const width = useSharedValue(64);
   const borderRadius = useSharedValue(32);
   const [currentStep, setCurrentStep] = useState(0);
@@ -74,12 +78,12 @@ export default function Onboarding() {
   });
 
   function handlePress() {
-    if (currentStep === dialog.length - 1) {
-      width.value = withSpring(164);
-      borderRadius.value = withSpring(12);
-    } else {
-      flatListRef.current.scrollToIndex({ index: currentStep + 1, animated: true });
-    }
+    // if (currentStep === dialog.length - 1) {
+    //   width.value = withSpring(164);
+    //   borderRadius.value = withSpring(12);
+    // } else {
+    //   flatListRef.current.scrollToIndex({ index: currentStep + 1, animated: true });
+    // }
   }
 
   const renderItem = ({ item }) => (
@@ -133,7 +137,7 @@ export default function Onboarding() {
             ))}
           </View>
           <Animated.View style={[styles.button, animatedStyle]}>
-            <Text style={styles.buttonText} onPress={handlePress}>
+            <Text style={styles.buttonText} onPress={ () => navigation.navigate("Login") }>
               {currentStep === dialog.length - 1 ? 'Get Started' : ''}
             </Text>
           </Animated.View>
