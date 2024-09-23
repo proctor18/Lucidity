@@ -29,10 +29,19 @@ export const ROUTES: EachRoute[] = [
   {
     title: "Contributions",
     href: "/contributions",
-    noLink: true,
+    noLink: true,  // Parent item, no direct link
     items: [
-      { title: "Contributing to Documentation", href: "/documentation" }, //What happend here why does this work ? 
-    ],
+      { title: "Documentation Contributions", href: "/documentation" },  // Clickable
+      { 
+        title: "Codebase Contributions",
+        href: "/codebase" ,
+        noLink: true , // dont set to false or else boom 
+        items : [
+          { title: "react-native", href: "/frontend" },  // Clickable
+          // { title: "react-native", href: "/frontend" },  // Clickable
+        ],
+      },  // Clickable
+    ]
   },
   {
     title : "React-Native Integration",
@@ -40,7 +49,7 @@ export const ROUTES: EachRoute[] = [
     noLink : true, 
     items : [
       {title: "react-native-reanimated" , href : "/react-native-reanimated"} , 
-      {title: "react-router" , href : "/routing"} , 
+      {title: "Navigation" , href : "/routing"} , 
     ],
   }
 
