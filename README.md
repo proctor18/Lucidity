@@ -1,5 +1,8 @@
 # Lucidity
 
+# Names:
+# Ethan Proctor
+
 ## Table of Contents
 - [Introduction](#introduction)
 - [Features](#features)
