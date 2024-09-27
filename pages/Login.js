@@ -6,9 +6,15 @@ import Input from '../components/Input';
 export default function Login({ navigation }) {
   return (
     <View style={styles.container}>
+      <View style={styles.imageContainer}>
+      </View>
       <View style={styles.rowOne}>
-        <Input placeholder="Email" />
-        <Input placeholder="Password" />
+        <Input 
+          placeholder="Email" 
+        />
+        <Input 
+          placeholder="Password"
+        />
         <Button type="small" text="Continue" />
       </View>
       <View style={styles.rowTwo}>
@@ -17,14 +23,22 @@ export default function Login({ navigation }) {
         <View style={styles.divider}></View>
       </View>
       <View style={styles.rowThree}>
-        <Button type="medium" text="Sign in with Google" />
-        <Button type="medium" text="Sign in with LinkedIn" />
+        <Button type="medium" text="Sign in with Google" trailing="rightarrow" leading="google"/>
+        <Button type="medium" text="Sign in with LinkedIn" trailing="rightarrow" leading="linkedin"/>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  imageContainer: {
+    height : 200, 
+    width : "100%" , 
+    backgroundColor : "black", 
+    borderRadius : 24 , 
+    opacity : 0.1 , 
+    marginBottom : 24 , 
+  },
   container: {
     flex: 1,
     backgroundColor: "white",
@@ -51,6 +65,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dividerText: {
+    color : "#E5E7EB",
     fontSize: 14,
     paddingHorizontal: 10,
   },

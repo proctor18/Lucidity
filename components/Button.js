@@ -1,6 +1,14 @@
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { Image , StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 
-export default function Button({ type  , text , callback }) {
+const IMAGE_MAP = {
+  "google" : require("../assets/icons/google.png") ,
+  "linkedin" : require("../assets/icons/linkedin.png") ,
+  "rightarrow" : require("../assets/icons/rightarrow.png") ,
+}
+
+
+
+export default function Button({ type  , text , callback , leading , trailing }) {
   return (
     <View style={styles.container}>
       {type === "small" && (
@@ -10,7 +18,19 @@ export default function Button({ type  , text , callback }) {
       )}
       {type === "medium" && (
         <TouchableOpacity style={styles.medium}>
+          { leading && (
+            <Image 
+              style={styles.buttonImage} 
+              source={IMAGE_MAP[leading]} // No need to use require here
+            />
+          )}
           <Text style={styles.textMedium}>{text}</Text>
+          { trailing && (
+            <Image 
+              style={styles.buttonImage} 
+              source={IMAGE_MAP[trailing]} // No need to use require here
+            />
+          )}
         </TouchableOpacity>
       )}
     </View>
@@ -26,26 +46,28 @@ const styles = StyleSheet.create({
     color : "white" , 
     alignItems : "center" , 
     backgroundColor: "#232323" , 
-    justifyContents : "center" , 
+    justifyContent : "center" , 
     borderRadius : 8 , 
   },
   text :{
-    fontWeight : 600 , 
+    fontWeight : "bold", 
     color : "white" , 
     fontSize : 18 , 
   },
   textMedium :{
-    fontWeight : 600 , 
+    fontWeight : "bold", 
     color : "black" , 
     fontSize : 15 , 
   },
   medium : {
+    flexDirection : "row",
     paddingVertical : 18 ,
+    gap : 12 , 
     width : "100%", 
     color : "black" , 
-    alignItems : "center" , 
+    alignItems : "space-between" , 
     backgroundColor: "white" , 
-    justifyContents : "center" , 
+    justifyContent : "center" , 
     borderRadius : 8 , 
     borderStyle : "solid" , 
     borderWidth : 1 ,
@@ -56,5 +78,9 @@ const styles = StyleSheet.create({
     shadowRadius: 1,
     fontWeight : "light" , 
   },
+  buttonImage : {
+    height : 18 , 
+    width : 18 , 
+  } ,
 })
 
