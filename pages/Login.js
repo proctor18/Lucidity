@@ -9,16 +9,10 @@ export default function Login({ navigation }) {
 
   function validateCredentials() { // we can check db here
     if(password && email){ // just check if they are populated for now 
-      navigation.navigate("Launch");
+      navigation.navigate("PopulateInfo");
     }
-    if(password && !email){ // Flash Error
-      //flash error
-      continue 
-    }
-    if(!password && email){ // Flash Error
-      //flash error
-      continue 
-    }
+    // ------------------- Error Handling ----------------
+    // ------------------- Error Handling ----------------
   }
 
   return (

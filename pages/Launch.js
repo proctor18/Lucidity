@@ -7,7 +7,7 @@ export default function Login(){
   return(
     <View>
       <Text>
-        Hello world
+        Hello world this is launch 
       </Text>
     </View>
   )
