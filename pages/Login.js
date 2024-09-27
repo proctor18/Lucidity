@@ -1,9 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import Button from '../components/Button';
 import Input from '../components/Input';
 
 export default function Login({ navigation }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  function validateCredentials() { // we can check db here
+    if(password && email){ // just check if they are populated for now 
+      navigation.navigate("Launch");
+    }
+    if(password && !email){ // Flash Error
+      //flash error
+      continue 
+    }
+    if(!password && email){ // Flash Error
+      //flash error
+      continue 
+    }
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
@@ -11,11 +28,19 @@ export default function Login({ navigation }) {
       <View style={styles.rowOne}>
         <Input 
           placeholder="Email" 
+          callback={setEmail}
+          value={email}  
         />
         <Input 
           placeholder="Password"
+          callback={setPassword}
+          value={password}  
         />
-        <Button type="small" text="Continue" />
+        <Button 
+          type="small" 
+          text="Continue" 
+          callback={validateCredentials} 
+        />
       </View>
       <View style={styles.rowTwo}>
         <View style={styles.divider}></View>
@@ -29,7 +54,6 @@ export default function Login({ navigation }) {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   imageContainer: {
     height : 200, 

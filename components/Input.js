@@ -1,20 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { TextInput, View, StyleSheet } from 'react-native';
 
-export default function Input({ placeholder }) {
-  const [text, setText] = useState("");
+export default function Input({ placeholder, callback, value }) { // Changed from text to value
   return (
     <View>
       <TextInput
         style={styles.Input}
         placeholder={placeholder}
-        value={text}
-        onChangeText={setText}
+        value={value}
+        onChangeText={callback}
       />
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   Input: {
     paddingHorizontal: 20,

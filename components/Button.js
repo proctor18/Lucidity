@@ -12,12 +12,12 @@ export default function Button({ type  , text , callback , leading , trailing })
   return (
     <View style={styles.container}>
       {type === "small" && (
-        <TouchableOpacity style={styles.small}>
+        <TouchableOpacity style={styles.small} onPress={callback}>
           <Text style={styles.text}>{text}</Text>
         </TouchableOpacity>
       )}
       {type === "medium" && (
-        <TouchableOpacity style={styles.medium}>
+        <TouchableOpacity style={styles.medium} onClick={callback}>
           { leading && (
             <Image 
               style={styles.buttonImage} 
