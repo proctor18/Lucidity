@@ -1,36 +1,62 @@
-import { View , Text , StyleSheet } from 'react-native' ; 
-import 'react-native-gesture-handler';
-import { NavigationContainer } from '@react-navigation/native'; // Import NavigationContainer
-import { createStackNavigator } from '@react-navigation/stack'; // Correct stack navigator import
-import Button from '../components/Button.js' ; 
-import Input from '../components/Input.js' ; 
+import React from 'react';
+import { Text, View, StyleSheet } from 'react-native';
+import Button from '../components/Button';
+import Input from '../components/Input';
 
-
-
-export default function Login({navigation}){
-  return(
+export default function Login({ navigation }) {
+  return (
     <View style={styles.container}>
       <View style={styles.rowOne}>
-        <Input />
-        <Button type="small" text="Continue"/> 
+        <Input placeholder="Email" />
+        <Input placeholder="Password" />
+        <Button type="small" text="Continue" />
+      </View>
+      <View style={styles.rowTwo}>
+        <View style={styles.divider}></View>
+        <Text style={styles.dividerText}>or</Text>
+        <View style={styles.divider}></View>
+      </View>
+      <View style={styles.rowThree}>
+        <Button type="medium" text="Sign in with Google" />
+        <Button type="medium" text="Sign in with LinkedIn" />
       </View>
     </View>
-  )
-};
-
-
+  );
+}
 
 const styles = StyleSheet.create({
-  container : {
-    flex : 1 , 
-    flexDirection : "column" , 
-    justifyContent : "center" ,
-    alignItems : "center" ,
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 32,
   },
-  rowOne : {
-    paddingHorizontal : 32 , 
-    paddingVertical : 16 , 
-    width : "100%",
-
+  rowOne: {
+    width: "100%",
+    gap: 16,
+    marginBottom: 16,
+  },
+  rowTwo: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    gap: 10,
+    marginVertical: 16,
+  },
+  divider: {
+    backgroundColor: "#E5E7EB",
+    height: 1,
+    flex: 1,
+  },
+  dividerText: {
+    fontSize: 14,
+    paddingHorizontal: 10,
+  },
+  rowThree: {
+    width: "100%",
+    gap: 10,
+    marginTop: 16,
   },
 });
