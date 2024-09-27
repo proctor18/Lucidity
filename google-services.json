@@ -1,0 +1,38 @@
+{
+  "project_info": {
+    "project_number": "396349567792",
+    "project_id": "cmpt-395-calendar",
+    "storage_bucket": "cmpt-395-calendar.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:396349567792:android:ea05fce4996a097075cef5",
+        "android_client_info": {
+          "package_name": "com.Chum.Lucidity"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "396349567792-05su8olhheurq96qspv0vu4dubkqo03b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.Chum.Lucidity",
+            "certificate_hash": "d71d691f6535da5e2336cc4690bca5bbc5d92eb9"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtEo_8HPJTf4k4hHqWsB1-49I_hpcP_SU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -12,9 +12,13 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "bundleIdentifier": "com.Chum.Lucidity"
     },
     "android": {
+      "package": "com.Chum.Lucidity",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -23,5 +27,29 @@
     "web": {
       "favicon": "./assets/favicon.png"
     }
-  }
-}
+   },
+    "extra": {
+      "eas": {
+        "projectId": "af1e848d-d70e-43fb-b435-8b3d7b192ab4"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/af1e848d-d70e-43fb-b435-8b3d7b192ab4"
+    },
+    "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+        }
+      }
+    ]
+  ]
+ }
