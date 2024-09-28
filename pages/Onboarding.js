@@ -137,7 +137,7 @@ export default function Onboarding({navigation}) {
             ))}
           </View>
           <Animated.View style={[styles.button, animatedStyle]}>
-            <Text style={styles.buttonText} onPress={ () => navigation.navigate("Login") }>
+            <Text style={styles.buttonText} onPress={ () => navigation.navigate("Start") }>
               {currentStep === dialog.length - 1 ? 'Get Started' : ''}
             </Text>
           </Animated.View>
