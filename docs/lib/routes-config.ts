@@ -51,7 +51,7 @@ export const ROUTES: EachRoute[] = [
       {title: "react-native-reanimated" , href : "/react-native-reanimated"} , 
       {title: "Navigation" , href : "/routing"} , 
     ],
-  }
+  },
   {
     title : "Timeline",
     href: "/progress",
