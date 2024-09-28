@@ -1,22 +1,95 @@
-import { View , Text , StyleSheet } from 'react-native' ; 
-import 'react-native-gesture-handler';
-import { NavigationContainer } from '@react-navigation/native'; // Import NavigationContainer
-import { createStackNavigator } from '@react-navigation/stack'; // Correct stack navigator import
+import React, { useState } from 'react';
+import { Text, View, StyleSheet } from 'react-native';
+import Button from '../components/Button';
+import Input from '../components/Input';
 
-export default function Login({navigation}){
-  return(
-    <View>
-      <Text>
-        Hello world
-      </Text>
-    </View>
-  )
-};
+export default function Login({ navigation }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-
-
-const styles = StyleSheet.create({
-  container : {
-
+  function validateCredentials() { // we can check db here
+    if(password && email){ // just check if they are populated for now 
+      navigation.navigate("PopulateInfo");
+    }
+    // ------------------- Error Handling ----------------
+    // ------------------- Error Handling ----------------
   }
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.imageContainer}>
+      </View>
+      <View style={styles.rowOne}>
+        <Input 
+          placeholder="Email" 
+          callback={setEmail}
+          value={email}  
+        />
+        <Input 
+          placeholder="Password"
+          callback={setPassword}
+          value={password}  
+        />
+        <Button 
+          type="small" 
+          text="Continue" 
+          callback={validateCredentials} 
+        />
+      </View>
+      <View style={styles.rowTwo}>
+        <View style={styles.divider}></View>
+        <Text style={styles.dividerText}>or</Text>
+        <View style={styles.divider}></View>
+      </View>
+      <View style={styles.rowThree}>
+        <Button type="medium" text="Sign in with Google" trailing="rightarrow" leading="google"/>
+        <Button type="medium" text="Sign in with LinkedIn" trailing="rightarrow" leading="linkedin"/>
+      </View>
+    </View>
+  );
+}
+const styles = StyleSheet.create({
+  imageContainer: {
+    height : 200, 
+    width : "100%" , 
+    backgroundColor : "black", 
+    borderRadius : 24 , 
+    opacity : 0.1 , 
+    marginBottom : 24 , 
+  },
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 32,
+  },
+  rowOne: {
+    width: "100%",
+    gap: 16,
+    marginBottom: 16,
+  },
+  rowTwo: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    gap: 10,
+    marginVertical: 16,
+  },
+  divider: {
+    backgroundColor: "#E5E7EB",
+    height: 1,
+    flex: 1,
+  },
+  dividerText: {
+    color : "#E5E7EB",
+    fontSize: 14,
+    paddingHorizontal: 10,
+  },
+  rowThree: {
+    width: "100%",
+    gap: 10,
+    marginTop: 16,
+  },
 });
