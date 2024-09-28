@@ -1,0 +1,79 @@
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import auth from '@react-native-firebase/auth';
+
+GoogleSignin.configure({
+  scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
+  webClientId: '396349567792-fg7hgotp7p47ghom9m05a7v0altljs9k.apps.googleusercontent.com', // Our Firebase Web Client ID
+});
+
+// Function that provides the tokens required for Google sign-in
+async function signInTokens() {
+    try {
+        // Initiate Google sign-in
+        await GoogleSignin.signIn();
+    
+        // Obtain our sign-in tokens
+        const tokens = await GoogleSignin.getTokens();
+        const { idToken, accessToken } = tokens;
+
+        const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+    
+        // Sign in user with Firebase using credential
+        await auth().signInWithCredential(googleCredential);
+    
+        return accessToken;
+
+      } catch (error) {
+        console.error('Google Sign-In Error:', error);
+      }
+  }
+
+  const { google } = require('googleapis');
+
+  async function backendRequest() {
+    try {
+      await GoogleSignin.signIn();
+      const tokens = await GoogleSignin.getTokens();
+      const { accessToken } = tokens;
+  
+      // Send accessToken to our backend
+      await fetch('OurBackendGoesHere', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ accessToken }), 
+      });
+  
+    } catch (error) {
+      console.error('Google Sign-In Error:', error);
+    }
+  }
+
+// Function that calls our backend to check for schedule conflicts (need to actually set up backend first)
+// Idea is that a conflict message is sent and is detected here in this function
+  
+//   async function checkForConflicts() {
+//     const user1AccessToken = await getUser1Token(); // Call to backend here
+//     const user2AccessToken = await getUser2Token(); // Call to backend here
+  
+//     try {
+//       const response = await fetch('OurBackendGoesHere', {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify({ user1AccessToken, user2AccessToken }),
+//       });
+  
+//       const result = await response.json();
+      
+//       if (result.message === 'Conflicts found') {
+//         console.log('Conflicts:', result.conflicts);
+//       } else {
+//         console.log('No conflicts found');
+//       }
+//     } catch (error) {
+//       console.error('Error checking for conflicts:', error);
+//     }
+//   }
