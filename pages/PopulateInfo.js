@@ -1,5 +1,5 @@
 import { View , Text , StyleSheet  , TouchableOpacity } from 'react-native' ; 
-import React , { useState } from 'react' ; 
+import React , { useState  , useRef } from 'react' ; 
 import Button from '../components/Button.js'
 
 
@@ -16,6 +16,18 @@ const dialog  = [
  
 export default function PopulateInfo({ navigation } ){
   const [activeCard , setActiveCard]  = useState("") ; 
+  let step = 0 ;
+
+  const callbackFunctions = [
+    testFunction , 
+  ]
+
+  function testFunction(){
+    if(activeCard){
+      step ++ ;  
+    }
+  }
+
   return(
     <View style={styles.container}>
       <View style={styles.rowOne}>
@@ -35,14 +47,16 @@ export default function PopulateInfo({ navigation } ){
         <TouchableOpacity style={ activeCard==="Student" ? styles.activeCard : styles.card} onPress={() => setActiveCard("Student")}>
         </TouchableOpacity>
 
-
       </View>
       <View style={styles.buttonContainer}>
         <Button 
           type="small" 
           text="Continue" 
-          // callback={} 
+          callback={callbackFunctions[step]}  // References list which has different callbacks
         />
+        { step===1 && (<Text>
+          current ref : {step} 
+        </Text>)}
       </View>
     </View>
   )
