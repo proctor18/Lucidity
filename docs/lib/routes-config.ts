@@ -55,7 +55,10 @@ export const ROUTES: EachRoute[] = [
   {
     title : "Timeline",
     href: "/progress",
-  }
+  },
+  {
+    title: "Design Document",  href: "/designdoc"  
+  },
 
 ];
 
