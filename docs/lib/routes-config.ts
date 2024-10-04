@@ -59,6 +59,15 @@ export const ROUTES: EachRoute[] = [
   {
     title: "Design Document",  href: "/designdoc"  
   },
+  {
+    title : "Database Integration",
+    href: "/db",
+    noLink : true, 
+    items : [
+      {title: "Relation Schematic" , href : "/schematic"} , 
+      {title: "Supabase User Authentication" , href : "/supabase"} , 
+    ],
+  },
 
 ];
 
