@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { StyleSheet, Text, View, Dimensions } from 'react-native';
+// import LinearGradient from 'react-native-linear-gradient' ; 
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -149,7 +150,7 @@ export default function Onboarding({navigation}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#0F0F0F',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingTop: 60,
@@ -178,8 +179,11 @@ const styles = StyleSheet.create({
     height: 12,
     width: 12,
     borderRadius: 6,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: '#222222',
     marginHorizontal: 6,
+    borderWidth : 1 , 
+    borderStyle : 'solid' , 
+    borderColor :  '#2F2F31' , 
   },
   activeCircle: {
     backgroundColor: '#222222',
@@ -191,6 +195,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 10,
+    color : 'white' ,
   },
   subtitle: {
     fontSize: 18,
@@ -205,6 +210,9 @@ const styles = StyleSheet.create({
     // borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth : 1 , 
+    borderStyle : 'solid' , 
+    borderColor :  '#2F2F31' , 
   },
   buttonText: {
     color: '#fff',
