@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
+
+import React, { useState, useRef, useCallback } from 'react';
 import { StyleSheet, Text, View, Dimensions } from 'react-native';
-// import LinearGradient from 'react-native-linear-gradient' ; 
+import { Video } from 'expo-av';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -11,11 +12,25 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useAnimatedScrollHandler } from 'react-native-reanimated';
 import 'react-native-gesture-handler';
-import { NavigationContainer } from '@react-navigation/native'; // Import NavigationContainer
-import { createStackNavigator } from '@react-navigation/stack'; // Correct stack navigator import
-
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+const VideoComponent = ({ source }) => {
+  const video = useRef(null);
+
+  return (
+    <View style={styles.videoContainer}>
+      <Video
+        ref={video}
+        source={source}
+        style={styles.video}
+        resizeMode="cover"
+        isLooping // Sets default bool to false ig idek , dont do this its shite 
+        shouldPlay
+      />
+    </View>
+  );
+};
 
 export default function Onboarding({navigation}) {
   const width = useSharedValue(64);
@@ -28,49 +43,44 @@ export default function Onboarding({navigation}) {
     {
       title: "Effortless Tutor Booking Anytime, Anywhere",
       subtitle: "",
-      color: '#FF6B6B'
+      color: '#0F0F0F',
+      video: require('../assets/anims/AnimTwo.mp4')
     },
     {
       title: "Build trust with a transparent rating system.",
       subtitle: "",
-      color: '#4ECDC4'
+      color: '#0F0F0F',
+      video: require('../assets/anims/AnimTwo.mp4')
     },
     {
       title: "Easily reschedule sessions to fit your needs.",
       subtitle: "",
-      color: '#45B7D1'
+      color: '#0F0F0F',
+      video: require('../assets/anims/AnimTwo.mp4')
     },
   ];
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      width: width.value,
-      borderRadius: borderRadius.value,
-      backgroundColor: '#222',
-    };
-  });
+  const animatedStyle = useAnimatedStyle(() => ({
+    width: width.value,
+    borderRadius: borderRadius.value,
+    backgroundColor: '#222',
+  }));
 
-  const imageContainerAnimatedStyle = useAnimatedStyle(() => {
-    const backgroundColor = interpolateColor(
+  const imageContainerAnimatedStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
       scrollX.value,
       [0, SCREEN_WIDTH, SCREEN_WIDTH * 2],
       [dialog[0].color, dialog[1].color, dialog[2].color]
-    );
-
-    return {
-      backgroundColor,
-      transform: [
-        {
-          scale: interpolate(
-            scrollX.value,
-            [0, SCREEN_WIDTH, SCREEN_WIDTH * 2],
-            [1, 0.8, 1],
-            Extrapolate.CLAMP
-          ),
-        },
-      ],
-    };
-  });
+    ),
+    transform: [{
+      scale: interpolate(
+        scrollX.value,
+        [0, SCREEN_WIDTH, SCREEN_WIDTH * 2],
+        [1, 1, 1],
+        Extrapolate.CLAMP
+      ),
+    }],
+  }));
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -78,25 +88,19 @@ export default function Onboarding({navigation}) {
     },
   });
 
-  function handlePress() {
-    // if (currentStep === dialog.length - 1) {
-    //   width.value = withSpring(164);
-    //   borderRadius.value = withSpring(12);
-    // } else {
-    //   flatListRef.current.scrollToIndex({ index: currentStep + 1, animated: true });
-    // }
-  }
-
-  const renderItem = ({ item }) => (
+  const renderItem = useCallback(({ item }) => (
     <View style={styles.page}>
+      <Animated.View style={[styles.imageContainer, imageContainerAnimatedStyle]}>
+        <VideoComponent source={item.video} />
+      </Animated.View>
       <View style={styles.TextContainer}>
         <Text style={styles.subtitle}>{item.subtitle}</Text>
         <Text style={styles.title}>{item.title}</Text>
       </View>
     </View>
-  );
+  ), []);
 
-  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+  const onViewableItemsChanged = useCallback(({ viewableItems }) => {
     if (viewableItems.length > 0) {
       setCurrentStep(viewableItems[0].index);
       if (viewableItems[0].index === dialog.length - 1) {
@@ -107,13 +111,10 @@ export default function Onboarding({navigation}) {
         borderRadius.value = withSpring(32);
       }
     }
-  }).current;
+  }, [dialog.length, width, borderRadius]);
 
   return (
     <View style={styles.container}>
-      <Animated.View style={[styles.imageContainer, imageContainerAnimatedStyle]}>
-        {/* Placeholder for image */}
-      </Animated.View>
       <Animated.FlatList
         ref={flatListRef}
         data={dialog}
@@ -138,7 +139,7 @@ export default function Onboarding({navigation}) {
             ))}
           </View>
           <Animated.View style={[styles.button, animatedStyle]}>
-            <Text style={styles.buttonText} onPress={ () => navigation.navigate("Start") }>
+            <Text style={styles.buttonText} onPress={() => navigation.navigate("Start")}>
               {currentStep === dialog.length - 1 ? 'Get Started' : ''}
             </Text>
           </Animated.View>
@@ -233,6 +234,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
+  },
+  lottieAnimation: {
+    width: 300,
+    height: 300,
+  },
+  video: {
+    width: 400,
+    height: 400,
   },
 });
 
