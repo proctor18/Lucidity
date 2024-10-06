@@ -56,9 +56,9 @@ export const ROUTES: EachRoute[] = [
     title : "Timeline",
     href: "/progress",
   },
-  {
-    title: "Design Document",  href: "/designdoc"  
-  },
+  // { We dont need this anymore . 
+  //   title: "Design Document",  href: "/designdoc"  
+  // },
   {
     title : "Database Integration",
     href: "/db",
