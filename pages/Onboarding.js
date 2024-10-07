@@ -41,20 +41,20 @@ export default function Onboarding({navigation}) {
 
   const dialog = [
     {
-      title: "Effortless Tutor Booking Anytime, Anywhere",
-      subtitle: "",
+      title: "Learning can be lacklustre at times ,",
+      subtitle: "Let's gamify it.",
       color: '#0F0F0F',
       video: require('../assets/anims/AnimTwo.mp4')
     },
     {
-      title: "Build trust with a transparent rating system.",
-      subtitle: "",
+      title: "Effortless booking",
+      subtitle: "Anytime , Anywhere.",
       color: '#0F0F0F',
       video: require('../assets/anims/AnimTwo.mp4')
     },
     {
-      title: "Easily reschedule sessions to fit your needs.",
-      subtitle: "",
+      title: "Tangible milestones,",
+      subtitle: "Meaningful practice.",
       color: '#0F0F0F',
       video: require('../assets/anims/AnimTwo.mp4')
     },
@@ -94,8 +94,8 @@ export default function Onboarding({navigation}) {
         <VideoComponent source={item.video} />
       </Animated.View>
       <View style={styles.TextContainer}>
-        <Text style={styles.subtitle}>{item.subtitle}</Text>
         <Text style={styles.title}>{item.title}</Text>
+        <Text style={styles.subtitle}>{item.subtitle}</Text>
       </View>
     </View>
   ), []);
@@ -187,21 +187,22 @@ const styles = StyleSheet.create({
     borderColor :  '#2F2F31' , 
   },
   activeCircle: {
-    backgroundColor: '#222222',
+    backgroundColor: '#8EEFF8',
     width: 24,
     borderRadius: 12,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 10,
+    textAlign: 'left',
+    // marginBottom: 10,
     color : 'white' ,
   },
   subtitle: {
-    fontSize: 18,
-    textAlign: 'center',
-    color: '#4B5563',
+    fontSize: 32,
+    fontWeight: 'bold',
+    textAlign: 'left',
+    color: '#8EEFF8',
     marginBottom: 20,
   },
   button: {
@@ -221,6 +222,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   TextContainer: {
+    width : '100%',
     marginBottom: 48,
   },
   buttonContainer: {

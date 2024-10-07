@@ -38,7 +38,7 @@ export default function Button({ type, text, callback, leading, trailing }) {
 const styles = StyleSheet.create({
   container: {},
   small: {
-    paddingVertical: 20,
+    paddingVertical: 14,
     width: "100%",
     color: "white",
     alignItems: "center",
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   },
   medium: {
     flexDirection: "row",
-    paddingVertical: 18,
+    paddingVertical: 14,
     gap: 12,
     width: "100%",
     color: "white",
