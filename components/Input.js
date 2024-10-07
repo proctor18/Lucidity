@@ -1,7 +1,8 @@
-import React from 'react';
-import { TextInput, View, StyleSheet } from 'react-native';
+import React from "react";
+import { TextInput, View, StyleSheet } from "react-native";
 
-export default function Input({ placeholder, callback, value }) { // Changed from text to value
+export default function Input({ placeholder, callback, value }) {
+  // Changed from text to value
   return (
     <View>
       <TextInput
@@ -18,9 +19,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 20,
     width: "100%",
-    backgroundColor: "#F3F4F6",
+
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 8,
+
+    backgroundColor: "#222",
+    borderWidth: 1,
+    borderStyle: "solid",
+    borderColor: "#2F2F31",
+
+    color: "white",
   },
 });

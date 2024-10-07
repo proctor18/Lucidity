@@ -38,12 +38,12 @@ const styles = StyleSheet.create({
     marginBottom: 50,
   },
   container: {
+    backgroundColor: "#0F0F0F",
     flex: 1,
-    backgroundColor: "white",
     justifyContent: "flex-end",
     alignItems: "center",
     paddingHorizontal: 32,
-    marginBottom: 30,
+    paddingBottom: 30,
   },
   infoContainer: {
     width: "100%",
@@ -55,14 +55,16 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 20,
     fontWeight: "bold",
+    color: "white",
   },
   placeholder: {
     width: 100,
     height: 100,
-    backgroundColor: "grey",
+    backgroundColor: "#222",
     borderRadius: 32,
   },
   luhLabel: {
+    color: "white",
     fontSize: "17px",
     fontWeight: "bold",
   },
