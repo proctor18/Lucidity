@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import Button from '../components/Button.js';
+import ButtonChip from '../components/ButtonChip.js';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -11,13 +12,13 @@ const dialog = [
     options: ["Student", "Tutor"]
   },
   {
-    title: "What's your name?",
-    subTitle: "Let's start with the basics",
+    title: "What subjects are you comfortable teaching?" ,
+    subTitle: "Help us get to know you better",
     inputType: "text"
   },
   {
-    title: "What's your email?",
-    subTitle: "We'll use this to contact you",
+    title: "What is your availability like?" ,
+    subTitle: "Help us get to know you better",
     inputType: "email"
   }
 ];
@@ -61,10 +62,10 @@ export default function PopulateInfo({ navigation }) {
         </View>
       );
     } else {
-      // You can add input fields for name and email steps here
       return (
-        <View style={styles.inputContainer}>
-          <Text>Input field for {currentDialog.inputType} goes here</Text>
+        <View style={styles.buttonContainer}>
+          <ButtonChip>
+          </ButtonChip>
         </View>
       );
     }
@@ -106,7 +107,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     flexDirection: "column",
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#0F0F0F',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingTop: 60,
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex_start",
   },
   pagination: {
     flexDirection: 'row',
@@ -128,47 +129,52 @@ const styles = StyleSheet.create({
     height: 8,
     width: 8,
     borderRadius: 4,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: 'white',
     marginHorizontal: 4,
+    opacity : 0.3 , 
   },
   activeDot: {
-    backgroundColor: '#222222',
+    backgroundColor: 'red',
     width: 16,
   },
   rowOne: {
     padding: 0,
     margin: 0,
     width: "100%",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "center",
     marginBottom: 40,
+    textAlign : 'left' , 
   },
   subTitle: {
-    color: "#6D6D6D",
+    color: "white",
     fontWeight: "bold",
     fontSize: 18,
     marginBottom: 8,
+    opacity : 0.7 ,
+    textAlign : 'left' , 
   },
   title: {
-    color: "black",
+    color: "white",
     fontWeight: "bold",
     fontSize: 24,
-    textAlign: "center",
+    textAlign : 'left' , 
   },
   rowTwo: {
-    gap: 16,
+    gap: 8,
     width: "100%",
-    flexDirection: "row",
+    hieght : "100%" ,
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
   },
   card: {
     height: 225,
-    width: 160,
+    width: "100%",
     borderRadius: 12,
     borderWidth: 1,
     borderStyle: "solid",
-    borderColor: "#6D6D6D",
+    borderColor: "#2F2F31",
     shadowColor: '#171717',
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.05,
@@ -178,13 +184,13 @@ const styles = StyleSheet.create({
   },
   activeCard: {
     height: 225,
-    width: 160,
+    width: "100%",
     borderRadius: 12,
     borderWidth: 1,
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.05,
     shadowRadius: 1,
-    backgroundColor: "black",
+    backgroundColor: "red",
     justifyContent: "center",
     alignItems: "center",
   },
