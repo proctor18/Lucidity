@@ -54,12 +54,24 @@ export default function PopulateInfo({ navigation }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedOption, setSelectedOption] = useState("");
   const [formData, setFormData] = useState({});
-  const [topic , setTopic ] = useState([]) ;
 
+  const [topicList , setTopic ] = useState([]) ;
 
+// -------------------------------- Review ------------------------------
+  
   const addTopic = (newTopic) => {
-    setTopic([...topic , newTopic ])
-  }
+      if(topicList.includes(newTopic)) {
+        const index = topicList.indexOf(newTopic);
+        const updatedTopics = [...topicList]; // Create a copy of the array
+        updatedTopics.splice(index, 1);   // Remove the item
+        setTopic(updatedTopics);          // Update the state
+      } else {
+        setTopic([...topicList, newTopic]);    // Add new topic to the array
+      }
+  };
+
+
+// -------------------------------- Review ------------------------------
   const handleContinue = () => {
     if (currentStep < dialog.length - 1) {
       setCurrentStep(currentStep + 1);
@@ -94,19 +106,26 @@ export default function PopulateInfo({ navigation }) {
         </View>
       );
     }
+
+// -------------------------------- Review ------------------------------
+    //
     else {
       return ( 
         <View style={styles.chipContainer}>
-          {TOPIC_MAP.map((topic) => ( // Can add index if i want later
-          <Button
+          {TOPIC_MAP.map((topic) => (
+            <Button
+              key={topic.title} // Always use a unique key
               type="chip"
               text={topic.title}
-          />
+              callback={() => addTopic(topic.title)} // Use a function reference
+              active={topicList.includes(topic.title)} // Check if the topic is in the active topics
+            />
           ))}
         </View>
       )
     }
   };
+// -------------------------------- Review ------------------------------
 
   return (
     <View style={styles.container}>

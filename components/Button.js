@@ -6,7 +6,7 @@ const IMAGE_MAP = {
   rightarrow: require("../assets/icons/rightarrow.png"),
 };
 
-export default function Button({ type, text, callback, leading, trailing }) {
+export default function Button({ type, text, callback, leading, trailing  , active }) {
   return (
     <View style={styles.container}>
       {type === "small" && (
@@ -32,7 +32,7 @@ export default function Button({ type, text, callback, leading, trailing }) {
         </TouchableOpacity>
       )}
       {type === "chip" && (
-        <TouchableOpacity style={styles.chip} onPress={callback}>
+        <TouchableOpacity style={[styles.chip  , active && styles.activeChip ]} onPress={callback}>
           {leading && (
             <Image
               style={styles.chipImage}
@@ -114,6 +114,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 1,
     backgroundColor: "#222",
+  },
+  activeChip  : {
+    backgroundColor : "red",
   },
   chipImage: {
     height: 18,
