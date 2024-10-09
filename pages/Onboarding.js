@@ -1,5 +1,7 @@
-import React, { useState, useRef } from 'react';
+
+import React, { useState, useRef, useCallback } from 'react';
 import { StyleSheet, Text, View, Dimensions } from 'react-native';
+import { Video } from 'expo-av';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -10,11 +12,25 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useAnimatedScrollHandler } from 'react-native-reanimated';
 import 'react-native-gesture-handler';
-import { NavigationContainer } from '@react-navigation/native'; // Import NavigationContainer
-import { createStackNavigator } from '@react-navigation/stack'; // Correct stack navigator import
-
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+const VideoComponent = ({ source }) => {
+  const video = useRef(null);
+
+  return (
+    <View style={styles.videoContainer}>
+      <Video
+        ref={video}
+        source={source}
+        style={styles.video}
+        resizeMode="cover"
+        isLooping // Sets default bool to false ig idek , dont do this its shite 
+        shouldPlay
+      />
+    </View>
+  );
+};
 
 export default function Onboarding({navigation}) {
   const width = useSharedValue(64);
@@ -25,51 +41,46 @@ export default function Onboarding({navigation}) {
 
   const dialog = [
     {
-      title: "Effortless Tutor Booking Anytime, Anywhere",
-      subtitle: "",
-      color: '#FF6B6B'
+      title: "Learning can be lacklustre at times ,",
+      subtitle: "Let's gamify it.",
+      color: '#0F0F0F',
+      video: require('../assets/anims/AnimTwo.mp4')
     },
     {
-      title: "Build trust with a transparent rating system.",
-      subtitle: "",
-      color: '#4ECDC4'
+      title: "Effortless booking",
+      subtitle: "Anytime , Anywhere.",
+      color: '#0F0F0F',
+      video: require('../assets/anims/AnimTwo.mp4')
     },
     {
-      title: "Easily reschedule sessions to fit your needs.",
-      subtitle: "",
-      color: '#45B7D1'
+      title: "Tangible milestones,",
+      subtitle: "Meaningful practice.",
+      color: '#0F0F0F',
+      video: require('../assets/anims/AnimTwo.mp4')
     },
   ];
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      width: width.value,
-      borderRadius: borderRadius.value,
-      backgroundColor: '#222',
-    };
-  });
+  const animatedStyle = useAnimatedStyle(() => ({
+    width: width.value,
+    borderRadius: borderRadius.value,
+    backgroundColor: '#222',
+  }));
 
-  const imageContainerAnimatedStyle = useAnimatedStyle(() => {
-    const backgroundColor = interpolateColor(
+  const imageContainerAnimatedStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
       scrollX.value,
       [0, SCREEN_WIDTH, SCREEN_WIDTH * 2],
       [dialog[0].color, dialog[1].color, dialog[2].color]
-    );
-
-    return {
-      backgroundColor,
-      transform: [
-        {
-          scale: interpolate(
-            scrollX.value,
-            [0, SCREEN_WIDTH, SCREEN_WIDTH * 2],
-            [1, 0.8, 1],
-            Extrapolate.CLAMP
-          ),
-        },
-      ],
-    };
-  });
+    ),
+    transform: [{
+      scale: interpolate(
+        scrollX.value,
+        [0, SCREEN_WIDTH, SCREEN_WIDTH * 2],
+        [1, 1, 1],
+        Extrapolate.CLAMP
+      ),
+    }],
+  }));
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -77,25 +88,19 @@ export default function Onboarding({navigation}) {
     },
   });
 
-  function handlePress() {
-    // if (currentStep === dialog.length - 1) {
-    //   width.value = withSpring(164);
-    //   borderRadius.value = withSpring(12);
-    // } else {
-    //   flatListRef.current.scrollToIndex({ index: currentStep + 1, animated: true });
-    // }
-  }
-
-  const renderItem = ({ item }) => (
+  const renderItem = useCallback(({ item }) => (
     <View style={styles.page}>
+      <Animated.View style={[styles.imageContainer, imageContainerAnimatedStyle]}>
+        <VideoComponent source={item.video} />
+      </Animated.View>
       <View style={styles.TextContainer}>
-        <Text style={styles.subtitle}>{item.subtitle}</Text>
         <Text style={styles.title}>{item.title}</Text>
+        <Text style={styles.subtitle}>{item.subtitle}</Text>
       </View>
     </View>
-  );
+  ), []);
 
-  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+  const onViewableItemsChanged = useCallback(({ viewableItems }) => {
     if (viewableItems.length > 0) {
       setCurrentStep(viewableItems[0].index);
       if (viewableItems[0].index === dialog.length - 1) {
@@ -106,13 +111,10 @@ export default function Onboarding({navigation}) {
         borderRadius.value = withSpring(32);
       }
     }
-  }).current;
+  }, [dialog.length, width, borderRadius]);
 
   return (
     <View style={styles.container}>
-      <Animated.View style={[styles.imageContainer, imageContainerAnimatedStyle]}>
-        {/* Placeholder for image */}
-      </Animated.View>
       <Animated.FlatList
         ref={flatListRef}
         data={dialog}
@@ -137,7 +139,7 @@ export default function Onboarding({navigation}) {
             ))}
           </View>
           <Animated.View style={[styles.button, animatedStyle]}>
-            <Text style={styles.buttonText} onPress={ () => navigation.navigate("Login") }>
+            <Text style={styles.buttonText} onPress={() => navigation.navigate("Start")}>
               {currentStep === dialog.length - 1 ? 'Get Started' : ''}
             </Text>
           </Animated.View>
@@ -149,7 +151,7 @@ export default function Onboarding({navigation}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#0F0F0F',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingTop: 60,
@@ -178,24 +180,29 @@ const styles = StyleSheet.create({
     height: 12,
     width: 12,
     borderRadius: 6,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: '#222222',
     marginHorizontal: 6,
+    borderWidth : 1 , 
+    borderStyle : 'solid' , 
+    borderColor :  '#2F2F31' , 
   },
   activeCircle: {
-    backgroundColor: '#222222',
+    backgroundColor: '#8EEFF8',
     width: 24,
     borderRadius: 12,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 10,
+    textAlign: 'left',
+    // marginBottom: 10,
+    color : 'white' ,
   },
   subtitle: {
-    fontSize: 18,
-    textAlign: 'center',
-    color: '#4B5563',
+    fontSize: 32,
+    fontWeight: 'bold',
+    textAlign: 'left',
+    color: '#8EEFF8',
     marginBottom: 20,
   },
   button: {
@@ -205,6 +212,9 @@ const styles = StyleSheet.create({
     // borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth : 1 , 
+    borderStyle : 'solid' , 
+    borderColor :  '#2F2F31' , 
   },
   buttonText: {
     color: '#fff',
@@ -212,6 +222,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   TextContainer: {
+    width : '100%',
     marginBottom: 48,
   },
   buttonContainer: {
@@ -225,6 +236,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
+  },
+  lottieAnimation: {
+    width: 300,
+    height: 300,
+  },
+  video: {
+    width: 400,
+    height: 400,
   },
 });
 

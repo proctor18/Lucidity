@@ -51,7 +51,23 @@ export const ROUTES: EachRoute[] = [
       {title: "react-native-reanimated" , href : "/react-native-reanimated"} , 
       {title: "Navigation" , href : "/routing"} , 
     ],
-  }
+  },
+  {
+    title : "Timeline",
+    href: "/progress",
+  },
+  // { We dont need this anymore . 
+  //   title: "Design Document",  href: "/designdoc"  
+  // },
+  {
+    title : "Database Integration",
+    href: "/db",
+    noLink : true, 
+    items : [
+      {title: "Relation Schematic" , href : "/schematic"} , 
+      {title: "Supabase User Authentication" , href : "/supabase"} , 
+    ],
+  },
 
 ];
 
