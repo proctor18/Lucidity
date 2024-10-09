@@ -30,6 +30,7 @@ async function signInTokens() {
 
   const { google } = require('googleapis');
 
+  // Functin that will send a request to our backend to sign-in
   async function backendRequest() {
     try {
       await GoogleSignin.signIn();
