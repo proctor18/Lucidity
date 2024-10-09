@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import Button from '../components/Button.js';
-import ButtonChip from '../components/ButtonChip.js';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -23,11 +22,44 @@ const dialog = [
   }
 ];
 
+const TOPIC_MAP = [
+  {
+    title : "Math" , 
+    subCount : 1 , 
+    icon : "url" , 
+  },
+  {
+    title : "Chemistry" , 
+    subCount : 1 , 
+    icon : "url" , 
+  },
+  {
+    title : "Art" , 
+    subCount : 1 , 
+    icon : "url" , 
+  },
+  {
+    title : "Language Arts" , 
+    subCount : 1 , 
+    icon : "url" , 
+  },
+  {
+    title : "Biology" , 
+    subCount : 1 , 
+    icon : "url" , 
+  },
+]
+
 export default function PopulateInfo({ navigation }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedOption, setSelectedOption] = useState("");
   const [formData, setFormData] = useState({});
+  const [topic , setTopic ] = useState([]) ;
 
+
+  const addTopic = (newTopic) => {
+    setTopic([...topic , newTopic ])
+  }
   const handleContinue = () => {
     if (currentStep < dialog.length - 1) {
       setCurrentStep(currentStep + 1);
@@ -61,13 +93,18 @@ export default function PopulateInfo({ navigation }) {
           ))}
         </View>
       );
-    } else {
-      return (
-        <View style={styles.buttonContainer}>
-          <ButtonChip>
-          </ButtonChip>
+    }
+    else {
+      return ( 
+        <View style={styles.chipContainer}>
+          {TOPIC_MAP.map((topic) => ( // Can add index if i want later
+          <Button
+              type="chip"
+              text={topic.title}
+          />
+          ))}
         </View>
-      );
+      )
     }
   };
 
@@ -129,12 +166,11 @@ const styles = StyleSheet.create({
     height: 8,
     width: 8,
     borderRadius: 4,
-    backgroundColor: 'white',
+    backgroundColor: 'grey',
     marginHorizontal: 4,
-    opacity : 0.3 , 
   },
   activeDot: {
-    backgroundColor: 'red',
+    backgroundColor: 'white', // change to blue later 
     width: 16,
   },
   rowOne: {
@@ -211,4 +247,12 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
   },
+  chipContainer : {
+    width : "100%" , 
+    flexDirection : "row" ,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  } ,
 });
