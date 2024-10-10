@@ -26,47 +26,56 @@ const TOPIC_MAP = [
   {
     title : "Math" , 
     subCount : 1 , 
-    icon : "url" , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
   },
   {
     title : "Chemistry" , 
     subCount : 1 , 
-    icon : "url" , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
   },
   {
     title : "Art" , 
     subCount : 1 , 
-    icon : "url" , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
   },
   {
     title : "Language Arts" , 
     subCount : 1 , 
-    icon : "url" , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
   },
   {
     title : "Biology" , 
     subCount : 1 , 
-    icon : "url" , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
   },
   {
     title : "Philosophy" , 
     subCount : 1 , 
-    icon : "url" , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
   },
   {
     title : "Physics" , 
     subCount : 1 , 
-    icon : "url" , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
   },
   {
     title : "Programming" , 
     subCount : 1 , 
-    icon : "url" , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
   },
   {
     title : "Anthropology" , 
     subCount : 1 , 
-    icon : "url" , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
   },
 ,
 ]
@@ -191,7 +200,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     flexDirection: "column",
     flex: 1,
-    backgroundColor: '#0F0F0F',
+    // backgroundColor: '#0F0F0F',
+    backgroundColor: 'black',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingTop: 60,
