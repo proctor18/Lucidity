@@ -88,11 +88,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#E5E7EB",
     height: 1,
     flex: 1,
+    opacity : 0.4,
   },
   dividerText: {
     color: "#E5E7EB",
     fontSize: 14,
     paddingHorizontal: 10,
+    opacity : 0.4,
   },
   rowThree: {
     width: "100%",

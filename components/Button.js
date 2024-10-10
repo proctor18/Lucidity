@@ -39,7 +39,7 @@ export default function Button({ type, text, callback, leading, trailing  , acti
               source={IMAGE_MAP[leading]}
             />
           )}
-          <Text style={styles.textChip}>{text}</Text>
+          <Text style={[styles.textChip , active && styles.textChipActive]}>{text}</Text>
           {trailing && (
             <Image
               style={styles.chipImage}
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   small: {
-    paddingVertical: 14,
+    paddingVertical: 18,
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   },
   medium: {
     flexDirection: "row",
-    paddingVertical: 14,
+    paddingVertical: 18,
     gap: 12,
     width: "100%",
     alignItems: "center",
@@ -116,7 +116,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#222",
   },
   activeChip  : {
-    backgroundColor : "red",
+    backgroundColor : "#27223F",
+    color : '#8770FF', 
+    borderColor : '#3D3761'
   },
   chipImage: {
     height: 18,
@@ -126,5 +128,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "white",
     fontSize: 15,
+  },
+  textChipActive : {
+    color : '#8770FF'
   },
 });

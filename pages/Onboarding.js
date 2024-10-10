@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     borderColor :  '#2F2F31' , 
   },
   activeCircle: {
-    backgroundColor: '#8EEFF8',
+    backgroundColor: '#8770FF',
     width: 24,
     borderRadius: 12,
   },
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     textAlign: 'left',
-    color: '#8EEFF8',
+    color: '#8770FF',
     marginBottom: 20,
   },
   button: {
