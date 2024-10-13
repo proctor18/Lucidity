@@ -38,7 +38,8 @@ const styles = StyleSheet.create({
     marginBottom: 50,
   },
   container: {
-    backgroundColor: "#0F0F0F",
+    // backgroundColor: "#0F0F0F",
+    backgroundColor: "black",
     flex: 1,
     justifyContent: "flex-end",
     alignItems: "center",

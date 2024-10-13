@@ -26,28 +26,58 @@ const TOPIC_MAP = [
   {
     title : "Math" , 
     subCount : 1 , 
-    icon : "url" , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
   },
   {
     title : "Chemistry" , 
     subCount : 1 , 
-    icon : "url" , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
   },
   {
     title : "Art" , 
     subCount : 1 , 
-    icon : "url" , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
   },
   {
     title : "Language Arts" , 
     subCount : 1 , 
-    icon : "url" , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
   },
   {
     title : "Biology" , 
     subCount : 1 , 
-    icon : "url" , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
   },
+  {
+    title : "Philosophy" , 
+    subCount : 1 , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
+  },
+  {
+    title : "Physics" , 
+    subCount : 1 , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
+  },
+  {
+    title : "Programming" , 
+    subCount : 1 , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
+  },
+  {
+    title : "Anthropology" , 
+    subCount : 1 , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
+  },
+,
 ]
 
 export default function PopulateInfo({ navigation }) {
@@ -109,7 +139,7 @@ export default function PopulateInfo({ navigation }) {
 
 // -------------------------------- Review ------------------------------
     //
-    else {
+    if (currentStep === 1){
       return ( 
         <View style={styles.chipContainer}>
           {TOPIC_MAP.map((topic) => (
@@ -121,6 +151,13 @@ export default function PopulateInfo({ navigation }) {
               active={topicList.includes(topic.title)} // Check if the topic is in the active topics
             />
           ))}
+        </View>
+      )
+    }
+
+    if (currentStep === 2){
+      return ( 
+        <View style={styles.chipContainer}>
         </View>
       )
     }
@@ -163,7 +200,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     flexDirection: "column",
     flex: 1,
-    backgroundColor: '#0F0F0F',
+    // backgroundColor: '#0F0F0F',
+    backgroundColor: 'black',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingTop: 60,
@@ -189,7 +227,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   activeDot: {
-    backgroundColor: 'white', // change to blue later 
+    backgroundColor: '#8770FF', // change to blue later 
     width: 16,
   },
   rowOne: {
@@ -245,7 +283,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 1},
     shadowOpacity: 0.05,
     shadowRadius: 1,
-    backgroundColor: "red",
+    backgroundColor: "#27223F",
     justifyContent: "center",
     alignItems: "center",
   },

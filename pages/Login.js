@@ -58,7 +58,8 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   container: {
-    backgroundColor: "#0F0F0F",
+    // backgroundColor: "#0F0F0F",
+    backgroundColor: "black",
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -88,11 +89,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#E5E7EB",
     height: 1,
     flex: 1,
+    opacity : 0.4,
   },
   dividerText: {
     color: "#E5E7EB",
     fontSize: 14,
     paddingHorizontal: 10,
+    opacity : 0.4,
   },
   rowThree: {
     width: "100%",
