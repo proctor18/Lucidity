@@ -7,6 +7,7 @@ import Launch from "./pages/Launch.js";
 import PopulateInfo from "./pages/PopulateInfo.js";
 import Start from "./pages/Start.js";
 import Signup from "./pages/Signup.js";
+import UsersList from "./pages/UsersList.js";
 import "react-native-gesture-handler";
 import { NavigationContainer } from "@react-navigation/native"; // Import NavigationContainer
 import { createStackNavigator } from "@react-navigation/stack"; // Correct stack navigator import
@@ -25,6 +26,7 @@ export default function App() {
         <Stack.Screen name="Launch" component={Launch} />
         <Stack.Screen name="Signup" component={Signup} />
         <Stack.Screen name="Start" component={Start} />
+        <Stack.Screen name="UsersList" component={UsersList} />
       </Stack.Navigator>
     </NavigationContainer>
   );
