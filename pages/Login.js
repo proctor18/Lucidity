@@ -1,21 +1,62 @@
-import React, { useState } from "react";
-import { Text, View, StyleSheet } from "react-native";
+import React, { useState, useEffect } from "react";
+import { Text, View, StyleSheet, FlatList } from "react-native";
+import { createClient } from '@supabase/supabase-js';
 import Button from "../components/Button";
 import Input from "../components/Input";
+
+// Supabase client configuration
+const supabaseUrl = 'https://tqtqpftsctrshouqpcej.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxdHFwZnRzY3Ryc2hvdXFwY2VqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcyODg5MTU0MywiZXhwIjoyMDQ0NDY3NTQzfQ.2h9rCohCCLwl1AGT8Kg8CXjp7fw87jYSV3zz6qRtKxs';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function Login({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [firstNames, setFirstNames] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); 
 
   function validateCredentials() {
-    // we can check db here
     if (password && email) {
-      // just check if they are populated for now
       navigation.navigate("PopulateInfo");
     }
     // ------------------- Error Handling ----------------
     // ------------------- Error Handling ----------------
   }
+
+  useEffect(() => {
+    async function fetchFirstNames() {
+      try {
+        // Fetch first names from the users table
+        const { data, error } = await supabase
+          .from('users')
+          .select('role_id')
+
+        if (error) {
+          console.error("Error fetching data:", error);
+          setError(error.message);
+          return; 
+        }
+
+        // Log the received data
+        console.log("Fetched data:", data);
+
+        if (data && data.length > 0) {
+          setFirstNames(data);
+        } else {
+          console.log("No data found in response");
+          setFirstNames([]); // No users found
+        }
+      } catch (error) {
+        console.error("Error caught in catch block:", error);
+        setError(error.message); // Set error message
+      } finally {
+        setLoading(false); // Hide loading state
+      }
+    }
+
+    fetchFirstNames();
+  }, [email , password]);
 
   return (
     <View style={styles.container}>
