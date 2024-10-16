@@ -5,7 +5,7 @@ import { google } from 'googleapis';
 // Configure Google Sign-In
 GoogleSignin.configure({
   // Scope = type of access we have to a users Calendar
-  // Need full read, write pwermission since we are adding, deleting, reading events
+  // Need full read, write permission since we are adding, deleting, reading events
   scopes: ['https://www.googleapis.com/auth/calendar'],
   // The Google Calendar WebClientId for our project
   webClientId: '396349567792-gfg556v4e4jb22qa29nhsf3kltp6tan0.apps.googleusercontent.com',
@@ -13,34 +13,12 @@ GoogleSignin.configure({
 
 
 /**************************************************************
- * Function to get Google Calendar events
+ * DATABASE FUNCTIONS
 **************************************************************/
-async function fetchGoogleCalendar(accessToken) {
-  const oauth2Client = new google.auth.OAuth2();
-  oauth2Client.setCredentials({ access_token: accessToken });
 
-  const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
-
-  try {
-    const events = await calendar.events.list({
-      calendarId: 'primary',
-      timeMin: new Date().toISOString(),
-      maxResults: 100,
-      singleEvents: true,
-      orderBy: 'startTime',
-    });
-    
-    return events.data.items;
-  } catch (error) {
-    console.error('Error fetching Google Calendar events:', error);
-    throw new Error('Error fetching calendar events');
-  }
-}
-
-
-/**************************************************************
- * Function to fetch user events from Supabase
-**************************************************************/
+/**
+ * Function to fetch user events from database
+*/
 async function fetchUserEvents(userId) {
   try {
     const { data, error } = await supabase
@@ -64,14 +42,133 @@ async function fetchUserEvents(userId) {
 }
 
 
+/**
+ * Function to add an event to database and then sync with Google Calendar
+*/
+async function addEventToDatabase(userId, eventDetails, googleAccessToken) {
+  try {
+    // Add the event to Supabase
+    const { data, error } = await supabase
+
+    // **** need to replace below table with actual table name, whatever it would be for storing the schedules ****
+
+
+      .from('schedules')
+      .insert({
+        user_id: userId,
+        event_name: eventDetails.title,
+        event_start: eventDetails.startDateTime,
+        event_end: eventDetails.endDateTime,
+        location: eventDetails.location,
+        description: eventDetails.description,
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    console.log('Event added to Supabase:', data);
+
+    // Sync event to Google Calendar
+    await addToGoogleCalendar(googleAccessToken, eventDetails);
+
+    console.log('Event synced to Google Calendar');
+  } catch (error) {
+    console.error('Error adding event to Supabase or syncing with Google Calendar:', error.message);
+  }
+}
+
+
+/**
+ * Function to delete an event from database and then sync with Google Calendar
+*/
+async function deleteEventFromDatabase(userId, eventId, googleAccessToken) {
+  try {
+    // First, retrieve the event from Supabase to get Google Calendar event details (like event name)
+    const { data: event, error: fetchError } = await supabase
+
+    // **** need to replace below table with actual table name, whatever it would be for storing the schedules ****
+
+
+      .from('schedules')
+      .select('event_name')
+      .eq('user_id', userId)
+      .eq('id', eventId)
+      .single();
+
+    if (fetchError || !event) {
+      throw new Error('Event not found in Supabase');
+    }
+
+    // Delete the event from Supabase
+    const { error: deleteError } = await supabase
+
+    // **** need to replace below table with actual table name, whatever it would be for storing the schedules ****
+
+
+      .from('schedules')
+      .delete()
+      .eq('user_id', userId)
+      .eq('id', eventId);
+
+    if (deleteError) {
+      throw deleteError;
+    }
+
+    console.log('Event deleted from Supabase');
+
+    // Sync the deletion with Google Calendar by event name
+    await deleteEventFromGoogleCalendar(googleAccessToken, event.event_name);
+
+    console.log('Event deleted from Google Calendar');
+  } catch (error) {
+    console.error('Error deleting event from Supabase or syncing with Google Calendar:', error.message);
+  }
+}
+
+
 /**************************************************************
- * Function that allows for an event to be added to Google Calendars
+ * GOOGLE CALENDAR FUNCTIONS
 **************************************************************/
-async function addToGoogleCalendar(accessToken, eventDetails) {
+
+/**
+ * Helper: Initializes and returns a Google Calendar client with the given access token.
+ */
+function initializeGoogleCalendar(accessToken) {
   const oauth2Client = new google.auth.OAuth2();
   oauth2Client.setCredentials({ access_token: accessToken });
+  return google.calendar({ version: 'v3', auth: oauth2Client });
+}
 
-  const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+/*
+ * Function to get Google Calendar events
+*/
+async function fetchGoogleCalendar(accessToken) {
+  const calendar = initializeGoogleCalendar(accessToken);
+
+  try {
+    const events = await calendar.events.list({
+      calendarId: 'primary',
+      timeMin: new Date().toISOString(),
+      maxResults: 100,
+      singleEvents: true,
+      orderBy: 'startTime',
+    });
+    
+    return events.data.items;
+  } catch (error) {
+    console.error('Error fetching Google Calendar events:', error);
+    throw new Error('Error fetching calendar events');
+  }
+}
+
+
+/**
+ * Function that allows for event to be added to Google Calendars
+*/
+async function addToGoogleCalendar(accessToken, eventDetails) {
+  const calendar = initializeGoogleCalendar(accessToken);
 
   try {
     const event = await calendar.events.insert({
@@ -98,6 +195,7 @@ async function addToGoogleCalendar(accessToken, eventDetails) {
     });
 
     console.log('Event created:', event.data.htmlLink);
+
     // Returns a link to the event in Google Calendar, if we want to do this
     return event.data.htmlLink; 
   } catch (error) {
@@ -107,14 +205,11 @@ async function addToGoogleCalendar(accessToken, eventDetails) {
 }
 
 
-/**************************************************************
- * Function that allows for an event to be deleted from Google Calendars
-**************************************************************/
+/**
+ * Function that allows for event to be deleted from Google Calendars
+*/
 async function deleteEventFromGoogleCalendar(accessToken, eventId) {
-  const oauth2Client = new google.auth.OAuth2();
-  oauth2Client.setCredentials({ access_token: accessToken });
-
-  const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+  const calendar = initializeGoogleCalendar(accessToken);
 
   try {
     await calendar.events.delete({
@@ -131,9 +226,14 @@ async function deleteEventFromGoogleCalendar(accessToken, eventId) {
 
 
 /**************************************************************
+ * SYNC FUNCTIONS
+**************************************************************/
+
+/**
  * Function that will sync a user's Google Calendar with our database, 
    so we know their events
-**************************************************************/
+ * Should be called before checking for schedule conflicts
+*/
 async function syncGoogleCalendar(userId, googleAccessToken) {
   const googleEvents = await fetchGoogleCalendarEvents(googleAccessToken);
 
@@ -142,7 +242,9 @@ async function syncGoogleCalendar(userId, googleAccessToken) {
 
     // Check if event exists in Supabase to avoid duplicating
     const { data: existingEvent } = await supabase
+
     // **** need to replace below table with actual table name, whatever it would be for storing the schedules ****
+
       .from('schedules')
       .select('*')
       .eq('user_id', userId)
@@ -165,9 +267,49 @@ async function syncGoogleCalendar(userId, googleAccessToken) {
 }
 
 
+/**
+ * Function to synchronize Supabase database with Google Calendar
+ * Could be useful to call when a user initially syncs their google calendar
+*/
+async function syncDatabaseToGoogleCalendar(userId, googleAccessToken) {
+  try {
+    // Fetch all events from database for the user
+    const supabaseEvents = await fetchUserEvents(userId);
+
+    for (const event of supabaseEvents) {
+      // Check if the event already exists on Google Calendar to avoid duplication
+      const googleEvents = await fetchGoogleCalendar(googleAccessToken);
+      const existingGoogleEvent = googleEvents.find(
+        (googleEvent) => googleEvent.summary === event.event_name &&
+          new Date(googleEvent.start.dateTime || googleEvent.start.date).getTime() === new Date(event.event_start).getTime()
+      );
+
+      if (!existingGoogleEvent) {
+        // Add event to Google Calendar since it doesn't exist
+        await addToGoogleCalendar(googleAccessToken, {
+          title: event.event_name,
+          startDateTime: event.event_start,
+          endDateTime: event.event_end,
+          location: event.location,
+          description: event.description,
+        });
+
+        console.log('Event synced to Google Calendar:', event.event_name);
+      }
+    }
+  } catch (error) {
+    console.error('Error syncing Supabase events with Google Calendar:', error.message);
+  }
+}
+
+
 /**************************************************************
- * Function that will check if two events overlap
+ * CONFLICT CHECKING FUNCTIONS
 **************************************************************/
+
+/**
+ * Helper: Function that will check if two events overlap
+*/
 function checkForOverlap(event1, event2) {
   const event1Start = new Date(event1.event_start);
   const event1End = new Date(event1.event_end);
@@ -179,11 +321,15 @@ function checkForOverlap(event1, event2) {
 }
 
 
-/**************************************************************
+/**
  * Function to check for conflicts between two users schedules from Supabase
  * Requires using the syncGoogleCalendar function first for accurate conflict checking
-**************************************************************/
+*/
 async function checkForScheduleConflicts(user1Id, user2Id) {
+  // Sync both users' calendars with Database before checking for conflicts
+  await syncGoogleCalendar(user1Id, user1AccessToken);
+  await syncGoogleCalendar(user2Id, user2AccessToken);
+
   // Fetch events for both users
   const user1Events = await fetchUserEvents(user1Id);
   const user2Events = await fetchUserEvents(user2Id);
@@ -202,6 +348,10 @@ async function checkForScheduleConflicts(user1Id, user2Id) {
   return conflicts;
 }
 
+
+/**************************************************************
+ * NOTIFICATION FUNCTIONS
+**************************************************************/
 
 // /**************************************************************
 //  * Possible Function that could send out a message to a user, need to integrate it with
@@ -223,13 +373,17 @@ async function checkForScheduleConflicts(user1Id, user2Id) {
 //   });
 // }
 
+
+/**************************************************************
+ * EXPORTS
+**************************************************************/
 export {
   fetchGoogleCalendar,
   fetchUserEvents,
-  addToGoogleCalendar,
-  deleteEventFromGoogleCalendar,
-  checkForOverlap,
+  addEventToDatabase,
+  deleteEventFromDatabase,
   checkForScheduleConflicts,
   syncGoogleCalendar,
+  syncDatabaseToGoogleCalendar,
   // notifyEvents
 };
