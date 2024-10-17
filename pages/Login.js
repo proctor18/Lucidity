@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { Text, View, StyleSheet, FlatList } from "react-native";
+import React, { useState } from "react";
+import { Text, View, StyleSheet, Alert } from "react-native";
 import { createClient } from '@supabase/supabase-js';
 import Button from "../components/Button";
 import Input from "../components/Input";
 
-// Supabase client configuration
 const supabaseUrl = 'https://tqtqpftsctrshouqpcej.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxdHFwZnRzY3Ryc2hvdXFwY2VqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcyODg5MTU0MywiZXhwIjoyMDQ0NDY3NTQzfQ.2h9rCohCCLwl1AGT8Kg8CXjp7fw87jYSV3zz6qRtKxs';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -12,51 +11,43 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export default function Login({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [firstNames, setFirstNames] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); 
+  const [loading, setLoading] = useState(false);
 
-  function validateCredentials() {
-    if (password && email) {
-      navigation.navigate("PopulateInfo");
+  async function validateCredentials() {
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter both email and password.");
+      return;
     }
-    // ------------------- Error Handling ----------------
-    // ------------------- Error Handling ----------------
-  }
 
-  useEffect(() => {
-    async function fetchFirstNames() {
-      try {
-        // Fetch first names from the users table
-        const { data, error } = await supabase
-          .from('users')
-          .select('role_id')
+    setLoading(true);
 
-        if (error) {
-          console.error("Error fetching data:", error);
-          setError(error.message);
-          return; 
-        }
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('role_id')
+        .eq('email', email)
+        .eq('password', password)
+        .single();
 
-        // Log the received data
-        console.log("Fetched data:", data);
-
-        if (data && data.length > 0) {
-          setFirstNames(data);
-        } else {
-          console.log("No data found in response");
-          setFirstNames([]); // No users found
-        }
-      } catch (error) {
-        console.error("Error caught in catch block:", error);
-        setError(error.message); // Set error message
-      } finally {
-        setLoading(false); // Hide loading state
+      if (error) {
+        console.error("Error fetching data:", error);
+        Alert.alert("Error", "An error occurred while verifying credentials.");
+        return;
       }
-    }
 
-    fetchFirstNames();
-  }, [email , password]);
+      if (data) {
+        console.log("Login successful:", data);
+        navigation.navigate("PopulateInfo");
+      } else {
+        Alert.alert("Error", "Invalid email or password.");
+      }
+    } catch (error) {
+      console.error("Error caught in catch block:", error);
+      Alert.alert("Error", "An unexpected error occurred.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -64,8 +55,8 @@ export default function Login({ navigation }) {
       <Text style={styles.loginHeader}>Login</Text>
       <View style={styles.rowOne}>
         <Input placeholder="Email" callback={setEmail} value={email} />
-        <Input placeholder="Password" callback={setPassword} value={password} />
-        <Button type="small" text="Continue" callback={validateCredentials} />
+        <Input placeholder="Password" callback={setPassword} value={password} secureTextEntry />
+        <Button type="small" text={loading ? "Loading..." : "Continue"} callback={validateCredentials} disabled={loading} />
       </View>
       <View style={styles.rowTwo}>
         <View style={styles.divider}></View>
@@ -89,6 +80,7 @@ export default function Login({ navigation }) {
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   imageContainer: {
     height: 100,
@@ -99,7 +91,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   container: {
-    // backgroundColor: "#0F0F0F",
     backgroundColor: "black",
     flex: 1,
     justifyContent: "center",
@@ -107,7 +98,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   loginHeader: {
-    fontSize: "25px",
+    fontSize: 25,
     marginTop: 20,
     marginBottom: 20,
     fontWeight: "bold",
@@ -130,13 +121,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#E5E7EB",
     height: 1,
     flex: 1,
-    opacity : 0.4,
+    opacity: 0.4,
   },
   dividerText: {
     color: "#E5E7EB",
     fontSize: 14,
     paddingHorizontal: 10,
-    opacity : 0.4,
+    opacity: 0.4,
   },
   rowThree: {
     width: "100%",
