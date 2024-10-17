@@ -57,7 +57,7 @@ export default function Onboarding({navigation}) {
   const dialog = [
     {
       title: "Simple booking",
-      subtitle: "Anytime , Anywhere.",
+      subtitle: "Anytime    Anywhere.",
       color: '#0F0F0F',
       video: require('../assets/anims/direction.mp4')
     },
@@ -231,6 +231,7 @@ export default function Onboarding({navigation}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    // backgroundColor: '#12101d',
     backgroundColor: 'black',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -240,6 +241,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     overflow: 'hidden',
+    mixBlendMode: 'screen' 
   },
   video: {
     width: '100%',
