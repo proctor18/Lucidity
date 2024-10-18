@@ -1,8 +1,11 @@
 import { View, Text, StyleSheet, Alert } from "react-native";
 import { useState } from 'react';
-import supabase from '../lib/supabase.js';
+import { supabase } from '../lib/supabase.js'; // Properly import please 
 import Button from "../components/Button.js";
 import Input from "../components/Input";
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from 'uuid';
+
 
 export default function Signup({ navigation }) {
   const [loading, setLoading] = useState(false);
@@ -33,13 +36,15 @@ export default function Signup({ navigation }) {
       if (data) {
         Alert.alert("Email already exists", "Please sign in or utilize a unique email.");
       } else {
+        const userId = uuidv4(); // generate uuid for the user 
         const { error } = await supabase
           .from('users')
           .insert({
             first_name: fname,
             last_name: lname,
             email: email,
-            password: password
+            password: password,
+            user_id : userId
           });
 
         if (!error) {

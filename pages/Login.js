@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Text, View, StyleSheet, Alert } from "react-native";
-import supabase from '../lib/supabase.js' ; 
+import { supabase } from '../lib/supabase.js'; // Properly import please 
 import Button from "../components/Button";
 import Input from "../components/Input";
 
