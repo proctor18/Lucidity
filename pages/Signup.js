@@ -1,8 +1,18 @@
 import { View, Text, StyleSheet } from "react-native";
+import { useState } from 'react' ; 
+import supabase from '../lib/supabase.js' ; 
 import Button from "../components/Button.js";
 import Input from "../components/Input";
 
 export default function Signup() {
+  const [ loading, setLoading ] = useState(false) ; 
+  const [ fname, setFName ] = useState("") ; 
+  const [ lname, setLName ] = useState("") ; 
+  const [ email , setEmail ] = useState("") ; 
+
+  async function insertCredentials(){ // function to inkkjsert values into the user table  
+
+  }
   return (
     <View style={styles.container}>
       <View style={styles.placeholder} />
@@ -10,15 +20,15 @@ export default function Signup() {
       <View style={styles.infoContainer}>
         {/* Name */}
         {/* First name */}
-        <Text style={styles.luhLabel}>Name</Text>
-        <Input placeholder="First name" />
+        <Text style={styles.Label}>Name</Text>
+        <Input placeholder="First Name" callback={setFN} value={email} />
         {/* Last name */}
         <Input placeholder="Last name" />
         {/* Email */}
-        <Text style={styles.luhLabel}>Email</Text>
+        <Text style={styles.Label}>Email</Text>
         <Input placeholder="Enter your email address" />
         {/* First name */}
-        <Text style={styles.luhLabel}>Password</Text>
+        <Text style={styles.Label}>Password</Text>
         <Input placeholder="Create new password" />
         <Input placeholder="Confirm password" />
       </View>
@@ -64,7 +74,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#222",
     borderRadius: 32,
   },
-  luhLabel: {
+  Label: {
     color: "white",
     fontSize: "17px",
     fontWeight: "bold",
