@@ -1,40 +1,90 @@
-import { View, Text, StyleSheet } from "react-native";
-import { useState } from 'react' ; 
-import supabase from '../lib/supabase.js' ; 
+import { View, Text, StyleSheet, Alert } from "react-native";
+import { useState } from 'react';
+import supabase from '../lib/supabase.js';
 import Button from "../components/Button.js";
 import Input from "../components/Input";
 
-export default function Signup() {
-  const [ loading, setLoading ] = useState(false) ; 
-  const [ fname, setFName ] = useState("") ; 
-  const [ lname, setLName ] = useState("") ; 
-  const [ email , setEmail ] = useState("") ; 
+export default function Signup({ navigation }) {
+  const [loading, setLoading] = useState(false);
+  const [fname, setFName] = useState("");
+  const [lname, setLName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [cmpPassword, setCMPPassword] = useState("");
 
-  async function insertCredentials(){ // function to inkkjsert values into the user table  
+  async function insertCredentials() {
+    if (!fname || !lname || !email || !password || !cmpPassword) {
+      Alert.alert("Error", "Please Enter valid values for all the fields.");
+      return;
+    }
+    if (password !== cmpPassword) {
+      Alert.alert("Error", "The Passwords do not match.");
+      return;
+    }
 
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('role_id')
+        .eq('email', email)
+        .single();
+
+      if (data) {
+        Alert.alert("Email already exists", "Please sign in or utilize a unique email.");
+      } else {
+        const { error } = await supabase
+          .from('users')
+          .insert({
+            first_name: fname,
+            last_name: lname,
+            email: email,
+            password: password
+          });
+
+        if (!error) {
+          navigation.navigate("PopulateInfo");
+        } else {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.log("Error Occurred", error);
+      Alert.alert("Error", "An error occurred while signing up. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
   return (
     <View style={styles.container}>
       <View style={styles.placeholder} />
       <Text style={styles.signUpHeader}>Sign up</Text>
       <View style={styles.infoContainer}>
-        {/* Name */}
-        {/* First name */}
+{/*----------------------------------------------------------------  Name -----------------------------------------------------------------------*/}
+
         <Text style={styles.Label}>Name</Text>
-        <Input placeholder="First Name" callback={setFN} value={email} />
-        {/* Last name */}
-        <Input placeholder="Last name" />
+
+        <Input placeholder="First Name" callback={setFName} value={fname} />
+
+        <Input placeholder="Last Name" callback={setLName} value={lname} />
+
+{/*----------------------------------------------------------------  Name -----------------------------------------------------------------------*/}
+
+{/*----------------------------------------------------------------  Email -----------------------------------------------------------------------*/}
+
         {/* Email */}
         <Text style={styles.Label}>Email</Text>
-        <Input placeholder="Enter your email address" />
+        <Input placeholder="Email" callback={setEmail} value={email} />
         {/* First name */}
         <Text style={styles.Label}>Password</Text>
-        <Input placeholder="Create new password" />
-        <Input placeholder="Confirm password" />
+        <Input placeholder="Password" callback={setPassword} value={password} />
+        <Input placeholder="Confirm password" callback={setCMPPassword} value={cmpPassword} />
       </View>
 
+{/*----------------------------------------------------------------  Email -----------------------------------------------------------------------*/}
+
       <View style={styles.buttonContainer}>
-        <Button type="small" text="Continue" />
+        <Button type="small" text="Continue" callback={insertCredentials}/>
       </View>
     </View>
   );

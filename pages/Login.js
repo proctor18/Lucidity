@@ -21,7 +21,7 @@ export default function Login({ navigation }) {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('role_id')
+        .select('role_id') 
         .eq('email', email)
         .eq('password', password)
         .single();
@@ -34,7 +34,7 @@ export default function Login({ navigation }) {
 
       if (data) {
         console.log("Login successful:", data);
-        navigation.navigate("PopulateInfo");
+        navigation.navigate("PopulateInfo"); // Check to see if role_id exists , if it does then this implies that the user has gone through onboarding , change this to navigate to the start screen . 
       } else {
         Alert.alert("Error", "Invalid email or password.");
       }
