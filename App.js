@@ -6,6 +6,7 @@ import Login from "./pages/Login.js";
 import Launch from "./pages/Launch.js";
 import PopulateInfo from "./pages/PopulateInfo.js";
 import Start from "./pages/Start.js";
+import Dashboard from "./pages/Dashboard.js";
 import Signup from "./pages/Signup.js";
 import UsersList from "./pages/UsersList.js";
 import "react-native-gesture-handler";
@@ -27,6 +28,7 @@ export default function App() {
         <Stack.Screen name="Signup" component={Signup} />
         <Stack.Screen name="Start" component={Start} />
         <Stack.Screen name="UsersList" component={UsersList} />
+        <Stack.Screen name="Dashboard" component={Dashboard} />
       </Stack.Navigator>
     </NavigationContainer>
   );

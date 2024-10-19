@@ -115,7 +115,7 @@ export default function PopulateInfo({ route , navigation }) {
               return; // Handle the error as needed
           }
 
-          console.log("Insert successful");
+          // console.log("Insert successful");
           
       } catch (error) {
           console.error("Error occurred:", error);
