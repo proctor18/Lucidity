@@ -48,7 +48,12 @@ export default function Signup({ navigation }) {
           });
 
         if (!error) {
-          navigation.navigate("PopulateInfo");
+          navigation.navigate("PopulateInfo" , {
+            first_name: fname,
+            last_name: lname,
+            email: email,
+            user_id : userId
+          });
         } else {
           throw error;
         }

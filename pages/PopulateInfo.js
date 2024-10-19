@@ -80,12 +80,16 @@ const TOPIC_MAP = [
 ,
 ]
 
-export default function PopulateInfo({ navigation }) {
+export default function PopulateInfo({ route , navigation }) {
+
+  const { first_name , last_name , email ,user_id } = route.params ; 
+
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedOption, setSelectedOption] = useState("");
   const [formData, setFormData] = useState({});
-
   const [topicList , setTopic ] = useState([]) ;
+
+  console.log(first_name) ; 
 
 // -------------------------------- Review ------------------------------
   
