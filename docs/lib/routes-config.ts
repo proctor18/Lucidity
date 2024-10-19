@@ -66,6 +66,7 @@ export const ROUTES: EachRoute[] = [
     items : [
       {title: "Relation Schematic" , href : "/schematic"} , 
       {title: "Supabase User Authentication" , href : "/supabase"} , 
+      {title: "UUID Generation" , href : "/uuid"} , 
     ],
   },
 
