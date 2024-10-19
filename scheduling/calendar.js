@@ -59,8 +59,6 @@ async function addEventToDatabase(userId, eventDetails, googleAccessToken) {
         event_name: eventDetails.title,
         event_start: eventDetails.startDateTime,
         event_end: eventDetails.endDateTime,
-        location: eventDetails.location,
-        description: eventDetails.description,
       });
 
     if (error) {
@@ -175,8 +173,6 @@ async function addToGoogleCalendar(accessToken, eventDetails) {
       calendarId: 'primary',
       resource: {
         summary: eventDetails.title,
-        location: eventDetails.location,
-        description: eventDetails.description,
         // events have the format of '2024-01(month)-01(day) 01:00:00(hour:minute:second)'
         start: {
           dateTime: eventDetails.startDateTime,
@@ -290,8 +286,8 @@ async function syncDatabaseToGoogleCalendar(userId, googleAccessToken) {
           title: event.event_name,
           startDateTime: event.event_start,
           endDateTime: event.event_end,
-          location: event.location,
-          description: event.description,
+          // location: event.location,
+          // description: event.description,
         });
 
         console.log('Event synced to Google Calendar:', event.event_name);
@@ -324,6 +320,9 @@ function checkForOverlap(event1, event2) {
 /**
  * Function to check for conflicts between two users schedules from Supabase
  * Requires using the syncGoogleCalendar function first for accurate conflict checking
+ * This checks the two users ENTIRE schedule, so good to use to find any initial conflicts
+ * (validateBooking function in booking.js can be used to check for specific overlap)
+ * Could be useful as an admin tool or if we allow bulk bulking of sessions (i.e. recurring sessions)
 */
 async function checkForScheduleConflicts(user1Id, user2Id) {
   // Sync both users' calendars with Database before checking for conflicts
