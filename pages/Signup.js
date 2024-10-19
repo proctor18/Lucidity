@@ -48,7 +48,7 @@ export default function Signup({ navigation }) {
           });
 
         if (!error) {
-          navigation.navigate("PopulateInfo" , {
+          navigation.navigate("PopulateInfo" , { //Pass some info about the user 
             first_name: fname,
             last_name: lname,
             email: email,

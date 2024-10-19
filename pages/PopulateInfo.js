@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import Button from '../components/Button.js';
+import  { supabase } from '../lib/supabase.js' ; 
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -88,9 +89,40 @@ export default function PopulateInfo({ route , navigation }) {
   const [selectedOption, setSelectedOption] = useState("");
   const [formData, setFormData] = useState({});
   const [topicList , setTopic ] = useState([]) ;
+  const [loading , setLoading ] = useState(false) ;
 
-  console.log(first_name) ; 
+  // console.log(first_name) ;   // Why does this console.log everytime ??
 
+  //Function to handle the writing to the database
+  async function writeValues() {
+      if (!topicList || !selectedOption) {
+          console.error("Error: Values are missing");
+          return; // Return early if values are missing
+      }
+      setLoading(true);
+      try {
+          const { error } = await supabase
+              .from("users")
+              .update({
+                  role_id: selectedOption === "Tutor" ? 1 : 0,
+                  // ArrayOfStuff: selectedOption === "Tutor" ? 1 : 0, //  add later  user_role delineates whether teaching or learning 
+                  user_id: user_id  // Ig this is how u do it ?
+              })
+              .eq("user_id" , user_id); 
+          
+          if (error) {
+              console.error("Error occurred while inserting:", error);
+              return; // Handle the error as needed
+          }
+
+          console.log("Insert successful");
+          
+      } catch (error) {
+          console.error("Error occurred:", error);
+      } finally {
+          setLoading(false);
+      }
+  }
 // -------------------------------- Review ------------------------------
   
   const addTopic = (newTopic) => {
@@ -110,8 +142,8 @@ export default function PopulateInfo({ route , navigation }) {
     if (currentStep < dialog.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      console.log("Form completed:", formData);
-      // navigation.navigate("NextScreen", { formData });
+      // console.assert(!selectedOption || !topicList  , "Error , Missing values") ;  // Should never occur 
+      writeValues() ; 
     }
   };
 
@@ -204,7 +236,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     flexDirection: "column",
     flex: 1,
-    // backgroundColor: '#0F0F0F',
     backgroundColor: 'black',
     alignItems: 'center',
     justifyContent: 'space-between',
