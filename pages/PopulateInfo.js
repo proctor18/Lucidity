@@ -128,11 +128,11 @@ export default function PopulateInfo({ route , navigation }) {
   const addTopic = (newTopic) => {
       if(topicList.includes(newTopic)) {
         const index = topicList.indexOf(newTopic);
-        const updatedTopics = [...topicList]; // Create a copy of the array
-        updatedTopics.splice(index, 1);   // Remove the item
-        setTopic(updatedTopics);          // Update the state
+        const updatedTopics = [...topicList]; 
+        updatedTopics.splice(index, 1);   
+        setTopic(updatedTopics);         
       } else {
-        setTopic([...topicList, newTopic]);    // Add new topic to the array
+        setTopic([...topicList, newTopic]);    
       }
   };
 
