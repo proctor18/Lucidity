@@ -105,8 +105,8 @@ export default function PopulateInfo({ route , navigation }) {
               .from("users")
               .update({
                   role_id: selectedOption === "Tutor" ? 1 : 0,
-                  // ArrayOfStuff: selectedOption === "Tutor" ? 1 : 0, //  add later  user_role delineates whether teaching or learning 
-                  user_id: user_id  // Ig this is how u do it ?
+                  topics : topicList ,    // Push array to db 
+                  user_id: user_id  
               })
               .eq("user_id" , user_id); 
           
