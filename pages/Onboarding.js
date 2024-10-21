@@ -1,403 +1,350 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { StyleSheet, Text, View, Dimensions, TouchableOpacity } from 'react-native';
-import { Video } from 'expo-av';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring, 
-  interpolateColor,
-  interpolate,
-  Extrapolate,
-  withTiming,
-  runOnJS
-} from 'react-native-reanimated';
-import { useAnimatedScrollHandler } from 'react-native-reanimated';
-import { GestureDetector } from 'react-native-gesture-handler';
-import { BlurView } from 'expo-blur';
-import 'react-native-gesture-handler';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import Button from '../components/Button.js';
+import  { supabase } from '../lib/supabase.js' ; 
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const VideoComponent = ({ source, isVisible }) => {
-  const video = useRef(null);
+const dialog = [
+  {
+    title: "Help us get to know you better",
+    subTitle: "Which one are you?",
+    options: ["Student", "Tutor"]
+  },
+  {
+    title: "What subjects are you comfortable teaching?" ,
+    subTitle: "Help us get to know you better",
+    inputType: "text"
+  },
+  {
+    title: "What is your availability like?" ,
+    subTitle: "Help us get to know you better",
+    inputType: "email"
+  }
+];
 
-  React.useEffect(() => {
-    if (isVisible) {
-      video.current.playAsync();
-    } else {
-      video.current.stopAsync();
-    }
-  }, [isVisible]);
+const TOPIC_MAP = [
+  {
+    title : "Math" , 
+    subCount : 1 , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
+  },
+  {
+    title : "Chemistry" , 
+    subCount : 1 , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
+  },
+  {
+    title : "Art" , 
+    subCount : 1 , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
+  },
+  {
+    title : "Language Arts" , 
+    subCount : 1 , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
+  },
+  {
+    title : "Biology" , 
+    subCount : 1 , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
+  },
+  {
+    title : "Philosophy" , 
+    subCount : 1 , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
+  },
+  {
+    title : "Physics" , 
+    subCount : 1 , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
+  },
+  {
+    title : "Programming" , 
+    subCount : 1 , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
+  },
+  {
+    title : "Anthropology" , 
+    subCount : 1 , 
+    icon : "../assets/icons/mathPurple.png"  , 
+    activeIcon : "../assets/icons/mathWhite.png" 
+  },
+,
+]
 
-  return (
-    <View style={styles.videoContainer}>
-      <Video
-        ref={video}
-        source={source}
-        style={styles.video}
-        resizeMode="cover"
-        shouldPlay={false}
-        isMuted={true}
-      />
-    </View>
-  );
-};
+export default function PopulateInfo({ route , navigation }) {
 
-export default function Onboarding({navigation}) {
-  const width = useSharedValue(64);
-  const borderRadius = useSharedValue(32);
+  const { first_name , last_name , email ,user_id  , topicList} = route.params ; 
+
   const [currentStep, setCurrentStep] = useState(0);
-  const flatListRef = useRef(null);
-  const scrollX = useSharedValue(0);
+  const [selectedOption, setSelectedOption] = useState("");
+  const [formData, setFormData] = useState({});
+  const [topicList , setTopic ] = useState([]) ;
+  const [loading , setLoading ] = useState(false) ;
 
-  const [visibleIndex, setVisibleIndex] = useState(0);
-  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
-  const drawerAnimation = useSharedValue(SCREEN_HEIGHT);
+  // console.log(first_name) ;   // Why does this console.log everytime ??
 
-  const dialog = [
-    {
-      title: "Simple booking",
-      subtitle: "Anytime    Anywhere.",
-      color: '#0F0F0F',
-      video: require('../assets/anims/direction.mp4')
-    },
-    {
-      title: "Learning can be lacklustre , Let's",
-      subtitle: "Gamify it.",
-      color: '#0F0F0F',
-      video: require('../assets/anims/Anim.mp4')
-    },
-    {
-      title: "Real-time alerts,",
-      subtitle: "no delay.",
-      color: '#0F0F0F',
-      video: require('../assets/anims/Throw.mp4')
-    },
-  ];
-
-  const showDrawer = () => {
-    setIsDrawerVisible(true);
-    drawerAnimation.value =  withSpring(0 , {
-      mass: 1,
-      damping: 10,
-      stiffness: 47,
-      overshootClamping: false,
-      restDisplacementThreshold: 0.01,
-      restSpeedThreshold: 2,
-    })
-  
-  };
-
-  const hideDrawer = () => {
-    drawerAnimation.value = withSpring(SCREEN_HEIGHT, {}, () => {
-      runOnJS(setIsDrawerVisible)(false);
-    });
-  };
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    width: width.value,
-    borderRadius: borderRadius.value,
-    backgroundColor: '#222',
-  }));
-
-  const imageContainerAnimatedStyle = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(
-      scrollX.value,
-      [0, SCREEN_WIDTH, SCREEN_WIDTH * 2],
-      [dialog[0].color, dialog[1].color, dialog[2].color]
-    ),
-    transform: [{
-      scale: interpolate(
-        scrollX.value,
-        [0, SCREEN_WIDTH, SCREEN_WIDTH * 2],
-        [1, 1, 1],
-        Extrapolate.CLAMP
-      ),
-    }],
-  }));
-
-  const drawerStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateY: drawerAnimation.value }],
-    };
-  });
-
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollX.value = event.contentOffset.x;
-    },
-  });
-
-  const renderItem = useCallback(({ item, index }) => (
-    <View style={styles.page}>
-      <Animated.View style={[styles.imageContainer, imageContainerAnimatedStyle]}>
-        <VideoComponent source={item.video} isVisible={index === visibleIndex} />
-      </Animated.View>
-      <View style={styles.TextContainer}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.subtitle}>{item.subtitle}</Text>
-      </View>
-    </View>
-  ), [visibleIndex]);
-
-  const onViewableItemsChanged = useCallback(({ viewableItems }) => {
-    if (viewableItems.length > 0) {
-      const newIndex = viewableItems[0].index;
-      setCurrentStep(newIndex);
-      setVisibleIndex(newIndex);
-      if (newIndex === dialog.length - 1) {
-        width.value = withSpring(164);
-        borderRadius.value = withSpring(12);
-      } else {
-        width.value = withSpring(64);
-        borderRadius.value = withSpring(32);
+  //Function to handle the writing to the database
+  async function writeValues() {
+      if (!topicList || !selectedOption) {
+          console.error("Error: Values are missing");
+          return; // Return early if values are missing
       }
-    }
-  }, [dialog.length, width, borderRadius]);
+      setLoading(true);
+      try {
+          const { error } = await supabase
+              .from("users")
+              .update({
+                  role_id: selectedOption === "Tutor" ? 1 : 0,
+                  topics : topicList ,    // Push array to db 
+                  user_id: user_id  
+              })
+              .eq("user_id" , user_id); 
+          
+          if (error) {
+              console.error("Error occurred while inserting:", error);
+              return; // Handle the error as needed
+          }
 
-  const handleGetStarted = () => {
-    if (currentStep === dialog.length - 1) {
-      // showDrawer();
-      navigation.navigate("Start") ; 
+          // console.log("Insert successful");
+          
+      } catch (error) {
+          console.error("Error occurred:", error);
+      } finally {
+          setLoading(false);
+      }
+  }
+// -------------------------------- Review ------------------------------
+  
+  const addTopic = (newTopic) => {
+      if(topicList.includes(newTopic)) {
+        const index = topicList.indexOf(newTopic);
+        const updatedTopics = [...topicList]; // Create a copy of the array
+        updatedTopics.splice(index, 1);   // Remove the item
+        setTopic(updatedTopics);          // Update the state
+      } else {
+        setTopic([...topicList, newTopic]);    // Add new topic to the array
+      }
+  };
+
+
+// -------------------------------- Review ------------------------------
+  const handleContinue = () => {
+    if (currentStep < dialog.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      // console.assert(!selectedOption || !topicList  , "Error , Missing values") ;  // Should never occur 
+      writeValues() ; 
     }
   };
+
+  const handleOptionSelect = (option) => {
+    setSelectedOption(option);
+    setFormData({ ...formData, userType: option });
+  };
+
+  const renderContent = () => {
+    const currentDialog = dialog[currentStep];
+
+    if (currentStep === 0) {
+      return (
+        <View style={styles.rowTwo}>
+          {currentDialog.options.map((option) => (
+            <TouchableOpacity
+              key={option}
+              style={selectedOption === option ? styles.activeCard : styles.card}
+              onPress={() => handleOptionSelect(option)}
+            >
+              <Text style={selectedOption === option ? styles.activeCardText : styles.cardText}>
+                {option}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      );
+    }
+
+// -------------------------------- Review ------------------------------
+    //
+    if (currentStep === 1){
+      return ( 
+        <View style={styles.chipContainer}>
+          {TOPIC_MAP.map((topic) => (
+            <Button
+              key={topic.title} // Always use a unique key
+              type="chip"
+              text={topic.title}
+              callback={() => addTopic(topic.title)} // Use a function reference
+              active={topicList.includes(topic.title)} // Check if the topic is in the active topics
+            />
+          ))}
+        </View>
+      )
+    }
+
+    if (currentStep === 2){
+      return ( 
+        <View style={styles.chipContainer}>
+        </View>
+      )
+    }
+  };
+// -------------------------------- Review ------------------------------
 
   return (
     <View style={styles.container}>
-      <Animated.FlatList
-        ref={flatListRef}
-        data={dialog}
-        renderItem={renderItem}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
-        keyExtractor={(_, index) => index.toString()}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-      />
-      <View style={styles.contentContainer}>
-        <View style={styles.buttonContainer}>
-          <View style={styles.pagination}>
-            {dialog.map((_, index) => (
-              <View
-                key={index}
-                style={[styles.circle, currentStep === index && styles.activeCircle]}
-              />
-            ))}
-          </View>
-          <Animated.View style={[styles.button, animatedStyle]}>
-            <TouchableOpacity onPress={handleGetStarted}>
-              <Text style={styles.buttonText}>
-                {currentStep === dialog.length - 1 ? 'Get Started' : ''}
-              </Text>
-            </TouchableOpacity>
-          </Animated.View>
-        </View>
+      <View style={styles.pagination}>
+        {dialog.map((_, index) => (
+          <View
+            key={index}
+            style={[styles.paginationDot, currentStep === index && styles.activeDot]}
+          />
+        ))}
       </View>
-      {isDrawerVisible && (
-        <Animated.View style={[styles.overlay, drawerStyle]}>
-          <BlurView intensity={80} style={styles.blurContainer}>
-            <View style={styles.drawer}>
-              <TouchableOpacity style={styles.closeButton} onPress={hideDrawer}>
-                <Text style={styles.closeButtonText}>X</Text>
-              </TouchableOpacity>
-              <View style={styles.drawerHandle} />
-              <Text style={styles.drawerTitle}>Continue with</Text>
-              <Text style={styles.drawerSubtitle}>Select the sign in option you would like to continue with</Text>
-              <TouchableOpacity style={styles.drawerButton}>
-                <Text style={styles.drawerButtonText}>Log in</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.drawerButton}>
-                <Text style={styles.drawerButtonText}>Sign up</Text>
-              </TouchableOpacity>
-              <View style={styles.drawerButtonRow}>
-                <TouchableOpacity style={[styles.drawerButton, styles.halfButton]}>
-                  <Text style={styles.drawerButtonText}>Sign up</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.drawerButton, styles.halfButton]}>
-                  <Text style={styles.drawerButtonText}>Sign up</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </BlurView>
-        </Animated.View>
-      )}
+      <View style={styles.contentContainer}>
+        <View style={styles.rowOne}>
+          <Text style={styles.subTitle}>{dialog[currentStep].subTitle}</Text>
+          <Text style={styles.title}>{dialog[currentStep].title}</Text>
+        </View>
+        {renderContent()}
+      </View>
+      <View style={styles.buttonContainer}>
+        <Button
+          type="small"
+          text={currentStep === dialog.length - 1 ? "Submit" : "Continue"}
+          callback={handleContinue}
+          disabled={currentStep === 0 && !selectedOption}
+        />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    width: "100%",
+    height: "100%",
+    paddingHorizontal: 32,
+    flexDirection: "column",
     flex: 1,
-    // backgroundColor: '#12101d',
     backgroundColor: 'black',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingTop: 60,
     paddingBottom: 40,
   },
-  videoContainer: {
-    width: '100%',
-    height: '100%',
-    overflow: 'hidden',
-    mixBlendMode: 'screen' 
-  },
-  video: {
-    width: '100%',
-    height: '100%',
-  },
-  imageContainer: {
-    height: 475,
-    width: SCREEN_WIDTH,
-    marginBottom: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
   contentContainer: {
-    width: '100%',
-    paddingHorizontal: 20,
-    flexDirection: 'row',
+    flex: 1,
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "flex_start",
   },
   pagination: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 40,
   },
-  circle: {
-    height: 12,
-    width: 12,
-    borderRadius: 6,
-    backgroundColor: '#222222',
-    marginHorizontal: 6,
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: '#2F2F31',
+  paginationDot: {
+    height: 8,
+    width: 8,
+    borderRadius: 4,
+    backgroundColor: 'grey',
+    marginHorizontal: 4,
   },
-  activeCircle: {
-    backgroundColor: '#B7ACFF',
-    width: 24,
-    borderRadius: 12,
+  activeDot: {
+    backgroundColor: '#8770FF', // change to blue later 
+    width: 16,
+  },
+  rowOne: {
+    padding: 0,
+    margin: 0,
+    width: "100%",
+    alignItems: "flex-start",
+    justifyContent: "center",
+    marginBottom: 40,
+    textAlign : 'left' , 
+  },
+  subTitle: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 18,
+    marginBottom: 8,
+    opacity : 0.7 ,
+    textAlign : 'left' , 
   },
   title: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    textAlign: 'left',
-    color: 'white',
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 24,
+    textAlign : 'left' , 
   },
-  subtitle: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    textAlign: 'left',
-    color: '#B7ACFF',
-    marginBottom: 20,
+  rowTwo: {
+    gap: 8,
+    width: "100%",
+    hieght : "100%" ,
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  button: {
-    backgroundColor: '#222',
-    paddingVertical: 15,
-    height: 64,
-    justifyContent: 'center',
-    alignItems: 'center',
+  card: {
+    height: 225,
+    width: "100%",
+    borderRadius: 12,
     borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: '#2F2F31',
+    borderStyle: "solid",
+    borderColor: "#2F2F31",
+    shadowColor: '#171717',
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  buttonText: {
-    color: '#fff',
+  activeCard: {
+    height: 225,
+    width: "100%",
+    borderRadius: 12,
+    borderWidth: 1,
+    shadowOffset: {width: 0, height: 1},
+    shadowOpacity: 0.05,
+    shadowRadius: 1,
+    backgroundColor: "#27223F",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cardText: {
+    color: "#6D6D6D",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
-  TextContainer: {
-    width: '100%',
-    marginBottom: 48,
+  activeCardText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
   },
   buttonContainer: {
-    flexDirection: 'row',
-    alignItems: 'space-between',
-    justifyContent: 'space-between',
-    width: '100%',
+    width: "100%",
   },
-  page: {
-    width: SCREEN_WIDTH,
+  inputContainer: {
+    width: "100%",
+    alignItems: "center",
+  },
+  chipContainer : {
+    width : "100%" , 
+    flexDirection : "row" ,
+    flexWrap: 'wrap',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  overlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  blurContainer: {
-    width: '100%',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    overflow: 'hidden',
-  },
-  drawer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    paddingVertical: 48,
-    paddingHorizontal : 20 ,
-    width: '100%',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    zIndex: 1,
-    width: 30,
-    height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  closeButtonText: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  drawerHandle: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#3A3A3C',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
-  drawerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 10,
-  },
-  drawerSubtitle: {
-    fontSize: 16,
-    color: '#8E8E93',
-    marginBottom: 20,
-  },
-  drawerButton: {
-    backgroundColor: '#2C2C2E',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-  drawerButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  drawerButtonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  halfButton: {
-    flex: 0.48,
-  },
+    gap: 8,
+  } ,
 });
