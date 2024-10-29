@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet , TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet , TouchableOpacity , ScrollView } from 'react-native';
 import React from 'react';
 import SessionsCarousel from '../components/SessionsCarousel.js';
 
@@ -33,18 +33,49 @@ export default function Dashboard({ navigation, route }) {
   // Extract name from email for the header
   
   return (
-    <View style={styles.container}>
-      <Header userName={ first_name } />
-      <SessionsCarousel />
-    </View>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Header userName={first_name} />
+      <View style={styles.textContainer}>
+        <Text style={styles.sessionText}>
+          Sessions
+        </Text>
+      </View>
+      <View style={styles.CarouselContainer}>
+        <SessionsCarousel />
+      </View>
+      <View style={styles.textContainer}>
+        <Text style={styles.sessionText}>
+          Details
+        </Text>
+      </View>
+
+      <TouchableOpacity 
+        style={styles.sessionBeginButton}
+        onPress={() => {/* Add your onPress handler here */}}
+      >
+        <Text style={styles.buttonText}>Session begins</Text>
+        <View style={styles.badge}>
+          <Text style={styles.time}>
+            12:45PM
+          </Text>
+          <View style={styles.chip}>
+            <Text style={styles.time}>
+              10 minutes
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     backgroundColor: '#131313',
   },
+
   content: {
     flex: 1,
     alignItems: 'center',
@@ -126,5 +157,53 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 2,
     borderColor: '#FFFFFF',
+  },
+  CarouselContainer: { 
+    paddingVertical : 16 , 
+  },
+  sessionText : {
+    color : 'white' , 
+    fontSize : 20 , 
+    fontWeight : 'bold' , 
+  },
+  textContainer : {
+    marginVertical : 8, 
+    paddingHorizontal : 16 , 
+  },
+  sessionBeginButton: {
+    backgroundColor: '#1B1C1E',
+    marginHorizontal: 16,
+    paddingVertical: 24,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'left',
+    borderStyle : 'solid' , 
+    borderWidth : 1 , 
+    borderColor : '#313234' , 
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18 ,
+    fontWeight: '600',
+    paddingBottom : 4 , 
+  },
+  badge : {
+    flex : 1 , 
+    flexDirection : 'row' , 
+    gap : 4 , 
+    justifyContent : 'center' , 
+    alignItems : 'center' , 
+  }, 
+  time : {
+    color : 'white' , 
+    opacity : 0.7 ,
+    fontSize : 14 , 
+  },
+  chip : {
+    paddingVertical : 2 , 
+    paddingHorizontal : 4 , 
+    borderRadius : 4 , 
+    backgroundColor : '#2E2E30' ,
+    fontSize : 14 , 
   },
 });

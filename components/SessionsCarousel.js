@@ -17,9 +17,9 @@ const SessionsCarousel = () => {
 
   // Define data without images
   const data = [
-    { id: '1', name: 'Chemistry', exp: 'Experience 1' },
-    { id: '2', name: 'Toplogy', exp: 'Experience 2' },
-    { id: '3', name: 'Chinese', exp: 'Experience 2' },
+    { id: '1', name: 'Chemistry', exp: 'Seesion 1' },
+    { id: '2', name: 'Toplogy', exp: 'Session 2' },
+    { id: '3', name: 'Chinese', exp: 'Session 3' },
     // Add more items as needed
   ];
 
@@ -60,7 +60,6 @@ const SessionsCarousel = () => {
         decelerationRate="fast"
         snapToInterval={ITEM_FULL_WIDTH}
       />
-
     </SafeAreaView>
   );
 };
@@ -70,7 +69,6 @@ export default SessionsCarousel;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#131313',
   },
   textContainer: {
     flex: 2,

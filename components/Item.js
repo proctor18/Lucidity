@@ -40,8 +40,8 @@ const Item = ({ item, width, height, marginHorizontal, fullWidth, x, index }) =>
       </View>
       <View style={styles.bottomContainer}>
         <View style={styles.textContainer}>
-          <Text style={styles.textName}>{item.name}</Text>
           <Text style={styles.textExp}>{item.exp}</Text>
+          <Text style={styles.textName}>{item.name}</Text>
         </View>
         <View style={styles.visaContainer}>
           <Image source={item.visa} resizeMode="contain" style={styles.visa} />
@@ -55,9 +55,12 @@ export default Item;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',
+    backgroundColor: '#1B1C1E',
     borderRadius: 12,
     overflow: 'hidden',
+    borderStyle : 'solid' , 
+    borderWidth : 1 , 
+    borderColor : '#313234' , 
   },
   imageContainer: { flex: 4 },
   image: { flex: 1 },
@@ -70,14 +73,15 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   textName: {
-    color: '#111111',
+    color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 4,
   },
   textExp: {
-    color: '#111111',
+    color: 'white',
     fontSize: 16,
+    opacity : 0.7 , 
   },
   visaContainer: {
     flex: 1,
