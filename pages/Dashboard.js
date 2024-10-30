@@ -1,7 +1,8 @@
-import { View, Text, StyleSheet , TouchableOpacity , ScrollView } from 'react-native';
-import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState } from 'react';
 import SessionsCarousel from '../components/SessionsCarousel.js';
-import ButtonDiv from '../components/ButtonDiv.js' ; 
+import ButtonDiv from '../components/ButtonDiv.js';
+
 const Header = ({ userName = 'Username', greeting = 'Good Morning!' }) => {
   return (
     <View style={styles.headerContainer}>
@@ -26,13 +27,21 @@ const Header = ({ userName = 'Username', greeting = 'Good Morning!' }) => {
 };
 
 export default function Dashboard({ navigation, route }) {
-  const { email } = route.params;
-  const { first_name } = route.params;
-  const { last_name } = route.params;
-  
-  
+  const { email, first_name, last_name } = route.params;
+  const [centeredSessionId, setCenteredSessionId] = useState('1'); // Default to first item
+
+  const handleCenterChange = (itemId) => {
+    setCenteredSessionId(itemId);
+  };
+
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView 
+      contentContainerStyle={styles.container} 
+      overScrollMode="never" 
+      bounces={true}
+      endFillColor='#131313' 
+      style={styles.scrollView}
+    >
       <Header userName={first_name} />
       <View style={styles.textContainer}>
         <Text style={styles.sessionText}>
@@ -40,27 +49,41 @@ export default function Dashboard({ navigation, route }) {
         </Text>
       </View>
       <View style={styles.CarouselContainer}>
-        <SessionsCarousel />
+        <SessionsCarousel onCenterItemChange={handleCenterChange} />
       </View>
-      <View style={styles.textContainer}>
-        <Text style={styles.sessionText}>
-          Details
-        </Text>
-      </View>
-      <View style={styles.buttonDiv}>
-        <ButtonDiv /> 
-        <ButtonDiv /> 
+      <View style={styles.rowTwo}>
+        <View style={styles.textContainer}>
+          <Text style={styles.sessionText}>
+            Details
+          </Text>
+        </View>
+        <View style={styles.buttonDiv}>
+          <ButtonDiv />
+          <View style={styles.horizontalContainer}>
+            <ButtonDiv 
+              type='wide' 
+              date={`Session ${centeredSessionId}`}
+            />
+            <ButtonDiv 
+              type='wide' 
+              date={`Session ${centeredSessionId}`}
+            />
+          </View>
+        </View>
       </View>
     </ScrollView>
   );
 }
 
+// ... styles remain the same as in previous example
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     backgroundColor: '#131313',
   },
-
+  scrollView: {
+    backgroundColor: '#131313',
+  },
   content: {
     flex: 1,
     alignItems: 'center',
@@ -71,7 +94,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
   },
-  // Header Styles
   headerContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -110,7 +132,8 @@ const styles = StyleSheet.create({
     borderColor: '#131313',
   },
   textContainer: {
-    marginLeft: 12,
+    marginVertical: 8,
+    paddingHorizontal: 16,
   },
   greeting: {
     color: '#FFFFFF',
@@ -144,34 +167,41 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF',
   },
   CarouselContainer: { 
-    paddingVertical : 16 , 
+    paddingVertical: 16,
   },
-  sessionText : {
-    color : 'white' , 
-    fontSize : 20 , 
-    fontWeight : 'bold' , 
-    marginBottom : 12 , 
-  },
-  textContainer : {
-    marginVertical : 8, 
-    paddingHorizontal : 16 , 
+  sessionText: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 12,
   },
   buttonText: {
     color: '#FFFFFF',
-    fontSize: 18 ,
+    fontSize: 18,
     fontWeight: '600',
-    paddingBottom : 4 , 
+    paddingBottom: 4,
   },
-  badge : {
-    flex : 1 , 
-    flexDirection : 'row' , 
-    gap : 4 , 
-    justifyContent : 'center' , 
-    alignItems : 'center' , 
-  }, 
-  buttonDiv : {
-    flex : 1 , 
-    flexDirection : 'column' , 
-    gap : 8 ,
+  badge: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
+  buttonDiv: {
+    flex: 1,
+    flexDirection: 'column',
+    gap: 8,
+  },
+  horizontalContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 32,
+  },
+  rowTwo: {
+    flex: 1,
+  }
 });
+
