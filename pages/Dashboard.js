@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet , TouchableOpacity , ScrollView } from 'react-native';
 import React from 'react';
 import SessionsCarousel from '../components/SessionsCarousel.js';
-
+import ButtonDiv from '../components/ButtonDiv.js' ; 
 const Header = ({ userName = 'Username', greeting = 'Good Morning!' }) => {
   return (
     <View style={styles.headerContainer}>
@@ -48,24 +48,11 @@ export default function Dashboard({ navigation, route }) {
           Details
         </Text>
       </View>
-
-      <TouchableOpacity 
-        style={styles.sessionBeginButton}
-        onPress={() => {/* Add your onPress handler here */}}
-      >
-        <Text style={styles.buttonText}>Session begins</Text>
-        <View style={styles.badge}>
-          <Text style={styles.time}>
-            12:45PM
-          </Text>
-          <View style={styles.chip}>
-            <Text style={styles.time}>
-              10 minutes
-            </Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-
+      <View style={styles.buttonDiv}>
+        <ButtonDiv /> 
+        <ButtonDiv /> 
+        <ButtonDiv /> 
+      </View>
     </ScrollView>
   );
 }
@@ -170,17 +157,6 @@ const styles = StyleSheet.create({
     marginVertical : 8, 
     paddingHorizontal : 16 , 
   },
-  sessionBeginButton: {
-    backgroundColor: '#1B1C1E',
-    marginHorizontal: 16,
-    paddingVertical: 24,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'left',
-    borderStyle : 'solid' , 
-    borderWidth : 1 , 
-    borderColor : '#313234' , 
-  },
   buttonText: {
     color: '#FFFFFF',
     fontSize: 18 ,
@@ -194,16 +170,9 @@ const styles = StyleSheet.create({
     justifyContent : 'center' , 
     alignItems : 'center' , 
   }, 
-  time : {
-    color : 'white' , 
-    opacity : 0.7 ,
-    fontSize : 14 , 
-  },
-  chip : {
-    paddingVertical : 2 , 
-    paddingHorizontal : 4 , 
-    borderRadius : 4 , 
-    backgroundColor : '#2E2E30' ,
-    fontSize : 14 , 
+  buttonDiv : {
+    flex : 1 , 
+    width : "100%" ,
+    flexDirection : 'column' , 
   },
 });
