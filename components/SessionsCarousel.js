@@ -6,7 +6,7 @@ import CarouselButton from './CarouselButton.js';
 import { supabase } from '../lib/supabase.js'   ; 
 import Item from './Item.js';
 
-const SessionsCarousel = ( { roleID , userID }) => {
+const SessionsCarousel = ( { sessions , loading }) => {
   const { width } = useWindowDimensions();
   const x = useSharedValue(0);
 
@@ -17,10 +17,14 @@ const SessionsCarousel = ( { roleID , userID }) => {
   const SPACER = (width - ITEM_FULL_WIDTH) / 2;
 
  
-  const values = [
-    { id: '1', name: 'Toplogy', exp: 'Session 2' },
-    { id: '2', name: 'Toplogy', exp: 'Session 2' },
-  ];
+  const values = sessions.map((dict , index ) => { // Mapping the values
+    return {
+      id: `Session ${index + 1}`,
+      name: `${dict.subject}`,
+      exp: `Session ${index + 1}`,
+    };
+  });
+
 
   const onScroll = useAnimatedScrollHandler({
     onScroll: (event) => {

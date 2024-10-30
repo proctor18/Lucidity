@@ -105,7 +105,6 @@ export default function Dashboard({ navigation, route }) {
         <SessionsCarousel 
           sessions={sessions}
           loading={loading}
-          isStudent={role_id === 0}
         /> 
       </View>
 
