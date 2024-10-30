@@ -1,11 +1,10 @@
 import { View, Text, StyleSheet, Alert } from "react-native";
 import { useState } from 'react';
-import { supabase } from '../lib/supabase.js'; // Properly import please 
+import { supabase } from '../lib/supabase.js';
 import Button from "../components/Button.js";
 import Input from "../components/Input";
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
-
 
 export default function Signup({ navigation }) {
   const [loading, setLoading] = useState(false);
@@ -27,37 +26,33 @@ export default function Signup({ navigation }) {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('role_id')
+      const { data: studentData, error: studentError } = await supabase
+        .from('students')
+        .select('email')
         .eq('email', email)
         .single();
 
-      if (data) {
-        Alert.alert("Email already exists", "Please sign in or utilize a unique email.");
-      } else {
-        const userId = uuidv4(); // generate uuid for the user 
-        const { error } = await supabase
-          .from('users')
-          .insert({
-            first_name: fname,
-            last_name: lname,
-            email: email,
-            password: password,
-            user_id : userId
-          });
+      const { data: tutorData, error: tutorError } = await supabase
+        .from('tutors')
+        .select('email')
+        .eq('email', email)
+        .single();
 
-        if (!error) {
-          navigation.navigate("PopulateInfo" , { //Pass some info about the user 
-            first_name: fname,
-            last_name: lname,
-            email: email,
-            user_id : userId
-          });
-        } else {
-          throw error;
-        }
+      if (studentData || tutorData) {
+        Alert.alert("Email already exists", "Please sign in or utilize a unique email.");
+        setLoading(false);
+        return;
       }
+
+      const userId = uuidv4();
+      navigation.navigate("PopulateInfo", {
+        first_name: fname,
+        last_name: lname,
+        email: email,
+        password: password,
+        user_id: userId
+      });
+
     } catch (error) {
       console.log("Error Occurred", error);
       Alert.alert("Error", "An error occurred while signing up. Please try again.");
@@ -65,36 +60,41 @@ export default function Signup({ navigation }) {
       setLoading(false);
     }
   }
+
   return (
     <View style={styles.container}>
       <View style={styles.placeholder} />
       <Text style={styles.signUpHeader}>Sign up</Text>
       <View style={styles.infoContainer}>
-{/*----------------------------------------------------------------  Name -----------------------------------------------------------------------*/}
-
         <Text style={styles.Label}>Name</Text>
-
         <Input placeholder="First Name" callback={setFName} value={fname} />
-
         <Input placeholder="Last Name" callback={setLName} value={lname} />
 
-{/*----------------------------------------------------------------  Name -----------------------------------------------------------------------*/}
-
-{/*----------------------------------------------------------------  Email -----------------------------------------------------------------------*/}
-
-        {/* Email */}
         <Text style={styles.Label}>Email</Text>
         <Input placeholder="Email" callback={setEmail} value={email} />
-        {/* First name */}
+        
         <Text style={styles.Label}>Password</Text>
-        <Input placeholder="Password" callback={setPassword} value={password} />
-        <Input placeholder="Confirm password" callback={setCMPPassword} value={cmpPassword} />
+        <Input 
+          placeholder="Password" 
+          callback={setPassword} 
+          value={password} 
+          secureTextEntry={true}
+        />
+        <Input 
+          placeholder="Confirm password" 
+          callback={setCMPPassword} 
+          value={cmpPassword}
+          secureTextEntry={true}
+        />
       </View>
 
-{/*----------------------------------------------------------------  Email -----------------------------------------------------------------------*/}
-
       <View style={styles.buttonContainer}>
-        <Button type="small" text="Continue" callback={insertCredentials}/>
+        <Button 
+          type="small" 
+          text="Continue" 
+          callback={insertCredentials}
+          disabled={loading}
+        />
       </View>
     </View>
   );
@@ -108,7 +108,6 @@ const styles = StyleSheet.create({
     marginBottom: 50,
   },
   container: {
-    // backgroundColor: "#0F0F0F",
     backgroundColor: "black",
     flex: 1,
     justifyContent: "flex-end",
@@ -122,7 +121,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   signUpHeader: {
-    fontSize: "25px",
+    fontSize: 25, // Fixed px unit
     marginTop: 20,
     marginBottom: 20,
     fontWeight: "bold",
@@ -136,7 +135,7 @@ const styles = StyleSheet.create({
   },
   Label: {
     color: "white",
-    fontSize: "17px",
+    fontSize: 17, // Fixed px unit
     fontWeight: "bold",
   },
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, Platform } from 'react-native';
+import { View, Text, Image, StyleSheet, Platform , TouchableOpactiy } from 'react-native';
 import Animated, { useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reanimated';
 
 const Item = ({ item, width, height, marginHorizontal, fullWidth, x, index }) => {
@@ -62,8 +62,12 @@ const styles = StyleSheet.create({
     borderWidth : 1 , 
     borderColor : '#313234' , 
   },
-  imageContainer: { flex: 4 },
-  image: { flex: 1 },
+  imageContainer: { 
+    flex: 4 
+  },
+  image: {
+    flex: 1 
+  },
   bottomContainer: {
     flex: 1,
     flexDirection: 'row',

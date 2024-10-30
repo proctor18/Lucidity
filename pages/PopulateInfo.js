@@ -83,7 +83,7 @@ const TOPIC_MAP = [
 
 export default function PopulateInfo({ route , navigation }) {
 
-  const { first_name , last_name , email ,user_id } = route.params ; 
+  const { first_name , last_name , email , user_id  , password } = route.params ; 
 
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedOption, setSelectedOption] = useState("");
@@ -101,24 +101,40 @@ export default function PopulateInfo({ route , navigation }) {
       }
       setLoading(true);
       try {
+        if(selectedOption === "Tutor"){
           const { error } = await supabase
-              .from("users")
-              .update({
-                  role_id: selectedOption === "Tutor" ? 1 : 0,
-                  topics : topicList ,    // Push array to db 
-                  user_id: user_id  
+              .from("tutors")
+              .insert({
+                  role_id: 1 , 
+                  topics : topicList ,    
+                  tutor_id : user_id , 
+                  password : password , 
+                  email : email , 
+                  first_name : first_name , 
+                  last_name : last_name , 
               })
-              .eq("user_id" , user_id); 
-          
+        } else{
+          const { error } = await supabase
+              .from("students")
+              .insert({
+                  role_id: 0 , 
+                  topics : topicList ,    
+                  student_id : user_id , 
+                  password : password , 
+                  email : email , 
+                  first_name : first_name , 
+                  last_name : last_name , 
+              })
+        }
           if (error) {
               console.error("Error occurred while inserting:", error);
               return; // Handle the error as needed
           }
 
-          // console.log("Insert successful");
           
-      } catch (error) {
-          console.error("Error occurred:", error);
+      } catch  { // I dont know why this assertion is not working ? 
+          // console.error("Error occurred:", error);
+          console.log('hello') 
       } finally {
           setLoading(false);
       }

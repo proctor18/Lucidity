@@ -5,7 +5,7 @@ import Animated, { useSharedValue, useAnimatedScrollHandler } from 'react-native
 import CarouselButton from './CarouselButton.js';
 import Item from './Item.js';
 
-const SessionsCarousel = () => {
+const SessionsCarousel = ( { setCurrentItem }) => {
   const { width } = useWindowDimensions();
   const x = useSharedValue(0);
 

@@ -20,7 +20,7 @@ export default function Login({ navigation }) {
 
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('students' , 'teachers' ) // Changed to studnets and teachers seperately 
         .select('role_id , first_name , last_name') 
         .eq('email', email)
         .eq('password', password)
@@ -37,7 +37,9 @@ export default function Login({ navigation }) {
           email : data.email ,
           first_name : data.first_name ,
           last_name : data.last_name , 
-        }) ;  // Check to see if role_id exists , if it does then this implies that the user has gone through onboarding , change this to navigate to the start screen . 
+          role_id : data.role_id , 
+          user_id : data.role_id === 1 ? data.tutor_id : data.student_id 
+        }) ;  
       } else {
         Alert.alert("Error", "Invalid email or password.");
       }

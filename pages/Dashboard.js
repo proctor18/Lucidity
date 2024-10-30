@@ -27,12 +27,8 @@ const Header = ({ userName = 'Username', greeting = 'Good Morning!' }) => {
 };
 
 export default function Dashboard({ navigation, route }) {
-  const { email, first_name, last_name } = route.params;
-  const [centeredSessionId, setCenteredSessionId] = useState('1'); // Default to first item
+  const { email, first_name, last_name , role_id  , user_id } = route.params;
 
-  const handleCenterChange = (itemId) => {
-    setCenteredSessionId(itemId);
-  };
 
   return (
     <ScrollView 
@@ -49,7 +45,7 @@ export default function Dashboard({ navigation, route }) {
         </Text>
       </View>
       <View style={styles.CarouselContainer}>
-        <SessionsCarousel onCenterItemChange={handleCenterChange} />
+        <SessionsCarousel />
       </View>
       <View style={styles.rowTwo}>
         <View style={styles.textContainer}>
@@ -62,11 +58,11 @@ export default function Dashboard({ navigation, route }) {
           <View style={styles.horizontalContainer}>
             <ButtonDiv 
               type='wide' 
-              date={`Session ${centeredSessionId}`}
+              date={'9:45PM'}
             />
             <ButtonDiv 
               type='wide' 
-              date={`Session ${centeredSessionId}`}
+              date={'9:45PM'}
             />
           </View>
         </View>
