@@ -1,24 +1,30 @@
 import React from "react";
 import {  StyleSheet , Text , View , TouchableOpacity } from "react-native";
 
-export default function ButtonDiv( { date = "12:45PM" , countDown = "10 minutes"}){
+export default function ButtonDiv( { buttonText= "Example" , date = "12:45PM" , countDown = "10 minutes" , type = "long"}){
   return(
     <TouchableOpacity 
       style={styles.container}
       onPress={() => {/* Add your onPress handler here */}}
     >
-      <Text style={styles.buttonText}>
-        Session begins
-      </Text>
-      <View style={styles.badge}>
-        <Text style={styles.time}>
-          {date}
+      <View>
+        <Text style={styles.buttonText}>
+          {buttonText}
         </Text>
-        <View style={styles.chip}>
+        <View style={styles.badge}>
           <Text style={styles.time}>
             {date}
           </Text>
+          <View style={styles.chip}>
+            <Text style={styles.time}>
+              {countDown}
+            </Text>
+          </View>
         </View>
+      </View>
+
+      <View style={styles.icon}>
+
       </View>
     </TouchableOpacity>
   )
@@ -27,15 +33,19 @@ export default function ButtonDiv( { date = "12:45PM" , countDown = "10 minutes"
 
 const styles = StyleSheet.create({
   container: {
+    flex : 1 , 
+    flexDirection : 'row' , 
+    justifyContent : 'space-between' , 
+    alignItems : 'center' , 
     backgroundColor: '#1B1C1E',
     marginHorizontal: 16,
-    paddingVertical: 24,
+    paddingVertical : 24 , 
     padding: 16,
     borderRadius: 12,
-    alignItems: 'left',
     borderStyle : 'solid' , 
     borderWidth : 1 , 
     borderColor : '#313234' , 
+    maxHeight : 90 , 
   },
   buttonText: {
     color: '#FFFFFF',
@@ -61,5 +71,11 @@ const styles = StyleSheet.create({
     borderRadius : 4 , 
     backgroundColor : '#2E2E30' ,
     fontSize : 14 , 
+  },
+  icon : {
+    width : 48 , 
+    height : 48 , 
+    backgroundColor : '#2E2E30' ,
+    borderRadius : 24,
   },
 });

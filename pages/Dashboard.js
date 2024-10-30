@@ -30,7 +30,6 @@ export default function Dashboard({ navigation, route }) {
   const { first_name } = route.params;
   const { last_name } = route.params;
   
-  // Extract name from email for the header
   
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -49,7 +48,6 @@ export default function Dashboard({ navigation, route }) {
         </Text>
       </View>
       <View style={styles.buttonDiv}>
-        <ButtonDiv /> 
         <ButtonDiv /> 
         <ButtonDiv /> 
       </View>
@@ -152,6 +150,7 @@ const styles = StyleSheet.create({
     color : 'white' , 
     fontSize : 20 , 
     fontWeight : 'bold' , 
+    marginBottom : 12 , 
   },
   textContainer : {
     marginVertical : 8, 
@@ -172,7 +171,7 @@ const styles = StyleSheet.create({
   }, 
   buttonDiv : {
     flex : 1 , 
-    width : "100%" ,
     flexDirection : 'column' , 
+    gap : 8 ,
   },
 });
