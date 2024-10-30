@@ -3,9 +3,10 @@ import { SafeAreaView, View, Text, StyleSheet, useWindowDimensions } from 'react
 import { SystemBars } from 'react-native-bars';
 import Animated, { useSharedValue, useAnimatedScrollHandler } from 'react-native-reanimated';
 import CarouselButton from './CarouselButton.js';
+import { supabase } from '../lib/supabase.js'   ; 
 import Item from './Item.js';
 
-const SessionsCarousel = ( { setCurrentItem }) => {
+const SessionsCarousel = ( { roleID , userID }) => {
   const { width } = useWindowDimensions();
   const x = useSharedValue(0);
 
@@ -15,12 +16,10 @@ const SessionsCarousel = ( { setCurrentItem }) => {
   const ITEM_FULL_WIDTH = ITEM_WIDTH + MARGIN_HORIZONTAL * 2;
   const SPACER = (width - ITEM_FULL_WIDTH) / 2;
 
-  // Define data without images
-  const data = [
-    { id: '1', name: 'Chemistry', exp: 'Seesion 1' },
+ 
+  const values = [
+    { id: '1', name: 'Toplogy', exp: 'Session 2' },
     { id: '2', name: 'Toplogy', exp: 'Session 2' },
-    { id: '3', name: 'Chinese', exp: 'Session 3' },
-    // Add more items as needed
   ];
 
   const onScroll = useAnimatedScrollHandler({
@@ -41,7 +40,7 @@ const SessionsCarousel = ( { setCurrentItem }) => {
         ListHeaderComponentStyle={{ width: SPACER }}
         ListFooterComponent={<View />}
         ListFooterComponentStyle={{ width: SPACER }}
-        data={data}
+        data={values}
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id + item.name}
         renderItem={({ item, index }) => (

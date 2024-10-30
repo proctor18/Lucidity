@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { Text, View, StyleSheet, Alert } from "react-native";
-import { supabase } from '../lib/supabase.js'; // Properly import please 
+import { supabase } from '../lib/supabase.js';
 import Button from "../components/Button";
 import Input from "../components/Input";
-
 
 export default function Login({ navigation }) {
   const [email, setEmail] = useState("");
@@ -19,34 +18,60 @@ export default function Login({ navigation }) {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
-        .from('students' , 'teachers' ) // Changed to studnets and teachers seperately 
-        .select('role_id , first_name , last_name') 
+      const { data: tutorData, error: tutorError } = await supabase
+        .from('tutors')
+        .select('role_id, first_name, last_name, email, tutor_id')
         .eq('email', email)
         .eq('password', password)
         .single();
 
-      if (error) {
-        console.error("Error fetching data:", error);
-        Alert.alert("Error", "An error occurred while verifying credentials.");
+      if (tutorError && tutorError.code !== 'PGRST116') {
+        Alert.alert("Error", "An error occurred while verifying tutor credentials.");
+        console.error("Tutor verification error:", tutorError);
         return;
       }
 
-      if (data) {
-        navigation.navigate("Dashboard" ,{
-          email : data.email ,
-          first_name : data.first_name ,
-          last_name : data.last_name , 
-          role_id : data.role_id , 
-          user_id : data.role_id === 1 ? data.tutor_id : data.student_id 
-        }) ;  
-      } else {
-        Alert.alert("Error", "Invalid email or password.");
+      if (tutorData) {
+        navigation.navigate("Dashboard", {
+          email: tutorData.email,
+          first_name: tutorData.first_name,
+          last_name: tutorData.last_name,
+          role_id: tutorData.role_id,
+          user_id: tutorData.tutor_id,
+        });
+        return;
       }
-    } catch (error) {
-      console.error("Error caught in catch block:", error);
-      Alert.alert("Error", "An unexpected error occurred.");
-    } finally {
+
+      const { data: studentData, error: studentError } = await supabase
+        .from('students')
+        .select('role_id, first_name, last_name, email, student_id')
+        .eq('email', email)
+        .eq('password', password)
+        .single();
+
+      if (studentError && studentError.code !== 'PGRST116') {
+        Alert.alert("Error", "An error occurred while verifying student credentials.");
+        console.error("Student verification error:", studentError);
+        return;
+      }
+
+      if (studentData) {
+        navigation.navigate("Dashboard", {
+          email: studentData.email,
+          first_name: studentData.first_name,
+          last_name: studentData.last_name,
+          role_id: studentData.role_id,
+          user_id: studentData.student_id,
+        });
+        return;
+      }
+
+      Alert.alert("Error", "Invalid email or password.");
+
+    } catch (studentError) {
+      Alert.alert("Error", "An error occurred during authentication.");
+    }
+    finally {
       setLoading(false);
     }
   }
@@ -56,9 +81,25 @@ export default function Login({ navigation }) {
       <View style={styles.imageContainer}></View>
       <Text style={styles.loginHeader}>Login</Text>
       <View style={styles.rowOne}>
-        <Input placeholder="Email" callback={setEmail} value={email} />
-        <Input placeholder="Password" callback={setPassword} value={password} secureTextEntry />
-        <Button type="small" text={loading ? "Loading..." : "Continue"} callback={validateCredentials} disabled={loading} />
+        <Input 
+          placeholder="Email" 
+          callback={setEmail} 
+          value={email}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        <Input 
+          placeholder="Password" 
+          callback={setPassword} 
+          value={password} 
+          secureTextEntry 
+        />
+        <Button 
+          type="small" 
+          text={loading ? "Loading..." : "Continue"} 
+          callback={validateCredentials} 
+          disabled={loading} 
+        />
       </View>
       <View style={styles.rowTwo}>
         <View style={styles.divider}></View>

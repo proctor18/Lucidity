@@ -1,7 +1,8 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SessionsCarousel from '../components/SessionsCarousel.js';
 import ButtonDiv from '../components/ButtonDiv.js';
+import { supabase } from '../lib/supabase.js';
 
 const Header = ({ userName = 'Username', greeting = 'Good Morning!' }) => {
   return (
@@ -27,8 +28,59 @@ const Header = ({ userName = 'Username', greeting = 'Good Morning!' }) => {
 };
 
 export default function Dashboard({ navigation, route }) {
-  const { email, first_name, last_name , role_id  , user_id } = route.params;
+  const { email, first_name, last_name, role_id, user_id } = route.params;
+  const [loading, setLoading] = useState(false);
+  const [sessions, setSessions] = useState([]);
+  const [error, setError] = useState(null);
 
+  useEffect(() => {
+    fetchSessions(role_id);
+  }, [role_id]);
+
+  async function fetchSessions(role_id) {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const isStudent = true ; 
+      // const idField = isStudent ? 'student_id' : 'tutor_id';
+      
+      console.log(`Fetching ${isStudent ? 'Student' : 'Tutor'} sessions for user ${user_id}`);
+      
+      const { data, error } = await supabase
+        .from('sessions')
+        .select('session_id , start_time , end_time , tutor_id , subject , session_date ')
+        .eq('student_id', user_id);
+
+      if (error) {
+        console.error('Error fetching sessions:', error);
+        setError(error.message);
+        return;
+      }
+
+      if (data) {
+        console.log('Sessions fetched successfully:', data);
+        setSessions(data);
+      } else {
+        console.log('No sessions found');
+        setSessions([]);
+      }
+
+    } catch (error) {
+      console.error('Exception while fetching sessions:', error.message);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Get current time greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning!';
+    if (hour < 18) return 'Good Afternoon!';
+    return 'Good Evening!';
+  };
 
   return (
     <ScrollView 
@@ -38,15 +90,25 @@ export default function Dashboard({ navigation, route }) {
       endFillColor='#131313' 
       style={styles.scrollView}
     >
-      <Header userName={first_name} />
+      <Header userName={first_name} greeting={getGreeting()} />
+      
       <View style={styles.textContainer}>
         <Text style={styles.sessionText}>
-          Sessions
+          Sessions 
         </Text>
+        {error && (
+          <Text style={styles.errorText}>Error: {error}</Text>
+        )}
       </View>
+
       <View style={styles.CarouselContainer}>
-        <SessionsCarousel />
+        <SessionsCarousel 
+          sessions={sessions}
+          loading={loading}
+          isStudent={role_id === 0}
+        /> 
       </View>
+
       <View style={styles.rowTwo}>
         <View style={styles.textContainer}>
           <Text style={styles.sessionText}>
@@ -54,15 +116,22 @@ export default function Dashboard({ navigation, route }) {
           </Text>
         </View>
         <View style={styles.buttonDiv}>
-          <ButtonDiv />
+          <ButtonDiv 
+            date='Wednesday'
+            buttonText={loading ? 'Loading...' : sessions[0]?.session_date || 'No sessions'} // 
+            countDown="2 weeks" 
+            
+          />
           <View style={styles.horizontalContainer}>
             <ButtonDiv 
-              type='wide' 
-              date={'9:45PM'}
+              type='wide'
+              loading={loading}
+              data={sessions[0]}
             />
             <ButtonDiv 
-              type='wide' 
-              date={'9:45PM'}
+              type='wide'
+              loading={loading}
+              data={sessions[0]}
             />
           </View>
         </View>
@@ -71,7 +140,6 @@ export default function Dashboard({ navigation, route }) {
   );
 }
 
-// ... styles remain the same as in previous example
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
@@ -96,7 +164,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     backgroundColor: '#131313',
-    paddingTop: 50, // Adjust for status bar
+    paddingTop: 50,
   },
   leftContainer: {
     flexDirection: 'row',
@@ -171,6 +239,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 12,
   },
+  errorText: {
+    color: '#FF6B6B',
+    fontSize: 14,
+    marginTop: 4,
+  },
   buttonText: {
     color: '#FFFFFF',
     fontSize: 18,
@@ -200,4 +273,3 @@ const styles = StyleSheet.create({
     flex: 1,
   }
 });
-
