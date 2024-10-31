@@ -34,6 +34,7 @@ export default function Dashboard({ navigation, route }) {
   const [sessions, setSessions] = useState([]);
   const [error, setError] = useState(null);
   const [currentSessionIndex, setCurrentSessionIndex] = useState(0);
+  const [ countdown , setCountdown ] = useState('');
   const currentIndex = useSharedValue(0);
 
   const incrementIndex = useCallback(() => {
@@ -60,7 +61,6 @@ export default function Dashboard({ navigation, route }) {
       setError(null);
 
       const isStudent = true;
-      // const idField = isStudent ? 'student_id' : 'tutor_id';
       
       console.log(`Fetching ${isStudent ? 'Student' : 'Tutor'} sessions for user ${user_id}`);
       
@@ -140,7 +140,7 @@ export default function Dashboard({ navigation, route }) {
           <ButtonDiv 
             date='Wednesday'
             buttonText={loading ? 'Loading...' : currentSession?.session_date || 'No sessions'}
-            countDown="2 weeks" 
+            countDown="10 Minutes"
           />
           <View style={styles.horizontalContainer}>
             <ButtonDiv 
