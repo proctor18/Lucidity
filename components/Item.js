@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Image, StyleSheet, Platform , TouchableOpactiy } from 'react-native';
 import Animated, { useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reanimated';
 
@@ -21,6 +21,7 @@ const Item = ({ item, width, height, marginHorizontal, fullWidth, x, index }) =>
       transform: [{ rotateZ: `${rotateZ}deg` }, { translateY: translateY }],
     };
   });
+
 
   return (
     <Animated.View

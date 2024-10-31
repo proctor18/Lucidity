@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import SessionsCarousel from '../components/SessionsCarousel.js';
+import Animated, { useSharedValue } from 'react-native-reanimated';
 import ButtonDiv from '../components/ButtonDiv.js';
 import { supabase } from '../lib/supabase.js';
 
@@ -32,6 +33,22 @@ export default function Dashboard({ navigation, route }) {
   const [loading, setLoading] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [error, setError] = useState(null);
+  const [currentSessionIndex, setCurrentSessionIndex] = useState(0);
+  const currentIndex = useSharedValue(0);
+
+  const incrementIndex = useCallback(() => {
+    if (currentIndex.value < sessions.length - 1) {
+      currentIndex.value = currentIndex.value + 1;
+      setCurrentSessionIndex(currentIndex.value);
+    }
+  }, [sessions.length]);
+
+  const decrementIndex = useCallback(() => {
+    if (currentIndex.value > 0) {
+      currentIndex.value = currentIndex.value - 1;
+      setCurrentSessionIndex(currentIndex.value);
+    }
+  }, []);
 
   useEffect(() => {
     fetchSessions(role_id);
@@ -42,14 +59,14 @@ export default function Dashboard({ navigation, route }) {
       setLoading(true);
       setError(null);
 
-      const isStudent = true ; 
+      const isStudent = true;
       // const idField = isStudent ? 'student_id' : 'tutor_id';
       
       console.log(`Fetching ${isStudent ? 'Student' : 'Tutor'} sessions for user ${user_id}`);
       
       const { data, error } = await supabase
         .from('sessions')
-        .select('session_id , start_time , end_time , tutor_id , subject , session_date ')
+        .select('session_id, start_time, end_time, tutor_id, subject, session_date')
         .eq('student_id', user_id);
 
       if (error) {
@@ -82,6 +99,8 @@ export default function Dashboard({ navigation, route }) {
     return 'Good Evening!';
   };
 
+  const currentSession = sessions[currentSessionIndex] || null;
+
   return (
     <ScrollView 
       contentContainerStyle={styles.container} 
@@ -105,6 +124,9 @@ export default function Dashboard({ navigation, route }) {
         <SessionsCarousel 
           sessions={sessions}
           loading={loading}
+          incrementIndex={incrementIndex}
+          decrementIndex={decrementIndex}
+          currentIndex={currentIndex}
         /> 
       </View>
 
@@ -117,20 +139,19 @@ export default function Dashboard({ navigation, route }) {
         <View style={styles.buttonDiv}>
           <ButtonDiv 
             date='Wednesday'
-            buttonText={loading ? 'Loading...' : sessions[0]?.session_date || 'No sessions'} // 
+            buttonText={loading ? 'Loading...' : currentSession?.session_date || 'No sessions'}
             countDown="2 weeks" 
-            
           />
           <View style={styles.horizontalContainer}>
             <ButtonDiv 
               type='wide'
               loading={loading}
-              data={sessions[0]}
+              data={currentSession}
             />
             <ButtonDiv 
               type='wide'
               loading={loading}
-              data={sessions[0]}
+              data={currentSession}
             />
           </View>
         </View>
