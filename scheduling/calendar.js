@@ -1,4 +1,4 @@
-import supabase from './supabaseClient';
+import { supabase } from '../lib/supabase';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { google } from 'googleapis';
 
@@ -19,60 +19,20 @@ GoogleSignin.configure({
 /**
  * Function to fetch user events from database
 */
-async function fetchUserEvents(userId) {
+async function fetchUserSessions(userId) {
   try {
     const { data, error } = await supabase
-
-    // **** need to replace below table with actual table name, whatever it would be for storing the schedules ****
-
-      .from('schedules')
+      .from('sessions')
       .select('*')
-      .eq('user_id', userId);
+      .or(`student_id.eq.${userId},tutor_id.eq.${userId}`)
+      .order('session_date', { ascending: true })
+      .order('start_time', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching events:', error.message);
-      return [];
-    }
-    
+    if (error) throw error;
     return data;
   } catch (err) {
-    console.error('Unexpected error:', err);
+    console.error('Error fetching sessions:', err);
     return [];
-  }
-}
-
-
-/**
- * Function to add an event to database and then sync with Google Calendar
-*/
-async function addEventToDatabase(userId, eventDetails, googleAccessToken) {
-  try {
-    // Add the event to Supabase
-    const { data, error } = await supabase
-
-    // **** need to replace below table with actual table name, whatever it would be for storing the schedules ****
-
-
-      .from('schedules')
-      .insert({
-        user_id: userId,
-        event_name: eventDetails.title,
-        event_start: eventDetails.startDateTime,
-        event_end: eventDetails.endDateTime,
-      });
-
-    if (error) {
-      throw error;
-    }
-
-    console.log('Event added to Supabase:', data);
-
-    // Sync event to Google Calendar
-    await addToGoogleCalendar(googleAccessToken, eventDetails);
-
-    console.log('Event synced to Google Calendar');
-  } catch (error) {
-    console.error('Error adding event to Supabase or syncing with Google Calendar:', error.message);
   }
 }
 
@@ -80,47 +40,37 @@ async function addEventToDatabase(userId, eventDetails, googleAccessToken) {
 /**
  * Function to delete an event from database and then sync with Google Calendar
 */
-async function deleteEventFromDatabase(userId, eventId, googleAccessToken) {
+async function deleteSession(userId, sessionId, googleAccessToken) {
   try {
-    // First, retrieve the event from Supabase to get Google Calendar event details (like event name)
-    const { data: event, error: fetchError } = await supabase
-
-    // **** need to replace below table with actual table name, whatever it would be for storing the schedules ****
-
-
-      .from('schedules')
-      .select('event_name')
-      .eq('user_id', userId)
-      .eq('id', eventId)
+    const { data: session, error: fetchError } = await supabase
+      .from('sessions')
+      .select('start_time, end_time')
+      .eq('student_id', userId)
+      .or(`tutor_id.eq.${userId}`)
+      .eq('session_id', sessionId)
       .single();
 
-    if (fetchError || !event) {
-      throw new Error('Event not found in Supabase');
+    if (fetchError || !session) {
+      throw new Error('Session not found in Supabase');
     }
 
-    // Delete the event from Supabase
     const { error: deleteError } = await supabase
-
-    // **** need to replace below table with actual table name, whatever it would be for storing the schedules ****
-
-
-      .from('schedules')
+      .from('sessions')
       .delete()
-      .eq('user_id', userId)
-      .eq('id', eventId);
+      .eq('session_id', sessionId);
 
     if (deleteError) {
       throw deleteError;
     }
 
-    console.log('Event deleted from Supabase');
+    console.log('Session deleted from Supabase');
 
-    // Sync the deletion with Google Calendar by event name
-    await deleteEventFromGoogleCalendar(googleAccessToken, event.event_name);
+    // Optionally delete from Google Calendar
+    await deleteEventFromGoogleCalendar(googleAccessToken, sessionId);
 
-    console.log('Event deleted from Google Calendar');
+    console.log('Session deleted from Google Calendar');
   } catch (error) {
-    console.error('Error deleting event from Supabase or syncing with Google Calendar:', error.message);
+    console.error('Error deleting session or syncing with Google Calendar:', error.message);
   }
 }
 
@@ -136,29 +86,6 @@ function initializeGoogleCalendar(accessToken) {
   const oauth2Client = new google.auth.OAuth2();
   oauth2Client.setCredentials({ access_token: accessToken });
   return google.calendar({ version: 'v3', auth: oauth2Client });
-}
-
-
-/*
- * Function to get Google Calendar events
-*/
-async function fetchGoogleCalendar(accessToken) {
-  const calendar = initializeGoogleCalendar(accessToken);
-
-  try {
-    const events = await calendar.events.list({
-      calendarId: 'primary',
-      timeMin: new Date().toISOString(),
-      maxResults: 100,
-      singleEvents: true,
-      orderBy: 'startTime',
-    });
-    
-    return events.data.items;
-  } catch (error) {
-    console.error('Error fetching Google Calendar events:', error);
-    throw new Error('Error fetching calendar events');
-  }
 }
 
 
@@ -222,129 +149,190 @@ async function deleteEventFromGoogleCalendar(accessToken, eventId) {
 
 
 /**************************************************************
- * SYNC FUNCTIONS
-**************************************************************/
-
-/**
- * Function that will sync a user's Google Calendar with our database, 
-   so we know their events
- * Should be called before checking for schedule conflicts
-*/
-async function syncGoogleCalendar(userId, googleAccessToken) {
-  const googleEvents = await fetchGoogleCalendarEvents(googleAccessToken);
-
-  for (const event of googleEvents) {
-    const { summary, start, end } = event;
-
-    // Check if event exists in Supabase to avoid duplicating
-    const { data: existingEvent } = await supabase
-
-    // **** need to replace below table with actual table name, whatever it would be for storing the schedules ****
-
-      .from('schedules')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('event_name', summary)
-      .eq('event_start', start.dateTime || start.date)
-      .single();
-
-    if (!existingEvent) {
-      // If event does not exist, insert it into our database
-      await supabase.from('schedules').insert({
-        user_id: userId,
-        event_name: summary,
-        event_start: start.dateTime || start.date,
-        event_end: end.dateTime || end.date,
-      });
-
-      console.log('Event synced to Supabase:', summary);
-    }
-  }
-}
-
-
-/**
- * Function to synchronize Supabase database with Google Calendar
- * Could be useful to call when a user initially syncs their google calendar
-*/
-async function syncDatabaseToGoogleCalendar(userId, googleAccessToken) {
-  try {
-    // Fetch all events from database for the user
-    const supabaseEvents = await fetchUserEvents(userId);
-
-    for (const event of supabaseEvents) {
-      // Check if the event already exists on Google Calendar to avoid duplication
-      const googleEvents = await fetchGoogleCalendar(googleAccessToken);
-      const existingGoogleEvent = googleEvents.find(
-        (googleEvent) => googleEvent.summary === event.event_name &&
-          new Date(googleEvent.start.dateTime || googleEvent.start.date).getTime() === new Date(event.event_start).getTime()
-      );
-
-      if (!existingGoogleEvent) {
-        // Add event to Google Calendar since it doesn't exist
-        await addToGoogleCalendar(googleAccessToken, {
-          title: event.event_name,
-          startDateTime: event.event_start,
-          endDateTime: event.event_end,
-          // location: event.location,
-          // description: event.description,
-        });
-
-        console.log('Event synced to Google Calendar:', event.event_name);
-      }
-    }
-  } catch (error) {
-    console.error('Error syncing Supabase events with Google Calendar:', error.message);
-  }
-}
-
-
-/**************************************************************
- * CONFLICT CHECKING FUNCTIONS
+ * BOOKING FUNCTIONS
 **************************************************************/
 
 /**
  * Helper: Function that will check if two events overlap
 */
-function checkForOverlap(event1, event2) {
-  const event1Start = new Date(event1.event_start);
-  const event1End = new Date(event1.event_end);
-  const event2Start = new Date(event2.event_start);
-  const event2End = new Date(event2.event_end);
+function checkForOverlap(session1, session2) {
+  const session1Start = new Date(`${session1.session_date}T${session1.start_time}`);
+  const session1End = new Date(`${session1.session_date}T${session1.end_time}`);
+  const session2Start = new Date(`${session2.session_date}T${session2.start_time}`);
+  const session2End = new Date(`${session2.session_date}T${session2.end_time}`);
 
-  // Return true if the events overlap
-  return event1Start < event2End && event1End > event2Start;
+  return session1Start < session2End && session1End > session2Start;
+}
+
+/**
+ * Helper: Takes a list of sessions and checks if any overlap with the requested time slot
+*/
+function hasSchedulingConflicts(existingSessions, requestedSession) {
+  for (let session of existingSessions) {
+    if (checkForOverlap(requestedSession, session)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 
 /**
- * Function to check for conflicts between two users schedules from Supabase
- * Requires using the syncGoogleCalendar function first for accurate conflict checking
- * This checks the two users ENTIRE schedule, so good to use to find any initial conflicts
- * (validateBooking function in booking.js can be used to check for specific overlap)
- * Could be useful as an admin tool or if we allow bulk bulking of sessions (i.e. recurring sessions)
+ * Helper: Function to check if the requested time falls within any of the tutor's availability times for requested day
 */
-async function checkForScheduleConflicts(user1Id, user2Id) {
-  // Sync both users' calendars with Database before checking for conflicts
-  await syncGoogleCalendar(user1Id, user1AccessToken);
-  await syncGoogleCalendar(user2Id, user2AccessToken);
+async function tutorAvailability(tutorId, dayOfWeek, timeSlot) {
+  // Fetch all available records for the tutor for requested day
+  const { data: availability, error } = await supabase
+    .from('availability')
+    .select('*')
+    .eq('tutor_id', tutorId)
+    .eq('day_of_week', dayOfWeek); // maybe should change this to the exact date as day_of_week could cause issues
 
-  // Fetch events for both users
-  const user1Events = await fetchUserEvents(user1Id);
-  const user2Events = await fetchUserEvents(user2Id);
+  if (error || !availability) {
+    console.error('Tutor availability not found:', error);
+    return false;
+  }
 
-  const conflicts = [];
+  // Convert time into comparable format (arbitrary date of 2024-01-01 is chosen)
+  const requestedStartTime = new Date(`2024-01-01T${timeSlot.startDateTime.split('T')[1]}`);
+  const requestedEndTime = new Date(`2024-01-01T${timeSlot.endDateTime.split('T')[1]}`);
 
-  // Compare each event from user1 with each event from user2
-  for (let event1 of user1Events) {
-    for (let event2 of user2Events) {
-      if (checkForOverlap(event1, event2)) {
-        conflicts.push({ event1, event2 });
-      }
+  // Check if requested time fits within any of the tutors available slots
+  for (let slot of availability) {
+    const startTime = new Date(`2024-01-01T${slot.start_time}`);
+    const endTime = new Date(`2024-01-01T${slot.end_time}`);
+
+    if (requestedStartTime >= startTime && requestedEndTime <= endTime) {
+      return true;
     }
   }
 
-  return conflicts;
+  // If no availability slot matches, return false
+  return false;
+}
+
+/***************************** START EXAMPLE ******************************************/
+
+// EXAMPLE USAGE OF BELOW FUNCTIONS:
+// How using the below functions in our frontend could be used to book a session (example code)
+// Example time slot
+const timeSlot = {
+  sessionDate: '2024-10-15',   // Desired date of the session
+  startTime: '10:00:00',       // Start time of the session
+  endTime: '11:00:00'          // End time of the session
+};
+async function handleBooking(studentId, tutorId, timeSlot, studentAccessToken, tutorAccessToken) {
+    // Validate availability
+    const validation = await validateBooking(
+      studentId,
+      tutorId,
+      timeSlot.sessionDate,
+      timeSlot.startTime,
+      timeSlot.endTime
+    );
+  
+    if (!validation.available) {
+      console.log('Booking failed due to conflict:', validation.conflict);
+      return;
+    }
+  
+    // If available, proceed to book the session
+    const bookedSession = await bookSession(
+      studentId,
+      tutorId,
+      timeSlot.sessionDate,
+      timeSlot.startTime,
+      timeSlot.endTime,
+      tutorAccessToken
+    );
+  
+    if (bookedSession) {
+      console.log('Session successfully booked:', bookedSession);
+    } else {
+      console.log('Booking failed.');
+    }
+  }
+
+  // Example usage with mock IDs and access tokens
+const studentId = 'student123';
+const tutorId = 'tutor456';
+const studentAccessToken = 'student-google-access-token';
+const tutorAccessToken = 'tutor-google-access-token';
+
+handleBooking(studentId, tutorId, timeSlot, studentAccessToken, tutorAccessToken);
+
+/***************************** END EXAMPLE ******************************************/
+
+/**
+ * Function that will check if the specified time slot for a student and a tutor 
+ * This checks only the SPECIFIED time slot for conflict, rather than the entirety of the users' schedules
+*/
+async function validateBooking(studentId, tutorId, sessionDate, startTime, endTime) {
+  // Check tutor availability
+  const dayOfWeek = new Date(sessionDate).toLocaleString('en-US', { weekday: 'long' });
+  const timeSlot = {
+    startDateTime: `${sessionDate}T${startTime}`,
+    endDateTime: `${sessionDate}T${endTime}`
+  };
+
+  const available = await tutorAvailability(tutorId, dayOfWeek, timeSlot);
+  if (!available) {
+    return { available: false, conflict: 'Tutor is not available during the requested time' };
+  }
+
+  const requestedSession = { session_date: sessionDate, start_time: startTime, end_time: endTime };
+
+  // Check for conflicts with the students existing sessions
+  const studentSessions = await fetchUserSessions(studentId);
+  const studentSessionsOnDate = studentSessions.filter(session => session.session_date === sessionDate);
+  if (hasSchedulingConflicts(studentSessionsOnDate, requestedSession)) {
+    return { available: false, conflict: 'Student has a scheduling conflict' };
+  }
+
+  // Check for conflicts with the tutors existing sessions
+  const tutorSessions = await fetchUserSessions(tutorId);
+  const tutorSessionsOnDate = tutorSessions.filter(session => session.session_date === sessionDate);
+  if (hasSchedulingConflicts(tutorSessionsOnDate, requestedSession)) {
+    return { available: false, conflict: 'Tutor has a scheduling conflict' };
+  }
+
+  // If no conflicts and tutor is available, return available status
+  return { available: true };
+}
+
+
+/**
+ * Function that allows for a session to be booked AFTER a timeslot has been validated
+*/  
+async function bookSession(studentId, tutorId, sessionDate, startTime, endTime) {
+  try {
+    const { data, error } = await supabase
+      .from('sessions')
+      .insert({
+        student_id: studentId,
+        tutor_id: tutorId,
+        session_date: sessionDate,
+        start_time: startTime,
+        end_time: endTime,
+      });
+
+    if (error) throw error;
+    console.log('Session booked successfully:', data);
+
+    await addToGoogleCalendar(googleAccessToken, {
+      title: `Tutoring Session with ${studentId === userId ? 'Tutor' : 'Student'} ${studentId === userId ? tutorId : studentId}`,
+      startDateTime: `${sessionDate}T${startTime}`,
+      endDateTime: `${sessionDate}T${endTime}`,
+      location: 'Online',
+      description: 'Tutoring session scheduled through the app',
+    });
+
+    console.log('Session synced to Google Calendar');
+
+    return data;
+  } catch (error) {
+    console.error('Error booking session:', error.message);
+  }
 }
 
 
@@ -377,12 +365,12 @@ async function checkForScheduleConflicts(user1Id, user2Id) {
  * EXPORTS
 **************************************************************/
 export {
-  fetchGoogleCalendar,
-  fetchUserEvents,
-  addEventToDatabase,
-  deleteEventFromDatabase,
-  checkForScheduleConflicts,
-  syncGoogleCalendar,
-  syncDatabaseToGoogleCalendar,
+  checkForOverlap,
+  fetchUserSessions,
+  deleteSession,
+  validateBooking,
+  bookSession,
+  tutorAvailability,
+  hasSchedulingConflicts,
   // notifyEvents
 };
