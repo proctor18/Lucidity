@@ -157,8 +157,7 @@ export default function Onboarding({navigation}) {
 
   const handleGetStarted = () => {
     if (currentStep === dialog.length - 1) {
-      // showDrawer();
-      navigation.navigate("Start") ; 
+      navigation.navigate("Start");
     }
   };
 
