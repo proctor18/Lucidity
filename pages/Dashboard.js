@@ -33,6 +33,7 @@ export default function Dashboard({ navigation, route }) {
   const [sessions, setSessions] = useState([]);
   const [error, setError] = useState(null);
 
+  const [ currentIndex , setCurrentIndex ] = useState(0) ;
   useEffect(() => {
     fetchSessions(role_id);
   }, [role_id]);
@@ -105,6 +106,8 @@ export default function Dashboard({ navigation, route }) {
         <SessionsCarousel 
           sessions={sessions}
           loading={loading}
+          // currentIndex={currentIndex}
+          // setCurrentIndex={setCurrentIndex}
         /> 
       </View>
 
