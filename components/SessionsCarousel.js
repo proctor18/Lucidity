@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SafeAreaView, View, Text, StyleSheet, useWindowDimensions } from 'react-native';
 import { SystemBars } from 'react-native-bars';
 import Animated, { useSharedValue, useAnimatedScrollHandler } from 'react-native-reanimated';
@@ -6,9 +6,10 @@ import CarouselButton from './CarouselButton.js';
 import { supabase } from '../lib/supabase.js'   ; 
 import Item from './Item.js';
 
-const SessionsCarousel = ( { sessions , loading }) => {
+const SessionsCarousel = ( { sessions , loading , currentIndex }) => {
   const { width } = useWindowDimensions();
   const x = useSharedValue(0);
+  const initialValue = useSharedValue(0);
 
   const ITEM_WIDTH = 250;
   const ITEM_HEIGHT = 285;
@@ -29,6 +30,18 @@ const SessionsCarousel = ( { sessions , loading }) => {
   const onScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
       x.value = event.contentOffset.x;
+    },
+    onEndDrag : (event) => {
+      if(initialValue.value > x.value ){ // case left 
+        currentIndex.value = currentIndex.value - 1
+        console.log(currentIndex.value)
+      }else if(initialValue.value < x.value ){ // case right 
+        currentIndex.value = currentIndex.value + 1
+        console.log(currentIndex.value)
+      }
+    },
+    onBeginDrag : (event) => {
+      initialValue.value = event.contentOffset.x;
     },
   });
 

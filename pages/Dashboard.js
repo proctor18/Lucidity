@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import SessionsCarousel from '../components/SessionsCarousel.js';
 import ButtonDiv from '../components/ButtonDiv.js';
 import { supabase } from '../lib/supabase.js';
+import { useSharedValue } from 'react-native-reanimated';
 
 const Header = ({ userName = 'Username', greeting = 'Good Morning!' }) => {
   return (
@@ -32,6 +33,7 @@ export default function Dashboard({ navigation, route }) {
   const [loading, setLoading] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [error, setError] = useState(null);
+  const currentIndex = useSharedValue(0);
 
   useEffect(() => {
     fetchSessions(role_id);
@@ -43,7 +45,6 @@ export default function Dashboard({ navigation, route }) {
       setError(null);
 
       const isStudent = true ; 
-      // const idField = isStudent ? 'student_id' : 'tutor_id';
       
       console.log(`Fetching ${isStudent ? 'Student' : 'Tutor'} sessions for user ${user_id}`);
       
@@ -74,7 +75,6 @@ export default function Dashboard({ navigation, route }) {
     }
   }
 
-  // Get current time greeting
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good Morning!';
@@ -105,6 +105,8 @@ export default function Dashboard({ navigation, route }) {
         <SessionsCarousel 
           sessions={sessions}
           loading={loading}
+          currentIndex={currentIndex}
+          // setCurrentIndex={setCurrentIndex}
         /> 
       </View>
 
@@ -117,7 +119,7 @@ export default function Dashboard({ navigation, route }) {
         <View style={styles.buttonDiv}>
           <ButtonDiv 
             date='Wednesday'
-            buttonText={loading ? 'Loading...' : sessions[0]?.session_date || 'No sessions'} // 
+            buttonText={loading ? 'Loading...' : sessions[currentIndex.value]?.session_date || 'No sessions'} // 
             countDown="2 weeks" 
             
           />

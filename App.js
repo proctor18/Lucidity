@@ -27,14 +27,16 @@ function MainTabs({ route }) {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: "#1A1A1A",
-          borderTopColor: "#2A2A2A",
+
+          backgroundColor: 'rgba(26, 26, 26, 1)', // swap out later for transparent blur 
+          borderTopColor: '#2A2A2A',
           borderTopWidth: 1,
           paddingBottom: 10,
           height: 65,
         },
-        tabBarActiveTintColor: "#00C6AE",
-        tabBarInactiveTintColor: "#8E8E8F",
+
+        tabBarActiveTintColor: '#7257FF',
+        tabBarInactiveTintColor: '#8E8E8F',
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
           if (route.name === "DashboardTab") {
