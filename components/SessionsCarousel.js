@@ -6,11 +6,10 @@ import CarouselButton from './CarouselButton.js';
 import { supabase } from '../lib/supabase.js'   ; 
 import Item from './Item.js';
 
-const SessionsCarousel = ( { sessions , loading }) => {
+const SessionsCarousel = ( { sessions , loading , currentIndex }) => {
   const { width } = useWindowDimensions();
   const x = useSharedValue(0);
   const initialValue = useSharedValue(0);
-  const  currentIndex = useSharedValue(0);
 
   const ITEM_WIDTH = 250;
   const ITEM_HEIGHT = 285;
