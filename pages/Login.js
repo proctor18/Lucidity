@@ -1,3 +1,4 @@
+// Login.js
 import React, { useState } from "react";
 import { Text, View, StyleSheet, Alert } from "react-native";
 import { supabase } from '../lib/supabase.js';
@@ -32,12 +33,18 @@ export default function Login({ navigation }) {
       }
 
       if (tutorData) {
-        navigation.navigate("Dashboard", {
-          email: tutorData.email,
-          first_name: tutorData.first_name,
-          last_name: tutorData.last_name,
-          role_id: tutorData.role_id,
-          user_id: tutorData.tutor_id,
+        navigation.reset({
+          index: 0,
+          routes: [{ 
+            name: 'MainTabs',
+            params: {
+              email: tutorData.email,
+              first_name: tutorData.first_name,
+              last_name: tutorData.last_name,
+              role_id: tutorData.role_id,
+              user_id: tutorData.tutor_id,
+            }
+          }],
         });
         return;
       }
@@ -56,22 +63,27 @@ export default function Login({ navigation }) {
       }
 
       if (studentData) {
-        navigation.navigate("Dashboard", {
-          email: studentData.email,
-          first_name: studentData.first_name,
-          last_name: studentData.last_name,
-          role_id: studentData.role_id,
-          user_id: studentData.student_id,
+        navigation.reset({
+          index: 0,
+          routes: [{ 
+            name: 'MainTabs',
+            params: {
+              email: studentData.email,
+              first_name: studentData.first_name,
+              last_name: studentData.last_name,
+              role_id: studentData.role_id,
+              user_id: studentData.student_id,
+            }
+          }],
         });
         return;
       }
 
       Alert.alert("Error", "Invalid email or password.");
 
-    } catch (studentError) {
+    } catch (error) {
       Alert.alert("Error", "An error occurred during authentication.");
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
   }

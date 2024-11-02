@@ -4,6 +4,7 @@ import SessionsCarousel from '../components/SessionsCarousel.js';
 import Animated, { useSharedValue } from 'react-native-reanimated';
 import ButtonDiv from '../components/ButtonDiv.js';
 import { supabase } from '../lib/supabase.js';
+import { useSharedValue } from 'react-native-reanimated';
 
 const Header = ({ userName = 'Username', greeting = 'Good Morning!' }) => {
   return (
@@ -33,23 +34,7 @@ export default function Dashboard({ navigation, route }) {
   const [loading, setLoading] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [error, setError] = useState(null);
-  const [currentSessionIndex, setCurrentSessionIndex] = useState(0);
-  const [ countdown , setCountdown ] = useState('');
   const currentIndex = useSharedValue(0);
-
-  const incrementIndex = useCallback(() => {
-    if (currentIndex.value < sessions.length - 1) {
-      currentIndex.value = currentIndex.value + 1;
-      setCurrentSessionIndex(currentIndex.value);
-    }
-  }, [sessions.length]);
-
-  const decrementIndex = useCallback(() => {
-    if (currentIndex.value > 0) {
-      currentIndex.value = currentIndex.value - 1;
-      setCurrentSessionIndex(currentIndex.value);
-    }
-  }, []);
 
   useEffect(() => {
     fetchSessions(role_id);
@@ -60,7 +45,7 @@ export default function Dashboard({ navigation, route }) {
       setLoading(true);
       setError(null);
 
-      const isStudent = true;
+      const isStudent = true ; 
       
       console.log(`Fetching ${isStudent ? 'Student' : 'Tutor'} sessions for user ${user_id}`);
       
@@ -91,7 +76,6 @@ export default function Dashboard({ navigation, route }) {
     }
   }
 
-  // Get current time greeting
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good Morning!';
@@ -124,9 +108,8 @@ export default function Dashboard({ navigation, route }) {
         <SessionsCarousel 
           sessions={sessions}
           loading={loading}
-          incrementIndex={incrementIndex}
-          decrementIndex={decrementIndex}
           currentIndex={currentIndex}
+          // setCurrentIndex={setCurrentIndex}
         /> 
       </View>
 
@@ -139,8 +122,9 @@ export default function Dashboard({ navigation, route }) {
         <View style={styles.buttonDiv}>
           <ButtonDiv 
             date='Wednesday'
-            buttonText={loading ? 'Loading...' : currentSession?.session_date || 'No sessions'}
-            countDown="10 Minutes"
+            buttonText={loading ? 'Loading...' : sessions[currentIndex.value]?.session_date || 'No sessions'} // 
+            countDown="2 weeks" 
+            
           />
           <View style={styles.horizontalContainer}>
             <ButtonDiv 

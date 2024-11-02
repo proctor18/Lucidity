@@ -1,5 +1,5 @@
-import React from "react";
-import { SafeAreaView, View, StyleSheet, useWindowDimensions } from 'react-native';
+import React, { useState } from 'react';
+import { SafeAreaView, View, Text, StyleSheet, useWindowDimensions } from 'react-native';
 import { SystemBars } from 'react-native-bars';
 import Animated, { 
   useSharedValue, 
@@ -7,18 +7,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import Item from './Item.js';
 
-const SessionsCarousel = ({ 
-  sessions, 
-  loading, 
-  incrementIndex, 
-  decrementIndex, 
-  currentIndex 
-}) => {
+const SessionsCarousel = ( { sessions , loading , currentIndex }) => {
   const { width } = useWindowDimensions();
   const x = useSharedValue(0);
-  const isScrolling = useSharedValue(false);
-  const initialOffset = useSharedValue(0);
-  
+  const initialValue = useSharedValue(0);
+
   const ITEM_WIDTH = 250;
   const ITEM_HEIGHT = 285;
   const MARGIN_HORIZONTAL = 20;
@@ -36,17 +29,17 @@ const SessionsCarousel = ({
     onScroll: (event) => {
       x.value = event.contentOffset.x;
     },
-    onBeginDrag: (event) => {
-      initialOffset.value = x.value;
-      isScrolling.value = true;
-    },
-    onEndDrag: (event) => {
-      isScrolling.value = false;
-      if (initialOffset.value > x.value) {
-        decrementIndex();
-      } else if (initialOffset.value < x.value) {
-        incrementIndex();
+    onEndDrag : (event) => {
+      if(initialValue.value > x.value ){ // case left 
+        currentIndex.value = currentIndex.value - 1
+        console.log(currentIndex.value)
+      }else if(initialValue.value < x.value ){ // case right 
+        currentIndex.value = currentIndex.value + 1
+        console.log(currentIndex.value)
       }
+    },
+    onBeginDrag : (event) => {
+      initialValue.value = event.contentOffset.x;
     },
   });
 
