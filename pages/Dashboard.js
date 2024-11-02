@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import SessionsCarousel from '../components/SessionsCarousel.js';
 import ButtonDiv from '../components/ButtonDiv.js';
 import { supabase } from '../lib/supabase.js';
