@@ -15,8 +15,6 @@ This tutoring scheduling application simplifies the process of scheduling tutori
 
 Sysadmins can manage users, configure system settings, and generate reports. Tutors can manage their availability, view scheduled sessions, and communicate with students. Students can browse tutor profiles, book sessions, and track their learning progress.
 
-Group Members:
-Liam Prsa
 ## Features
 - **User Profiles:** Sysadmins, Tutors, and Students with tailored features for each role.
 - **Scheduling System:** Easy-to-use session booking system with calendar integration.

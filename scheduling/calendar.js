@@ -40,7 +40,7 @@ async function fetchUserSessions(userId) {
 /**
  * Function to delete an event from database and then sync with Google Calendar
 */
-async function deleteSession(userId, sessionId, googleAccessToken) {
+async function deleteSession(userId, sessionId, googleAccessToken = null) {
   try {
     const { data: session, error: fetchError } = await supabase
       .from('sessions')
@@ -51,7 +51,7 @@ async function deleteSession(userId, sessionId, googleAccessToken) {
       .single();
 
     if (fetchError || !session) {
-      throw new Error('Session not found in Supabase');
+      throw new Error('Session not found in database');
     }
 
     const { error: deleteError } = await supabase
@@ -63,12 +63,16 @@ async function deleteSession(userId, sessionId, googleAccessToken) {
       throw deleteError;
     }
 
-    console.log('Session deleted from Supabase');
+    console.log('Session deleted from database');
 
-    // Optionally delete from Google Calendar
-    await deleteEventFromGoogleCalendar(googleAccessToken, sessionId);
+    // Only delete from Google Calendar if googleAccessToken is provided
+    if (googleAccessToken) {
+      await deleteEventFromGoogleCalendar(googleAccessToken, sessionId);
+      console.log('Session deleted from Google Calendar');
+    } else {
+      console.log('Google access token not provided. Skipping Calendar deletion.');
+    }
 
-    console.log('Session deleted from Google Calendar');
   } catch (error) {
     console.error('Error deleting session or syncing with Google Calendar:', error.message);
   }
@@ -211,58 +215,6 @@ async function tutorAvailability(tutorId, dayOfWeek, timeSlot) {
   return false;
 }
 
-/***************************** START EXAMPLE ******************************************/
-
-// EXAMPLE USAGE OF BELOW FUNCTIONS:
-// How using the below functions in our frontend could be used to book a session (example code)
-// Example time slot
-const timeSlot = {
-  sessionDate: '2024-10-15',   // Desired date of the session
-  startTime: '10:00:00',       // Start time of the session
-  endTime: '11:00:00'          // End time of the session
-};
-async function handleBooking(studentId, tutorId, timeSlot, studentAccessToken, tutorAccessToken) {
-    // Validate availability
-    const validation = await validateBooking(
-      studentId,
-      tutorId,
-      timeSlot.sessionDate,
-      timeSlot.startTime,
-      timeSlot.endTime
-    );
-  
-    if (!validation.available) {
-      console.log('Booking failed due to conflict:', validation.conflict);
-      return;
-    }
-  
-    // If available, proceed to book the session
-    const bookedSession = await bookSession(
-      studentId,
-      tutorId,
-      timeSlot.sessionDate,
-      timeSlot.startTime,
-      timeSlot.endTime,
-      tutorAccessToken
-    );
-  
-    if (bookedSession) {
-      console.log('Session successfully booked:', bookedSession);
-    } else {
-      console.log('Booking failed.');
-    }
-  }
-
-  // Example usage with mock IDs and access tokens
-const studentId = 'student123';
-const tutorId = 'tutor456';
-const studentAccessToken = 'student-google-access-token';
-const tutorAccessToken = 'tutor-google-access-token';
-
-handleBooking(studentId, tutorId, timeSlot, studentAccessToken, tutorAccessToken);
-
-/***************************** END EXAMPLE ******************************************/
-
 /**
  * Function that will check if the specified time slot for a student and a tutor 
  * This checks only the SPECIFIED time slot for conflict, rather than the entirety of the users' schedules
@@ -303,9 +255,11 @@ async function validateBooking(studentId, tutorId, sessionDate, startTime, endTi
 
 /**
  * Function that allows for a session to be booked AFTER a timeslot has been validated
+ * Checks to see if the user has a googleAccessToken before we update their schedule
 */  
-async function bookSession(studentId, tutorId, sessionDate, startTime, endTime) {
+async function bookSession(studentId, tutorId, sessionDate, startTime, endTime, googleAccessToken = null) {
   try {
+    // Book the session in database
     const { data, error } = await supabase
       .from('sessions')
       .insert({
@@ -319,15 +273,19 @@ async function bookSession(studentId, tutorId, sessionDate, startTime, endTime) 
     if (error) throw error;
     console.log('Session booked successfully:', data);
 
-    await addToGoogleCalendar(googleAccessToken, {
-      title: `Tutoring Session with ${studentId === userId ? 'Tutor' : 'Student'} ${studentId === userId ? tutorId : studentId}`,
-      startDateTime: `${sessionDate}T${startTime}`,
-      endDateTime: `${sessionDate}T${endTime}`,
-      location: 'Online',
-      description: 'Tutoring session scheduled through the app',
-    });
-
-    console.log('Session synced to Google Calendar');
+    // If google access Token is provided, sync with google calendar
+    if (googleAccessToken) {
+      await addToGoogleCalendar(googleAccessToken, {
+        title: `Tutoring Session with ${studentId === userId ? 'Tutor' : 'Student'} ${studentId === userId ? tutorId : studentId}`,
+        startDateTime: `${sessionDate}T${startTime}`,
+        endDateTime: `${sessionDate}T${endTime}`,
+        location: 'Online',
+        description: 'Tutoring session scheduled through the app',
+      });
+      console.log('Session synced to Google Calendar');
+    } else {
+      console.log('Google access token not provided. Skipping Google Calendar sync.');
+    }
 
     return data;
   } catch (error) {
@@ -336,29 +294,66 @@ async function bookSession(studentId, tutorId, sessionDate, startTime, endTime) 
 }
 
 
+/***************************** START EXAMPLE ******************************************/
+
+// EXAMPLE USAGE OF ABOVE FUNCTIONS:
+// How using the above functions in our frontend could be used to book a session (example code)
+import React, { useState } from 'react';
+// import ourGoogleAuthentication from '../wherever.that.is'
+import { validateBooking, bookSession } from '../scheduling/calendar.js';
+
+const BookingForm = ({ studentId, tutorId }) => {
+  const { googleAccessToken } = ourGoogleAuthentication();
+  const [sessionDate, setSessionDate] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
+  const [isBooking, setIsBooking] = useState(false);
+
+  const handleBooking = async () => {
+    setIsBooking(true);
+    setStatusMessage('');
+
+    try {
+      // Validate booking time
+      const validation = await validateBooking(studentId, tutorId, sessionDate, startTime, endTime);
+
+      if (!validation.available) {
+        setStatusMessage(`Conflict: ${validation.conflict}`);
+        setIsBooking(false);
+        return;
+      }
+
+      // If validation passed, book session
+      const bookingData = await bookSession(studentId, tutorId, sessionDate, startTime, endTime, googleAccessToken);
+
+      if (bookingData) {
+        setStatusMessage('Session booked successfully!');
+        if (googleAccessToken) {
+          setStatusMessage((prev) => prev + ' Synced with Google Calendar.');
+        }
+      } else {
+        setStatusMessage('Failed to book session. Please try again.');
+      }
+
+    } catch (error) {
+      console.error('Error handling booking request:', error);
+      setStatusMessage('An error occurred during booking.');
+    } finally {
+      setIsBooking(false);
+    }
+  };
+};
+
+  // Maybe add some button to ask user to sign in with google here if they want to sync with google calendar??
+  // Ex. !googleAccessToken => then "Sign in with Google to sync your sessions with google calendar?"
+
+/***************************** END EXAMPLE ******************************************/
+
+
 /**************************************************************
- * NOTIFICATION FUNCTIONS
+ * NOTIFICATION FUNCTIONS (To do)
 **************************************************************/
-
-// /**************************************************************
-//  * Possible Function that could send out a message to a user, need to integrate it with
-//    notification service / function of some sort (like React Native Push Notifications)
-//  * Currently only displays message to terminal for testing
-// **************************************************************/
-// function notifyEvents(events) {
-//   const now = new Date();
-
-//   events.forEach(event => {
-//     const eventStart = new Date(event.start || event.start.dateTime);
-//     // Time to event in minutes
-//     const timeToEvent = (eventStart - now) / (1000 * 60); 
-
-//     // Ex. Notify if the event is within 60 minutes (can change these numbers)
-//     if (timeToEvent <= 60 && timeToEvent > 0) { 
-//       console.log(`Reminder: You have an upcoming event "${event.title}" at ${eventStart}`);
-//     }
-//   });
-// }
 
 
 /**************************************************************
@@ -372,5 +367,4 @@ export {
   bookSession,
   tutorAvailability,
   hasSchedulingConflicts,
-  // notifyEvents
 };
