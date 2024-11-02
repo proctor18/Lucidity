@@ -1,7 +1,6 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import React, { useState, useEffect, useCallback } from 'react';
 import SessionsCarousel from '../components/SessionsCarousel.js';
-import Animated, { useSharedValue } from 'react-native-reanimated';
 import ButtonDiv from '../components/ButtonDiv.js';
 import { supabase } from '../lib/supabase.js';
 import { useSharedValue } from 'react-native-reanimated';
@@ -51,7 +50,7 @@ export default function Dashboard({ navigation, route }) {
       
       const { data, error } = await supabase
         .from('sessions')
-        .select('session_id, start_time, end_time, tutor_id, subject, session_date')
+        .select('session_id , start_time , end_time , tutor_id , subject , session_date ')
         .eq('student_id', user_id);
 
       if (error) {
@@ -82,8 +81,6 @@ export default function Dashboard({ navigation, route }) {
     if (hour < 18) return 'Good Afternoon!';
     return 'Good Evening!';
   };
-
-  const currentSession = sessions[currentSessionIndex] || null;
 
   return (
     <ScrollView 
@@ -130,12 +127,12 @@ export default function Dashboard({ navigation, route }) {
             <ButtonDiv 
               type='wide'
               loading={loading}
-              data={currentSession}
+              data={sessions[0]}
             />
             <ButtonDiv 
               type='wide'
               loading={loading}
-              data={currentSession}
+              data={sessions[0]}
             />
           </View>
         </View>
