@@ -11,6 +11,9 @@ import Start from "./pages/Start.js";
 import Dashboard from "./pages/Dashboard.js";
 import Signup from "./pages/Signup.js";
 import UsersList from "./pages/UsersList.js";
+import Search from "./pages/Search.js";
+import SearchResults from "./pages/SearchResults.js";
+import TutorProfile from "./pages/TutorProfile.js";
 import "react-native-gesture-handler";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -27,16 +30,15 @@ function MainTabs({ route }) {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-
-          backgroundColor: 'rgba(26, 26, 26, 1)', // swap out later for transparent blur 
-          borderTopColor: '#2A2A2A',
+          backgroundColor: "rgba(26, 26, 26, 1)", // swap out later for transparent blur
+          borderTopColor: "#2A2A2A",
           borderTopWidth: 1,
           paddingBottom: 10,
           height: 65,
         },
 
-        tabBarActiveTintColor: '#7257FF',
-        tabBarInactiveTintColor: '#8E8E8F',
+        tabBarActiveTintColor: "#7257FF",
+        tabBarInactiveTintColor: "#8E8E8F",
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
           if (route.name === "DashboardTab") {
@@ -59,7 +61,7 @@ function MainTabs({ route }) {
       />
       <Tab.Screen
         name="SearchTab"
-        component={UsersList}
+        component={Search}
         options={{ tabBarLabel: "Search" }}
       />
       <Tab.Screen
@@ -89,6 +91,8 @@ export default function App() {
         <Stack.Screen name="PopulateInfo" component={PopulateInfo} />
         <Stack.Screen name="Launch" component={Launch} />
         <Stack.Screen name="MainTabs" component={MainTabs} />
+        <Stack.Screen name="SearchResults" component={SearchResults} />
+        <Stack.Screen name="TutorProfile" component={TutorProfile} />
       </Stack.Navigator>
       <StatusBar style="light" />
     </NavigationContainer>
