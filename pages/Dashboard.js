@@ -106,7 +106,6 @@ export default function Dashboard({ navigation, route }) {
           sessions={sessions}
           loading={loading}
           currentIndex={currentIndex}
-          // setCurrentIndex={setCurrentIndex}
         /> 
       </View>
 

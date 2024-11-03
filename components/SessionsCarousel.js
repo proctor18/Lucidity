@@ -18,7 +18,7 @@ const SessionsCarousel = ( { sessions , loading , currentIndex }) => {
   const SPACER = (width - ITEM_FULL_WIDTH) / 2;
 
  
-  const values = sessions.map((dict , index ) => { // Mapping the values
+  const values = sessions.map((dict , index ) => { 
     return {
       id: `Session ${index + 1}`,
       name: `${dict.subject}`,
@@ -32,12 +32,12 @@ const SessionsCarousel = ( { sessions , loading , currentIndex }) => {
       x.value = event.contentOffset.x;
     },
     onEndDrag : (event) => {
-      if(initialValue.value > x.value ){ // case left 
-        currentIndex.value = currentIndex.value - 1
-        console.log(currentIndex.value)
-      }else if(initialValue.value < x.value ){ // case right 
-        currentIndex.value = currentIndex.value + 1
-        console.log(currentIndex.value)
+      if(initialValue.value > x.value ){ 
+        currentIndex.value = currentIndex.value - 1 ; 
+        console.log(currentIndex.value) ; 
+      }else if(initialValue.value < x.value ){ 
+        currentIndex.value = currentIndex.value + 1 ; 
+        console.log(currentIndex.value) ; 
       }
     },
     onBeginDrag : (event) => {
