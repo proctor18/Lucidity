@@ -39,6 +39,12 @@ const Item = ({ item, width, height, marginHorizontal, fullWidth, x, index, call
         <View style={styles.imageContainer}>
           <Image source={item.image} style={[styles.image, { width: width }]} resizeMode="cover" />
         </View>
+        
+        {/* Notes Button */}
+        <TouchableOpacity style={styles.notesButton} onPress={() => notesCallback(item)}>
+          <Text style={styles.notesButtonText}>Notes</Text>
+        </TouchableOpacity>
+
         <View style={styles.bottomContainer}>
           <View style={styles.textContainer}>
             <Text style={styles.textExp}>{item.exp}</Text>
@@ -102,5 +108,19 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.4 }, { rotateZ: '90deg' }],
     right: -40,
     top: 20,
+  },
+
+
+  notesButton: {
+    marginTop: 8,
+    paddingVertical: 8,
+    backgroundColor: '#00C6AE',
+    borderRadius: 5,
+    marginHorizontal: 10,
+  },
+  notesButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 14,
   },
 });

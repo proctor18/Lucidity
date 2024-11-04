@@ -27,6 +27,12 @@ const SessionsCarousel = ( { sessions , loading , currentIndex , itemCallback })
   });
 
 
+  /* NotesCallback funtion */
+  const notesCallback = (session) => {
+    navigation.navigate('NotesPage', { session });
+  };
+
+
   const onScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
       x.value = event.contentOffset.x;
@@ -65,6 +71,7 @@ const SessionsCarousel = ( { sessions , loading , currentIndex , itemCallback })
             item={item}
             index={index}
             callback={itemCallback}
+            notesCallback={notesCallback} // Pass notesCallback to Item
             x={x}
             width={ITEM_WIDTH}
             height={ITEM_HEIGHT}

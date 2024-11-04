@@ -98,6 +98,7 @@ export default function App() {
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="SearchResults" component={SearchResults} />
         <Stack.Screen name="TutorProfile" component={TutorProfile} />
+        <Stack.Screen name="NotesPage" component={NotesPage} options={{ title: 'Session Notes' }} />
       </Stack.Navigator>
       <StatusBar style="light" />
     </NavigationContainer>
