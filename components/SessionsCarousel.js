@@ -6,7 +6,7 @@ import CarouselButton from './CarouselButton.js';
 import { supabase } from '../lib/supabase.js'   ; 
 import Item from './Item.js';
 
-const SessionsCarousel = ( { sessions , loading , currentIndex }) => {
+const SessionsCarousel = ( { sessions , loading , currentIndex , itemCallback }) => {
   const { width } = useWindowDimensions();
   const x = useSharedValue(0);
   const initialValue = useSharedValue(0);
@@ -64,6 +64,7 @@ const SessionsCarousel = ( { sessions , loading , currentIndex }) => {
           <Item
             item={item}
             index={index}
+            callback={itemCallback}
             x={x}
             width={ITEM_WIDTH}
             height={ITEM_HEIGHT}
@@ -97,3 +98,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+

@@ -34,6 +34,11 @@ export default function Dashboard({ navigation, route }) {
   const [sessions, setSessions] = useState([]);
   const [error, setError] = useState(null);
   const currentIndex = useSharedValue(0);
+  const [ sessionVisible , setSessionVisible ] = useState(false);
+
+  function handleVisibleSession(){
+    setSessionVisible( sessionVisible => !sessionVisible )
+  }
 
   useEffect(() => {
     fetchSessions(role_id);
@@ -106,6 +111,7 @@ export default function Dashboard({ navigation, route }) {
           sessions={sessions}
           loading={loading}
           currentIndex={currentIndex}
+          itemCallback={handleVisibleSession}
         /> 
       </View>
 
