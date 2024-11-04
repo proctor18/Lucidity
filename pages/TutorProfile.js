@@ -98,7 +98,10 @@ const TutorProfile = ({ route }) => {
 
       {/* Fixed Book Session Button */}
       <View style={styles.fixedButtonContainer}>
-        <TouchableOpacity style={styles.bookButton}>
+        <TouchableOpacity
+          style={styles.bookButton}
+          onPress={() => navigation.navigate("BookingPage")}
+        >
           <Ionicons name="calendar-outline" size={20} color="#FFFFFF" />
           <Text style={styles.bookButtonText}>Book Session</Text>
         </TouchableOpacity>

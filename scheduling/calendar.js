@@ -1,16 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { google } from 'googleapis';
-
-// Configure Google Sign-In
-GoogleSignin.configure({
-  // Scope = type of access we have to a users Calendar
-  // Need full read, write permission since we are adding, deleting, reading events
-  scopes: ['https://www.googleapis.com/auth/calendar'],
-  // The Google Calendar WebClientId for our project
-  webClientId: '396349567792-gfg556v4e4jb22qa29nhsf3kltp6tan0.apps.googleusercontent.com',
-});
-
+import moment from 'moment';
 
 /**************************************************************
  * DATABASE FUNCTIONS
@@ -84,33 +73,22 @@ async function deleteSession(userId, sessionId, googleAccessToken = null) {
 **************************************************************/
 
 /**
- * Helper: Initializes and returns a Google Calendar client with the given access token.
- */
-function initializeGoogleCalendar(accessToken) {
-  const oauth2Client = new google.auth.OAuth2();
-  oauth2Client.setCredentials({ access_token: accessToken });
-  return google.calendar({ version: 'v3', auth: oauth2Client });
-}
-
-
-/**
  * Function that allows for event to be added to Google Calendars
 */
 async function addToGoogleCalendar(accessToken, eventDetails) {
-  const calendar = initializeGoogleCalendar(accessToken);
-
   try {
-    const event = await calendar.events.insert({
-      calendarId: 'primary',
-      resource: {
+    const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         summary: eventDetails.title,
-        // events have the format of '2024-01(month)-01(day) 01:00:00(hour:minute:second)'
-        start: {
-          dateTime: eventDetails.startDateTime,
-        },
-        end: {
-          dateTime: eventDetails.endDateTime, 
-        },
+        start: { dateTime: eventDetails.startDateTime },
+        end: { dateTime: eventDetails.endDateTime },
+        location: eventDetails.location,
+        description: eventDetails.description,
         reminders: {
           useDefault: false,
           overrides: [
@@ -118,16 +96,21 @@ async function addToGoogleCalendar(accessToken, eventDetails) {
             { method: 'popup', minutes: 10 },
           ],
         },
-      },
+      }),
     });
 
-    console.log('Event created:', event.data.htmlLink);
+    if (!response.ok) {
+      throw new Error(`Error adding event to Google Calendar: ${response.statusText}`);
+    }
 
-    // Returns a link to the event in Google Calendar, if we want to do this
-    return event.data.htmlLink; 
+    const event = await response.json();
+    console.log('Event created:', event.htmlLink);
+
+    // Returns a link to the event in Google Calendar
+    return event.htmlLink;
   } catch (error) {
     console.error('Error adding event to Google Calendar:', error);
-    throw new Error('Error adding event to Google Calendar');
+    throw error;
   }
 }
 
@@ -136,18 +119,22 @@ async function addToGoogleCalendar(accessToken, eventDetails) {
  * Function that allows for event to be deleted from Google Calendars
 */
 async function deleteEventFromGoogleCalendar(accessToken, eventId) {
-  const calendar = initializeGoogleCalendar(accessToken);
-
   try {
-    await calendar.events.delete({
-      calendarId: 'primary',
-      eventId: eventId,
+    const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
     });
+
+    if (!response.ok) {
+      throw new Error(`Error deleting event from Google Calendar: ${response.statusText}`);
+    }
 
     console.log('Event deleted from Google Calendar');
   } catch (error) {
     console.error('Error deleting event from Google Calendar:', error);
-    throw new Error('Error deleting event from Google Calendar');
+    throw error;
   }
 }
 
@@ -184,7 +171,10 @@ function hasSchedulingConflicts(existingSessions, requestedSession) {
 /**
  * Helper: Function to check if the requested time falls within any of the tutor's availability times for requested day
 */
-async function tutorAvailability(tutorId, dayOfWeek, timeSlot) {
+async function tutorAvailability(tutorId, dayOfWeek, startTime, endTime) {
+  const start24Hour = moment(startTime, ["h:mm A"]).format("HH:mm");
+  const end24Hour = moment(endTime, ["h:mm A"]).format("HH:mm");
+
   // Fetch all available records for the tutor for requested day
   const { data: availability, error } = await supabase
     .from('availability')
@@ -197,21 +187,16 @@ async function tutorAvailability(tutorId, dayOfWeek, timeSlot) {
     return false;
   }
 
-  // Convert time into comparable format (arbitrary date of 2024-01-01 is chosen)
-  const requestedStartTime = new Date(`2024-01-01T${timeSlot.startDateTime.split('T')[1]}`);
-  const requestedEndTime = new Date(`2024-01-01T${timeSlot.endDateTime.split('T')[1]}`);
-
-  // Check if requested time fits within any of the tutors available slots
+  // Compare requested time with available slots
   for (let slot of availability) {
-    const startTime = new Date(`2024-01-01T${slot.start_time}`);
-    const endTime = new Date(`2024-01-01T${slot.end_time}`);
+    const availableStart = slot.start_time;
+    const availableEnd = slot.end_time;
 
-    if (requestedStartTime >= startTime && requestedEndTime <= endTime) {
+    if (start24Hour >= availableStart && end24Hour <= availableEnd) {
       return true;
     }
   }
 
-  // If no availability slot matches, return false
   return false;
 }
 
@@ -220,20 +205,20 @@ async function tutorAvailability(tutorId, dayOfWeek, timeSlot) {
  * This checks only the SPECIFIED time slot for conflict, rather than the entirety of the users' schedules
 */
 async function validateBooking(studentId, tutorId, sessionDate, startTime, endTime) {
-  // Check tutor availability
-  const dayOfWeek = new Date(sessionDate).toLocaleString('en-US', { weekday: 'long' });
-  const timeSlot = {
-    startDateTime: `${sessionDate}T${startTime}`,
-    endDateTime: `${sessionDate}T${endTime}`
-  };
+  const start24Hour = moment(startTime, ["h:mm A"]).format("HH:mm");
+  const end24Hour = moment(endTime, ["h:mm A"]).format("HH:mm");
 
-  const available = await tutorAvailability(tutorId, dayOfWeek, timeSlot);
+  // Calculate day of the week
+  const dayOfWeek = moment(sessionDate).format('dddd');
+
+  // Check tutor availability
+  const available = await tutorAvailability(tutorId, dayOfWeek, start24Hour, end24Hour);
   if (!available) {
     return { available: false, conflict: 'Tutor is not available during the requested time' };
   }
 
-  const requestedSession = { session_date: sessionDate, start_time: startTime, end_time: endTime };
-
+  const requestedSession = { session_date: sessionDate, start_time: start24Hour, end_time: end24Hour };
+  
   // Check for conflicts with the students existing sessions
   const studentSessions = await fetchUserSessions(studentId);
   const studentSessionsOnDate = studentSessions.filter(session => session.session_date === sessionDate);
@@ -257,7 +242,7 @@ async function validateBooking(studentId, tutorId, sessionDate, startTime, endTi
  * Function that allows for a session to be booked AFTER a timeslot has been validated
  * Checks to see if the user has a googleAccessToken before we update their schedule
 */  
-async function bookSession(studentId, tutorId, sessionDate, startTime, endTime, googleAccessToken = null) {
+async function bookSession(studentId, tutorId, sessionDate, startTime, endTime, subject, googleAccessToken = null) {
   try {
     // Book the session in database
     const { data, error } = await supabase
@@ -268,12 +253,14 @@ async function bookSession(studentId, tutorId, sessionDate, startTime, endTime, 
         session_date: sessionDate,
         start_time: startTime,
         end_time: endTime,
-      });
+        subject: subject,
+      })
+      .select('*');
 
     if (error) throw error;
-    console.log('Session booked successfully:', data);
+    console.log('Session booked successfully:');
 
-    // If google access Token is provided, sync with google calendar
+    // Sync with Google Calendar if `googleAccessToken` is provided
     if (googleAccessToken) {
       await addToGoogleCalendar(googleAccessToken, {
         title: `Tutoring Session with ${studentId === userId ? 'Tutor' : 'Student'} ${studentId === userId ? tutorId : studentId}`,
@@ -292,64 +279,6 @@ async function bookSession(studentId, tutorId, sessionDate, startTime, endTime, 
     console.error('Error booking session:', error.message);
   }
 }
-
-
-/***************************** START EXAMPLE ******************************************/
-
-// EXAMPLE USAGE OF ABOVE FUNCTIONS:
-// How using the above functions in our frontend could be used to book a session (example code)
-import React, { useState } from 'react';
-// import ourGoogleAuthentication from '../wherever.that.is'
-import { validateBooking, bookSession } from '../scheduling/calendar.js';
-
-const BookingForm = ({ studentId, tutorId }) => {
-  const { googleAccessToken } = ourGoogleAuthentication();
-  const [sessionDate, setSessionDate] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  const [statusMessage, setStatusMessage] = useState('');
-  const [isBooking, setIsBooking] = useState(false);
-
-  const handleBooking = async () => {
-    setIsBooking(true);
-    setStatusMessage('');
-
-    try {
-      // Validate booking time
-      const validation = await validateBooking(studentId, tutorId, sessionDate, startTime, endTime);
-
-      if (!validation.available) {
-        setStatusMessage(`Conflict: ${validation.conflict}`);
-        setIsBooking(false);
-        return;
-      }
-
-      // If validation passed, book session
-      const bookingData = await bookSession(studentId, tutorId, sessionDate, startTime, endTime, googleAccessToken);
-
-      if (bookingData) {
-        setStatusMessage('Session booked successfully!');
-        if (googleAccessToken) {
-          setStatusMessage((prev) => prev + ' Synced with Google Calendar.');
-        }
-      } else {
-        setStatusMessage('Failed to book session. Please try again.');
-      }
-
-    } catch (error) {
-      console.error('Error handling booking request:', error);
-      setStatusMessage('An error occurred during booking.');
-    } finally {
-      setIsBooking(false);
-    }
-  };
-};
-
-  // Maybe add some button to ask user to sign in with google here if they want to sync with google calendar??
-  // Ex. !googleAccessToken => then "Sign in with Google to sync your sessions with google calendar?"
-
-/***************************** END EXAMPLE ******************************************/
-
 
 /**************************************************************
  * NOTIFICATION FUNCTIONS (To do)

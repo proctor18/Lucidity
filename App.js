@@ -8,16 +8,19 @@ import Launch from "./pages/Launch.js";
 import PopulateInfo from "./pages/PopulateInfo.js";
 import Profile from "./pages/Profile.js";
 import Start from "./pages/Start.js";
+import BookingPage from "./pages/BookingPage.js";
 import Dashboard from "./pages/Dashboard.js";
 import Signup from "./pages/Signup.js";
 import UsersList from "./pages/UsersList.js";
 import Search from "./pages/Search.js";
 import SearchResults from "./pages/SearchResults.js";
 import TutorProfile from "./pages/TutorProfile.js";
+import { UserProvider } from './components/UserContext.js';
 import "react-native-gesture-handler";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -82,6 +85,7 @@ function MainTabs({ route }) {
 // Root Stack for managing all navigation flows
 export default function App() {
   return (
+    <UserProvider>
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Onboarding" component={Onboarding} />
@@ -93,9 +97,11 @@ export default function App() {
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="SearchResults" component={SearchResults} />
         <Stack.Screen name="TutorProfile" component={TutorProfile} />
+        <Stack.Screen name="BookingPage" component={BookingPage} />
       </Stack.Navigator>
       <StatusBar style="light" />
     </NavigationContainer>
+    </UserProvider>
   );
 }
 
