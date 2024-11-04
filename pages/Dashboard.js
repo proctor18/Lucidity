@@ -43,9 +43,10 @@ export default function Dashboard({ navigation, route }) {
   });
 
   function handleVisibleSession() {
-    setSessionVisible(prev => !prev);
+    navigation.navigate('SessionDetails', {
+      session: currentSession.value
+    });
   }
-
   useEffect(() => {
     fetchSessions(role_id);
   }, [role_id]);
@@ -150,10 +151,16 @@ export default function Dashboard({ navigation, route }) {
         </View>
       </ScrollView>
 
-      <SessionDrawer 
+      <SessionDrawer
         visible={sessionVisible}
         onClose={() => setSessionVisible(false)}
-        session={currentSession.value}
+        session={currentSession}
+        onUpdateTime={(type, newTime) => {
+          console.log(type, newTime);
+        }}
+        onCancelSession={() => {
+          console.log('Session cancelled');
+        }}
       />
     </>
   );

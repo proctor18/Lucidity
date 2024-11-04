@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState , useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
+import { supabase } from "../lib/supabase.js" ; 
 import {
   View,
   Text,
@@ -26,6 +27,7 @@ const Search = () => {
   const [query, setQuery] = useState("");
   const [filteredData, setFilteredData] = useState(data);
   const navigation = useNavigation();
+  const [ loading , setLoading ] = useState(false) ; 
 
   const handleSearch = (text) => {
     setQuery(text);
@@ -34,11 +36,32 @@ const Search = () => {
         item.toLowerCase().includes(text.toLowerCase())
       );
       setFilteredData(filtered);
+      console.log(filteredData)
     } else {
       setFilteredData(data);
     }
   };
 
+  // useEffect( () => {
+  //   getValues() ; 
+  // } , []) ; 
+  //
+  // async function getValues(){
+  //   setLoading(true) ; 
+  //   try {
+  //     const { data , error } = await supabase
+  //       .from("tutors")
+  //       .select("*")
+  //
+  //     console.log(data) ; 
+  //   } catch (error) {
+  //     console.log("Error Occurred while fetching : " , error) ; 
+  //   }
+  //   finally{
+  //     setLoading(false) ; 
+  //   }
+  // }
+  //
   const handlePress = (subject) => {
     navigation.navigate("SearchResults", { subject });
   };
