@@ -2,8 +2,9 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import React, { useState, useEffect } from 'react';
 import SessionsCarousel from '../components/SessionsCarousel.js';
 import ButtonDiv from '../components/ButtonDiv.js';
+import SessionDrawer from '../components/SessionDrawer.js';
 import { supabase } from '../lib/supabase.js';
-import { useSharedValue } from 'react-native-reanimated';
+import { useSharedValue, useDerivedValue } from 'react-native-reanimated';
 
 const Header = ({ userName = 'Username', greeting = 'Good Morning!' }) => {
   return (
@@ -34,10 +35,15 @@ export default function Dashboard({ navigation, route }) {
   const [sessions, setSessions] = useState([]);
   const [error, setError] = useState(null);
   const currentIndex = useSharedValue(0);
-  const [ sessionVisible , setSessionVisible ] = useState(false);
+  const [sessionVisible, setSessionVisible] = useState(false);
 
-  function handleVisibleSession(){
-    setSessionVisible( sessionVisible => !sessionVisible )
+  const currentSession = useDerivedValue(() => {
+    const index = Math.min(Math.max(Math.round(currentIndex.value), 0), sessions.length - 1);
+    return sessions[index];
+  });
+
+  function handleVisibleSession() {
+    setSessionVisible(prev => !prev);
   }
 
   useEffect(() => {
@@ -49,13 +55,13 @@ export default function Dashboard({ navigation, route }) {
       setLoading(true);
       setError(null);
 
-      const isStudent = true ; 
+      const isStudent = true;
       
       console.log(`Fetching ${isStudent ? 'Student' : 'Tutor'} sessions for user ${user_id}`);
       
       const { data, error } = await supabase
         .from('sessions')
-        .select('session_id , start_time , end_time , tutor_id , subject , session_date ')
+        .select('session_id, start_time, end_time, tutor_id, subject, session_date')
         .eq('student_id', user_id);
 
       if (error) {
@@ -88,61 +94,68 @@ export default function Dashboard({ navigation, route }) {
   };
 
   return (
-    <ScrollView 
-      contentContainerStyle={styles.container} 
-      overScrollMode="never" 
-      bounces={true}
-      endFillColor='#131313' 
-      style={styles.scrollView}
-    >
-      <Header userName={first_name} greeting={getGreeting()} />
-      
-      <View style={styles.textContainer}>
-        <Text style={styles.sessionText}>
-          Sessions 
-        </Text>
-        {error && (
-          <Text style={styles.errorText}>Error: {error}</Text>
-        )}
-      </View>
-
-      <View style={styles.CarouselContainer}>
-        <SessionsCarousel 
-          sessions={sessions}
-          loading={loading}
-          currentIndex={currentIndex}
-          itemCallback={handleVisibleSession}
-        /> 
-      </View>
-
-      <View style={styles.rowTwo}>
+    <>
+      <ScrollView 
+        contentContainerStyle={styles.container} 
+        overScrollMode="never" 
+        bounces={true}
+        endFillColor='#131313' 
+        style={styles.scrollView}
+      >
+        <Header userName={first_name} greeting={getGreeting()} />
+        
         <View style={styles.textContainer}>
           <Text style={styles.sessionText}>
-            Details
+            Sessions 
           </Text>
+          {error && (
+            <Text style={styles.errorText}>Error: {error}</Text>
+          )}
         </View>
-        <View style={styles.buttonDiv}>
-          <ButtonDiv 
-            date='Wednesday'
-            buttonText={loading ? 'Loading...' : sessions[currentIndex.value]?.session_date || 'No sessions'} // 
-            countDown="2 weeks" 
-            
-          />
-          <View style={styles.horizontalContainer}>
+
+        <View style={styles.CarouselContainer}>
+          <SessionsCarousel 
+            sessions={sessions}
+            loading={loading}
+            currentIndex={currentIndex}
+            itemCallback={handleVisibleSession}
+          /> 
+        </View>
+
+        <View style={styles.rowTwo}>
+          <View style={styles.textContainer}>
+            <Text style={styles.sessionText}>
+              Details
+            </Text>
+          </View>
+          <View style={styles.buttonDiv}>
             <ButtonDiv 
-              type='wide'
-              loading={loading}
-              data={sessions[0]}
+              date='Wednesday'
+              buttonText={loading ? 'Loading...' : currentSession.value?.session_date || 'No sessions'}
+              countDown="2 weeks" 
             />
-            <ButtonDiv 
-              type='wide'
-              loading={loading}
-              data={sessions[0]}
-            />
+            <View style={styles.horizontalContainer}>
+              <ButtonDiv 
+                type='wide'
+                loading={loading}
+                data={currentSession.value}
+              />
+              <ButtonDiv 
+                type='wide'
+                loading={loading}
+                data={currentSession.value}
+              />
+            </View>
           </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+
+      <SessionDrawer 
+        visible={sessionVisible}
+        onClose={() => setSessionVisible(false)}
+        session={currentSession.value}
+      />
+    </>
   );
 }
 
