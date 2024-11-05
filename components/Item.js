@@ -40,10 +40,7 @@ const Item = ({ item, width, height, marginHorizontal, fullWidth, x, index, call
           <Image source={item.image} style={[styles.image, { width: width }]} resizeMode="cover" />
         </View>
         
-        {/* Notes Button */}
-        <TouchableOpacity style={styles.notesButton} onPress={() => notesCallback(item)}>
-          <Text style={styles.notesButtonText}>Notes</Text>
-        </TouchableOpacity>
+        
 
         <View style={styles.bottomContainer}>
           <View style={styles.textContainer}>
