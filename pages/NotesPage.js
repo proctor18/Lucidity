@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { supabase } from '../lib/supabase';
 
 const NotesPage = ({ route }) => {
@@ -26,7 +26,6 @@ const NotesPage = ({ route }) => {
     fetchNote();
   }, [session.session_id]);
 
-  // Function to save the note to Supabase and reset the draft status
   const saveNote = async () => {
     try {
       const { error } = await supabase
@@ -44,25 +43,33 @@ const NotesPage = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Session Notes</Text>
-        <TextInput
-          style={styles.input}
-          multiline
-          placeholder="Add your notes here"
-          placeholderTextColor="#777777"
-          value={note}
-          onChangeText={(text) => {
-            setNote(text);
-            setIsDraft(true); // Mark as draft when editing
-          }}
-        />
-        <TouchableOpacity style={styles.saveButton} onPress={saveNote}>
-          <Text style={styles.saveButtonText}>{isDraft ? 'Save Draft' : 'Save Notes'}</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <SafeAreaView style={styles.container}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardAvoidingView}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
+        >
+          <View style={styles.content}>
+            <Text style={styles.title}>Session Notes</Text>
+            <TextInput
+              style={styles.input}
+              multiline
+              placeholder="Add your notes here"
+              placeholderTextColor="#777777"
+              value={note}
+              onChangeText={(text) => {
+                setNote(text);
+                setIsDraft(true); // Mark as draft when editing
+              }}
+            />
+            <TouchableOpacity style={styles.saveButton} onPress={saveNote}>
+              <Text style={styles.saveButtonText}>{isDraft ? 'Save Note' : 'Saved!'}</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -72,6 +79,9 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     backgroundColor: '#131313',
+  },
+  keyboardAvoidingView: {
+    flex: 1,
   },
   content: {
     flex: 1,
