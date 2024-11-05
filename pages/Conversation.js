@@ -61,7 +61,7 @@ const Conversation = ({ route }) => {
       keyboardVerticalOffset={5}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+          <Ionicons name="chevron-back" size={24} color="#7257FF" />
         </TouchableOpacity>
         <Text style={styles.tutorName}>{tutorName}</Text>
         <View style={{ width: 24 }} />
@@ -119,15 +119,15 @@ const Conversation = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1A1A1A",
-    paddingTop: 70,
+    backgroundColor: "#131313",
+    paddingTop: 60,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     padding: 16,
-    backgroundColor: "#1A1A1A",
+    backgroundColor: "#131313",
   },
   tutorName: {
     fontSize: 18,

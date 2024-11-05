@@ -11,6 +11,7 @@ import ButtonDiv from "../components/ButtonDiv.js";
 import SessionDrawer from "../components/SessionDrawer.js";
 import { supabase } from "../lib/supabase.js";
 import { useSharedValue, useDerivedValue } from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
 
 const Header = ({
   userName = "Username",
@@ -31,11 +32,9 @@ const Header = ({
       </View>
 
       <TouchableOpacity
-        style={styles.settingsButton}
+        style={styles.messageButton}
         onPress={() => navigation.navigate("MessagesList")}>
-        <View style={styles.settingsIcon}>
-          <View style={styles.gear} />
-        </View>
+        <Ionicons name="chatbubble-outline" size={24} color="white" />
       </TouchableOpacity>
     </View>
   );
@@ -114,8 +113,6 @@ export default function Dashboard({ navigation, route }) {
     return "Good Evening!";
   };
 
-  // paddingTop: 70,
-  //   paddingBottom: 50,
   return (
     <>
       <ScrollView
