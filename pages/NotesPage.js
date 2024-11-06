@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   input: {
-    height: 150,
+    height: 375, // Increased the height to make it larger
     width: '100%',
     padding: 16,
     backgroundColor: '#1B1C1E',
