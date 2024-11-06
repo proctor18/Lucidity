@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect , useState } from "react";
 import {
   View,
   Text,
@@ -9,13 +9,38 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { supabase } from '../lib/supabase.js' ; 
 
-const SearchResults = ({ route }) => {
+
+
+const SearchResults = ({ route , searchKey }) => {
   const { subject } = route.params;
   const navigation = useNavigation();
+  const [ loading , setLoading ] = useState(false) ; 
+  const [ data , setData ] = useState("") ; 
 
-  // List of search results of selected subject. Populate with actual data
-  // --------------------------------------------------
+  useEffect(() =>{
+    fetchData(); 
+  }, [])
+
+
+  async function fetchData(){
+    setLoading(true) ;
+    try {
+      const { data , error } = await supabase
+        .from('tutors')
+        .select('*')
+      setDate(data);
+    } catch (error) {
+        console.log("Error Occured: " , error) 
+    }
+
+    finally{
+      setLoading(false) ;
+    }
+  }
+
+ 
   const resultsData = [
     {
       id: "1",
@@ -23,7 +48,7 @@ const SearchResults = ({ route }) => {
       certification: "Certification",
       status: "Verified",
       sessions: "27 sessions",
-      avatar: "https://via.placeholder.com/50", // Placeholder avatar image
+      avatar: "https://via.placeholder.com/50", 
     },
     {
       id: "2",

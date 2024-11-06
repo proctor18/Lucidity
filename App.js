@@ -14,7 +14,10 @@ import Signup from "./pages/Signup.js";
 import UsersList from "./pages/UsersList.js";
 import Search from "./pages/Search.js";
 import SearchResults from "./pages/SearchResults.js";
+import SessionDetailsPage from "./components/SessionDetailsPage.js";
 import TutorProfile from "./pages/TutorProfile.js";
+import MessagesList from "./pages/MessagesList";
+import Conversation from "./pages/Conversation";
 import { UserProvider } from './components/UserContext.js';
 import "react-native-gesture-handler";
 import { NavigationContainer } from "@react-navigation/native";
@@ -89,6 +92,7 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Onboarding" component={Onboarding} />
+        <Stack.Screen name="SessionDetails" component={SessionDetailsPage} />
         <Stack.Screen name="Start" component={Start} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Signup" component={Signup} />
@@ -98,6 +102,8 @@ export default function App() {
         <Stack.Screen name="SearchResults" component={SearchResults} />
         <Stack.Screen name="TutorProfile" component={TutorProfile} />
         <Stack.Screen name="BookingPage" component={BookingPage} />
+        <Stack.Screen name="MessagesList" component={MessagesList} />
+        <Stack.Screen name="Conversation" component={Conversation} />
       </Stack.Navigator>
       <StatusBar style="light" />
     </NavigationContainer>

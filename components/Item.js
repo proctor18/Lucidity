@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, Platform , TouchableOpactiy } from 'react-native';
+import { View, Text, Image, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import Animated, { useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reanimated';
 
-const Item = ({ item, width, height, marginHorizontal, fullWidth, x, index }) => {
+const Item = ({ item, width, height, marginHorizontal, fullWidth, x, index, callback }) => {
   const animatedStyle = useAnimatedStyle(() => {
     const rotateZ = interpolate(
       x.value,
@@ -23,31 +23,33 @@ const Item = ({ item, width, height, marginHorizontal, fullWidth, x, index }) =>
   });
 
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        {
-          width: width,
-          height: height,
-          marginHorizontal: marginHorizontal,
-          transformOrigin: Platform.OS === 'android' ? '120px 400px' : 'bottom',
-        },
-        animatedStyle,
-      ]}
-    >
-      <View style={styles.imageContainer}>
-        <Image source={item.image} style={[styles.image, { width: width }]} resizeMode="cover" />
-      </View>
-      <View style={styles.bottomContainer}>
-        <View style={styles.textContainer}>
-          <Text style={styles.textExp}>{item.exp}</Text>
-          <Text style={styles.textName}>{item.name}</Text>
+    <TouchableOpacity onPress={callback} activeOpacity={0.7}>
+      <Animated.View
+        style={[
+          styles.container,
+          {
+            width: width,
+            height: height,
+            marginHorizontal: marginHorizontal,
+            transformOrigin: Platform.OS === 'android' ? '120px 400px' : 'bottom',
+          },
+          animatedStyle,
+        ]}
+      >
+        <View style={styles.imageContainer}>
+          <Image source={item.image} style={[styles.image, { width: width }]} resizeMode="cover" />
         </View>
-        <View style={styles.visaContainer}>
-          <Image source={item.visa} resizeMode="contain" style={styles.visa} />
+        <View style={styles.bottomContainer}>
+          <View style={styles.textContainer}>
+            <Text style={styles.textExp}>{item.exp}</Text>
+            <Text style={styles.textName}>{item.name}</Text>
+          </View>
+          <View style={styles.visaContainer}>
+            <Image source={item.visa} resizeMode="contain" style={styles.visa} />
+          </View>
         </View>
-      </View>
-    </Animated.View>
+      </Animated.View>
+    </TouchableOpacity>
   );
 };
 
@@ -58,9 +60,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#1B1C1E',
     borderRadius: 12,
     overflow: 'hidden',
-    borderStyle : 'solid' , 
-    borderWidth : 1 , 
-    borderColor : '#313234' , 
+    borderStyle: 'solid',
+    borderWidth: 1,
+    borderColor: '#313234',
   },
   imageContainer: { 
     flex: 4 
@@ -85,7 +87,7 @@ const styles = StyleSheet.create({
   textExp: {
     color: 'white',
     fontSize: 16,
-    opacity : 0.7 , 
+    opacity: 0.7,
   },
   visaContainer: {
     flex: 1,
@@ -102,4 +104,3 @@ const styles = StyleSheet.create({
     top: 20,
   },
 });
-
