@@ -1,14 +1,16 @@
 // Login.js
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Text, View, StyleSheet, Alert } from "react-native";
 import { supabase } from '../lib/supabase.js';
 import Button from "../components/Button";
 import Input from "../components/Input";
+import { UserContext } from '../components/UserContext.js';
 
 export default function Login({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { setUser } = useContext(UserContext);
 
   async function validateCredentials() {
     if (!email || !password) {
@@ -33,22 +35,31 @@ export default function Login({ navigation }) {
       }
 
       if (tutorData) {
+        // Set the user data in context for tutor
+        setUser({
+          email: tutorData.email,
+          first_name: tutorData.first_name,
+          last_name: tutorData.last_name,
+          role_id: tutorData.role_id,
+          user_id: tutorData.tutor_id,
+        });
+      
+        // Navigate to MainTabs with tutor information as params
         navigation.reset({
           index: 0,
           routes: [{ 
             name: 'MainTabs',
-            params: {
+            params: { 
               email: tutorData.email,
               first_name: tutorData.first_name,
               last_name: tutorData.last_name,
               role_id: tutorData.role_id,
               user_id: tutorData.tutor_id,
-            }
+            },
           }],
         });
         return;
       }
-
       const { data: studentData, error: studentError } = await supabase
         .from('students')
         .select('role_id, first_name, last_name, email, student_id')
@@ -63,17 +74,27 @@ export default function Login({ navigation }) {
       }
 
       if (studentData) {
+        // Set the user data in context
+        setUser({
+          email: studentData.email,
+          first_name: studentData.first_name,
+          last_name: studentData.last_name,
+          role_id: studentData.role_id,
+          user_id: studentData.student_id,
+        });
+      
+        // Then navigate to MainTabs
         navigation.reset({
           index: 0,
           routes: [{ 
             name: 'MainTabs',
-            params: {
+            params: { 
               email: studentData.email,
               first_name: studentData.first_name,
               last_name: studentData.last_name,
               role_id: studentData.role_id,
               user_id: studentData.student_id,
-            }
+            },
           }],
         });
         return;

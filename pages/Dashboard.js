@@ -70,20 +70,22 @@ export default function Dashboard({ navigation, route }) {
       setLoading(true);
       setError(null);
 
-      const isStudent = true;
+      const isStudent = role_id !== 1; // role_id 1 is for tutors (therfore !== 1 means student)
 
-      console.log(
-        `Fetching ${
-          isStudent ? "Student" : "Tutor"
-        } sessions for user ${user_id}`
-      );
+      // Select based on the role that signed in
+    const selectFields = isStudent 
+    ? 'session_id, start_time, end_time, tutor_id, subject, session_date' 
+    : 'session_id, start_time, end_time, student_id, subject, session_date';
+      
+      console.log(`Fetching ${isStudent ? 'Student' : 'Tutor'} sessions for user ${user_id}`);
 
+
+      const filterColumn = isStudent ? 'student_id' : 'tutor_id';
+      
       const { data, error } = await supabase
-        .from("sessions")
-        .select(
-          "session_id, start_time, end_time, tutor_id, subject, session_date"
-        )
-        .eq("student_id", user_id);
+      .from('sessions')
+      .select(selectFields)
+      .eq(filterColumn, user_id);
 
       if (error) {
         console.error("Error fetching sessions:", error);
