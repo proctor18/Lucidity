@@ -29,13 +29,11 @@ async function fetchUserSessions(userId) {
 /**
  * Function to delete an event from database and then sync with Google Calendar
 */
-async function deleteSession(userId, sessionId, googleAccessToken = null) {
+async function deleteSession(sessionId, googleAccessToken = null) {
   try {
     const { data: session, error: fetchError } = await supabase
       .from('sessions')
       .select('start_time, end_time')
-      .eq('student_id', userId)
-      .or(`tutor_id.eq.${userId}`)
       .eq('session_id', sessionId)
       .single();
 

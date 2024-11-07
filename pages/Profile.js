@@ -1,21 +1,59 @@
 import React, { useState } from "react";
-import { Text, View, StyleSheet, Switch, TouchableOpacity } from "react-native";
+import { Text, View, StyleSheet, Switch, TouchableOpacity, Alert } from "react-native";
 import { supabase } from "../lib/supabase.js";
 import Button from "../components/Button";
+import { Menu, Provider } from 'react-native-paper';
 import Input from "../components/Input";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-export default function Profile({ route }) {
+export default function Profile({ route, navigation }) {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [optionTwo, setOptionTwo] = useState(false);
   const [optionThree, setOptionThree] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
   const { email, first_name, last_name, role_id, user_id } = route.params;
+
+  // Logic to handle our logout
+  const handleLogout = async () => {
+    Alert.alert(
+      "Confirm Logout",
+      "Are you sure you want to logout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Logout",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const { error } = await supabase.auth.signOut();
+              if (error) throw error;
+              navigation.navigate('Login');
+            } catch (error) {
+              Alert.alert("Logout Failed", error.message);
+            }
+          },
+        },
+      ]
+    );
+  };
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Icon name="more-horiz" size={24} color="white" />
-      </View>
+    <Provider>
+      <View style={styles.container}>
+        {/* Header with menu for logout */}
+        <View style={styles.header}>
+          <Menu
+            visible={menuVisible}
+            onDismiss={() => setMenuVisible(false)}
+            anchor={
+              <TouchableOpacity onPress={() => setMenuVisible(true)}>
+                <Ionicons name="menu" size={24} color="white" />
+              </TouchableOpacity>
+            }
+          >
+            <Menu.Item onPress={handleLogout} title="Logout" />
+          </Menu>
+        </View>
 
       {/* User Display */}
       <View style={styles.userDisplay}>
@@ -72,6 +110,7 @@ export default function Profile({ route }) {
 
       <View style={styles.bottomNav}></View>
     </View>
+    </Provider>
   );
 }
 

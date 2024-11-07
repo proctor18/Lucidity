@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   container: {
-    backgroundColor: "black",
+    backgroundColor: "#1A1A1A",
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
