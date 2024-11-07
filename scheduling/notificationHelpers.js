@@ -40,7 +40,7 @@ export const createNotification = async (user_id, message, email) => {
       console.error('Error creating notification:', error);
       return null;
     }
-    await sendNotificationEmail(email, message);
+    
     return data;
 
   };
