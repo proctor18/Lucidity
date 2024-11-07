@@ -1,5 +1,4 @@
 import { supabase } from '../lib/supabase';
-import { sendNotificationEmail } from '../components/EmailService';
 
 /**
  * Checks our database for any notifications that have not been read
