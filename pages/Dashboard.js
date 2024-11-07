@@ -5,7 +5,8 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
+import { useFocusEffect } from '@react-navigation/native';
 import SessionsCarousel from "../components/SessionsCarousel.js";
 import ButtonDiv from "../components/ButtonDiv.js";
 import SessionDrawer from "../components/SessionDrawer.js";
@@ -18,6 +19,7 @@ const Header = ({
   greeting = "Good Morning!",
   navigation,
 }) => {
+
   return (
     <View style={styles.headerContainer}>
       <View style={styles.leftContainer}>
@@ -30,16 +32,16 @@ const Header = ({
           <Text style={styles.userName}>{userName}</Text>
         </View>
       </View>
-
-      <TouchableOpacity
-        style={styles.messageButton}
-        onPress={() => navigation.navigate("MessagesList")}>
-        <Ionicons name="chatbubble-outline" size={24} color="white" />
-      </TouchableOpacity>
-    </View>
+  
+        {/* Chat button */}
+        <TouchableOpacity
+          style={styles.messageButton}
+          onPress={() => navigation.navigate("MessagesList")}>
+          <Ionicons name="chatbubble-outline" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
   );
 };
-
 export default function Dashboard({ navigation, route }) {
   const { email, first_name, last_name, role_id, user_id } = route.params;
   const [loading, setLoading] = useState(false);
@@ -61,9 +63,11 @@ export default function Dashboard({ navigation, route }) {
       session: currentSession.value,
     });
   }
-  useEffect(() => {
-    fetchSessions(role_id);
-  }, [role_id]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchSessions(role_id);
+    }, [role_id])
+  );
 
   async function fetchSessions(role_id) {
     try {

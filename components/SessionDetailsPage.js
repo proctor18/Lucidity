@@ -1,11 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { useContext } from 'react';
+import { deleteSession } from '../scheduling/calendar.js'
 
 const SessionDetailsPage = ({ route }) => {
   const navigation = useNavigation();
   const { session } = route.params;
+  const session_id = session.session_id;
   const [isStartPickerVisible, setStartPickerVisible] = React.useState(false);
   const [isEndPickerVisible, setEndPickerVisible] = React.useState(false);
 
@@ -17,6 +20,17 @@ const SessionDetailsPage = ({ route }) => {
   const handleEndTimeConfirm = (date) => {
     // Handle end time update
     setEndPickerVisible(false);
+  };
+
+  // Logic to handle a cancel button (deleteSessions is under ../scheduling/calendar)
+  const handleCancel = async () => {
+    try {
+      await deleteSession(session_id);
+      Alert.alert("Success", "Session canceled successfully");
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert("Error", error.message || "Failed to cancel session");
+    }
   };
 
   function handleNotesCallback() {
@@ -94,10 +108,7 @@ const SessionDetailsPage = ({ route }) => {
 
             <TouchableOpacity 
               style={styles.cancelButton}
-              onPress={() => {
-                // Handle cancel session
-                navigation.goBack();
-              }}
+              onPress={() => {handleCancel()}}
             >
               <Text style={styles.cancelButtonText}>Cancel Session</Text>
             </TouchableOpacity>
