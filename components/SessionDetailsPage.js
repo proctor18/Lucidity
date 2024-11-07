@@ -19,6 +19,12 @@ const SessionDetailsPage = ({ route }) => {
     setEndPickerVisible(false);
   };
 
+  function handleNotesCallback() {
+    navigation.navigate('NotesPage', {
+      session: currentSession.value
+    });
+  }
+
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -64,6 +70,12 @@ const SessionDetailsPage = ({ route }) => {
 
             <View style={styles.notesSection}>
               <Text style={styles.notesTitle}>Course Notes</Text>
+
+              {/* Notes Button */}
+              <TouchableOpacity style={styles.notesButton} onPress={() => navigation.navigate('NotesPage', {session})}>
+                <Text style={styles.notesButtonText}>Notes</Text>
+              </TouchableOpacity>
+
               <View style={styles.noteItem}>
                 <Text style={styles.noteNumber}>1</Text>
                 <View>
@@ -236,6 +248,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  notesButton: {
+  paddingVertical: 12,
+  paddingHorizontal: 20,
+  backgroundColor: "#7257FF", // Brighter color for prominence
+  borderRadius: 10,
+  marginHorizontal: 10,
+  alignItems: 'center',
+  justifyContent: 'center',
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.3,
+  shadowRadius: 6,
+  elevation: 5, // For Android shadow
+},
+notesButtonText: {
+  color: '#FFFFFF',
+  fontSize: 16,
+  fontWeight: '600', // Bold font for emphasis
+  textAlign: 'center',
+},
+
 });
 
 export default SessionDetailsPage;

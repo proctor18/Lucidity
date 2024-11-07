@@ -21,6 +21,7 @@ import "react-native-gesture-handler";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import NotesPage from "./pages/NotesPage.js";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -97,6 +98,9 @@ export default function App() {
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="SearchResults" component={SearchResults} />
         <Stack.Screen name="TutorProfile" component={TutorProfile} />
+
+        <Stack.Screen name="NotesPage" component={NotesPage} /*options={{ title: 'Session Notes' }}*/ />
+        
         <Stack.Screen name="MessagesList" component={MessagesList} />
         <Stack.Screen name="Conversation" component={Conversation} />
       </Stack.Navigator>
