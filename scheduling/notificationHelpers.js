@@ -1,6 +1,9 @@
 import { supabase } from '../lib/supabase';
 import { sendNotificationEmail } from '../components/EmailService';
 
+/**
+ * Checks our database for any notifications that have not been read
+*/
 export const checkUnreadNotifications = async (user_id) => {
   try {
     const { data, error } = await supabase
@@ -21,7 +24,9 @@ export const checkUnreadNotifications = async (user_id) => {
   }
 };
 
-// Create a new notification for a user
+/**
+ * Function that creates a new notification for a user
+*/
 export const createNotification = async (user_id, message, email) => {
     const { data, error } = await supabase
       .from('notifications')
@@ -40,8 +45,10 @@ export const createNotification = async (user_id, message, email) => {
     return data;
 
   };
-  
-  // Fetch all notifications for a user
+
+/**
+  * Fetches all notifications for a user and sorts them based on the latest notifications
+*/
 export const fetchNotifications = async (user_id) => {
     const { data, error } = await supabase
       .from('notifications')
@@ -55,8 +62,8 @@ export const fetchNotifications = async (user_id) => {
     }
     return data;
   };
-  
-  // Mark a notification as read
+ 
+
 export const markNotificationAsRead = async (notificationId) => {
     const { data, error } = await supabase
       .from('notifications')
@@ -70,8 +77,7 @@ export const markNotificationAsRead = async (notificationId) => {
     return data;
   };
   
-  // Function to mark all unread notifications as read
-  export const markAllNotificationsAsRead = async (user_id) => {
+export const markAllNotificationsAsRead = async (user_id) => {
     const { data, error } = await supabase
       .from('notifications')
       .update({ is_read: true })
@@ -84,7 +90,10 @@ export const markNotificationAsRead = async (notificationId) => {
     return data;
   };
 
-  export const handleDeleteNotification = async (notificationId, setNotifications) => {
+/**
+ * Function that deletes a single notification for a user
+*/
+export const handleDeleteNotification = async (notificationId, setNotifications) => {
     const { error } = await supabase
       .from('notifications')
       .delete()
@@ -95,14 +104,16 @@ export const markNotificationAsRead = async (notificationId) => {
       return;
     }
   
-    // Update notifications
+    // Update notifications that is being handled by our frontend
     setNotifications((prevNotifications) =>
       prevNotifications.filter((notification) => notification.notification_id !== notificationId)
     );
   };
 
-  export const clearAll = async (setNotifications, user_id) => {
-    // Delete all notifications from the database
+/**
+ * Function that will delete ALL notifications for a user
+*/
+export const clearAll = async (setNotifications, user_id) => {
     const { error } = await supabase
       .from('notifications')
       .delete()

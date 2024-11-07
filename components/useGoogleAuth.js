@@ -1,3 +1,6 @@
+// Authorization that could be used for google
+// Needed to add this to make my google functions to play nice (to work)
+
 import { useState, useEffect } from 'react';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';

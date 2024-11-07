@@ -25,7 +25,7 @@ const NotificationsList = () => {
     useCallback(() => {
       loadNotifications();
 
-      // Real-time notifications displayed in app
+      // Real time notifications displayed in app
       const notificationsChannel = supabase
         .channel('notifications')
         .on(
@@ -72,6 +72,8 @@ const NotificationsList = () => {
           })}
         </Text>
       </View>
+
+      {/* Single Delete Button (Trashcan) */}
       <TouchableOpacity onPress={() => handleDeleteNotification(item.notification_id, setNotifications)} style={styles.deleteButton}>
         <Ionicons name="trash-outline" size={20} color="rgba(128, 128, 128, 0.6)" />
       </TouchableOpacity>
@@ -84,6 +86,7 @@ const NotificationsList = () => {
         <Ionicons name="notifications-outline" size={24} color="#7257FF" style={styles.bellIcon} />
         <Text style={styles.header}>Notifications</Text>
 
+      {/* Clear All buttton */}   
       {notifications.length > 0 && (
           <TouchableOpacity onPress={() => clearAll(setNotifications, user_id)} style={styles.clearAllButton}>
             <Text style={styles.clearAllButtonText}>Clear All</Text>
@@ -91,6 +94,7 @@ const NotificationsList = () => {
         )}
       </View>
 
+      {/* No Notifications message */}   
       {notifications.length === 0 ? (
       <View style={styles.emptyMessageContainer}>
         <Text style={styles.emptyMessageText}>No notifications at this time.</Text>

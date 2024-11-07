@@ -163,7 +163,7 @@ const BookingPage = () => {
       setMarkedDates(marked);
     };
 
-  // Initialize start time to 12:00 AM for the DateTimePicker
+  // Force start time to 12:00 AM for the DateTimePicker
   const initialMidnight = new Date();
   initialMidnight.setHours(0, 0, 0, 0);
 
