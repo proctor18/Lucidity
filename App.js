@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,6 +11,7 @@ import Start from "./pages/Start.js";
 import BookingPage from "./pages/BookingPage.js";
 import Dashboard from "./pages/Dashboard.js";
 import Signup from "./pages/Signup.js";
+import Notifications from "./pages/Notifications.js"
 import UsersList from "./pages/UsersList.js";
 import Search from "./pages/Search.js";
 import SearchResults from "./pages/SearchResults.js";
@@ -20,6 +21,8 @@ import "react-native-gesture-handler";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { checkUnreadNotifications } from './scheduling/notificationHelpers.js';
+import { useFocusEffect } from '@react-navigation/native';
 
 
 const Stack = createStackNavigator();
@@ -27,6 +30,19 @@ const Tab = createBottomTabNavigator();
 
 function MainTabs({ route }) {
   const { email, first_name, last_name, role_id, user_id } = route.params || {};
+  const [hasUnread, setHasUnread] = useState(false);
+
+  // Check for unread notifications whenever the screen gains focus
+  useFocusEffect(
+    useCallback(() => {
+      const fetchUnreadNotifications = async () => {
+        const hasUnreadNotifications = await checkUnreadNotifications(user_id);
+        setHasUnread(hasUnreadNotifications);
+      };
+
+      fetchUnreadNotifications();
+    }, [user_id])
+  );
 
   return (
     <Tab.Navigator
@@ -44,17 +60,40 @@ function MainTabs({ route }) {
         tabBarInactiveTintColor: "#8E8E8F",
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
+          let showDot = false;
+
           if (route.name === "DashboardTab") {
             iconName = focused ? "home" : "home-outline";
           } else if (route.name === "SearchTab") {
             iconName = focused ? "search" : "search-outline";
+          } else if (route.name === "NotificationsTab") {
+            iconName = focused ? "notifications" : "notifications-outline";
+            showDot = hasUnread; // Show dot if there are unread notifications
           } else if (route.name === "ProfileTab") {
             iconName = focused ? "person" : "person-outline";
           } else if (route.name === "SettingsTab") {
             iconName = focused ? "settings" : "settings-outline";
           }
-          return <Ionicons name={iconName} size={size} color={color} />;
+          return (
+            <View>
+              <Ionicons name={iconName} size={size} color={color} />
+              {showDot && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: -2,
+                    right: -6,
+                    height: 8,
+                    width: 8,
+                    borderRadius: 4,
+                    backgroundColor: '#7257FF', // Purple dot for unread notifications
+                  }}
+                />
+              )}
+            </View>
+          );
         },
+        
       })}>
       <Tab.Screen
         name="DashboardTab"
@@ -66,6 +105,15 @@ function MainTabs({ route }) {
         name="SearchTab"
         component={Search}
         options={{ tabBarLabel: "Search" }}
+      />
+      <Tab.Screen
+        name="NotificationsTab"
+        component={Notifications}
+        initialParams={{ user_id }}
+        options={{ tabBarLabel: "Notifications" }}
+        listeners={{
+          tabPress: () => setHasUnread(false), // Clear dot when Notifications tab is opened
+        }}
       />
       <Tab.Screen
         name="SettingsTab"

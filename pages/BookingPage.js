@@ -1,5 +1,5 @@
 import React, { useState, useContext,useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView, SafeAreaView } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from "@expo/vector-icons";
@@ -10,7 +10,8 @@ import { UserContext } from '../components/UserContext.js';
 import { useGoogleAuth } from '../components/useGoogleAuth.js';
 import { supabase } from '../lib/supabase';
 // import ourGoogleAuthentication from '../wherever.that.is';
-import { validateBooking, bookSession } from '../scheduling/calendar.js';
+import { validateBooking, bookSession,  } from '../scheduling/calendar.js';
+import { createNotification } from '../scheduling/notificationHelpers.js';
 
 const BookingPage = () => {
   const [selectedDate, setselectedDate] = useState({});
@@ -88,8 +89,17 @@ const BookingPage = () => {
 
       const bookingData = await bookSession(studentId, tutorId, selectedDate, startTime, endTime, subject, googleAccessToken);
 
+      // Format date and time for the notification message
+      const formattedDate = moment(selectedDate).format('MMMM D');
+      const formattedStartTime = startTime;
+      const formattedEndTime = endTime;
+
       if (bookingData) {
         setStatusMessage('Session booked successfully!');
+        // Notify the student
+        await createNotification(studentId, `Your session on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime} has been confirmed!`, email);
+        // Notify the tutor
+        await createNotification(tutorId, `A new session has been booked with you on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime}.`, email);
         if (googleAccessToken) {
           setStatusMessage((prev) => prev + ' Synced with Google Calendar.');
         }
@@ -158,6 +168,7 @@ const BookingPage = () => {
   initialMidnight.setHours(0, 0, 0, 0);
 
   return (
+    <SafeAreaView style={styles.safeContainer}>
     <ScrollView contentContainerStyle={styles.scrollContainer}>
     <View style={styles.container}>
       {/* Header Section */}
@@ -241,6 +252,7 @@ const BookingPage = () => {
       </TouchableOpacity>
     </View>
     </ScrollView>
+    </SafeAreaView>
   );
 };
 

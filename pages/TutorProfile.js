@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   View,
   Text,
@@ -11,10 +11,14 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import ReviewsCarousel from "../components/ReviewsCarousel";
+import { UserContext } from '../components/UserContext.js';
 
 const TutorProfile = ({ route }) => {
   const { name, sessions, rating, description } = route.params;
+  const { user } = useContext(UserContext);
   const navigation = useNavigation();
+
+  const { role_id } = user;
 
   // Sample reviews data
   // ------------------------------------------
@@ -98,13 +102,15 @@ const TutorProfile = ({ route }) => {
 
       {/* Fixed Book Session Button */}
       <View style={styles.fixedButtonContainer}>
+      {role_id !== 1 && (
         <TouchableOpacity
-          style={styles.bookButton}
-          onPress={() => navigation.navigate("BookingPage")}
-        >
-          <Ionicons name="calendar-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.bookButtonText}>Book Session</Text>
-        </TouchableOpacity>
+            style={styles.bookButton}
+            onPress={() => navigation.navigate("BookingPage")}
+          >
+            <Ionicons name="calendar-outline" size={20} color="#FFFFFF" />
+            <Text style={styles.bookButtonText}>Book Session</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
