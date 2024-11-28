@@ -27,7 +27,13 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import NotesPage from "./pages/NotesPage.js";
 import { checkUnreadNotifications } from './scheduling/notificationHelpers.js';
 import { useFocusEffect } from '@react-navigation/native';
+import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 
+configureReanimatedLogger({
+  // Disables some warnings
+  level: ReanimatedLogLevel.warn,
+  strict: false,
+});
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -147,6 +153,7 @@ export default function App() {
         <Stack.Screen name="Signup" component={Signup} />
         <Stack.Screen name="PopulateInfo" component={PopulateInfo} />
         <Stack.Screen name="Launch" component={Launch} />
+        <Stack.Screen name="Dashboard" component={Dashboard} />
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="SearchResults" component={SearchResults} />
         <Stack.Screen name="TutorProfile" component={TutorProfile} />

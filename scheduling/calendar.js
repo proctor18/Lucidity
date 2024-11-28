@@ -145,24 +145,19 @@ async function deleteEventFromGoogleCalendar(accessToken, eventId) {
  * Helper: Function that will check if two events overlap
 */
 function checkForOverlap(session1, session2) {
-  const session1Start = new Date(`${session1.session_date}T${session1.start_time}`);
-  const session1End = new Date(`${session1.session_date}T${session1.end_time}`);
-  const session2Start = new Date(`${session2.session_date}T${session2.start_time}`);
-  const session2End = new Date(`${session2.session_date}T${session2.end_time}`);
+  const session1Start = moment.utc(`${session1.session_date} ${session1.start_time}`, 'YYYY-MM-DD HH:mm:ss');
+  const session1End = moment.utc(`${session1.session_date} ${session1.end_time}`, 'YYYY-MM-DD HH:mm:ss');
+  const session2Start = moment.utc(`${session2.session_date} ${session2.start_time}`, 'YYYY-MM-DD HH:mm:ss');
+  const session2End = moment.utc(`${session2.session_date} ${session2.end_time}`, 'YYYY-MM-DD HH:mm:ss');
 
-  return session1Start < session2End && session1End > session2Start;
+  return session1Start.isBefore(session2End) && session1End.isAfter(session2Start);
 }
 
 /**
  * Helper: Takes a list of sessions and checks if any overlap with the requested time slot
 */
 function hasSchedulingConflicts(existingSessions, requestedSession) {
-  for (let session of existingSessions) {
-    if (checkForOverlap(requestedSession, session)) {
-      return true;
-    }
-  }
-  return false;
+  return existingSessions.some(session => checkForOverlap(requestedSession, session));
 }
 
 
@@ -170,32 +165,35 @@ function hasSchedulingConflicts(existingSessions, requestedSession) {
  * Helper: Function to check if the requested time falls within any of the tutor's availability times for requested day
 */
 async function tutorAvailability(tutorId, dayOfWeek, startTime, endTime) {
-  const start24Hour = moment(startTime, ["h:mm A"]).format("HH:mm");
-  const end24Hour = moment(endTime, ["h:mm A"]).format("HH:mm");
+  const startUTC = moment.utc(startTime, "h:mm A").format("HH:mm:ss");
+  const endUTC = moment.utc(endTime, "h:mm A").format("HH:mm:ss");
 
-  // Fetch all available records for the tutor for requested day
+  // Fetch all available records for the tutor for the requested day
   const { data: availability, error } = await supabase
     .from('availability')
     .select('*')
     .eq('tutor_id', tutorId)
-    .eq('day_of_week', dayOfWeek); // maybe should change this to the exact date as day_of_week could cause issues
+    .eq('day_of_week', dayOfWeek);
 
-  if (error || !availability) {
+  if (error || !availability || availability.length === 0) {
     console.error('Tutor availability not found:', error);
     return false;
   }
 
   // Compare requested time with available slots
   for (let slot of availability) {
-    const availableStart = slot.start_time;
-    const availableEnd = slot.end_time;
+    const availableStart = moment.utc(slot.start_time, "HH:mm:ss").format("HH:mm:ss");
+    const availableEnd = moment.utc(slot.end_time, "HH:mm:ss").format("HH:mm:ss");
 
-    if (start24Hour >= availableStart && end24Hour <= availableEnd) {
+    console.log("Comparing:", { startUTC, endUTC, availableStart, availableEnd });
+
+    // Check if the requested times fall within the availability range
+    if (startUTC >= availableStart && endUTC <= availableEnd) {
       return true;
     }
   }
 
-  return false;
+  return false; // No matching availability found
 }
 
 /**
@@ -205,6 +203,11 @@ async function tutorAvailability(tutorId, dayOfWeek, startTime, endTime) {
 async function validateBooking(studentId, tutorId, sessionDate, startTime, endTime) {
   const start24Hour = moment(startTime, ["h:mm A"]).format("HH:mm");
   const end24Hour = moment(endTime, ["h:mm A"]).format("HH:mm");
+
+  // Ensure start time is before end time
+  if (start24Hour >= end24Hour) {
+    return { available: false, conflict: 'Start time must be before end time' };
+  }
 
   // Calculate day of the week
   const dayOfWeek = moment(sessionDate).format('dddd');
@@ -216,15 +219,15 @@ async function validateBooking(studentId, tutorId, sessionDate, startTime, endTi
   }
 
   const requestedSession = { session_date: sessionDate, start_time: start24Hour, end_time: end24Hour };
-  
-  // Check for conflicts with the students existing sessions
+
+  // Check for conflicts with the student's existing sessions
   const studentSessions = await fetchUserSessions(studentId);
   const studentSessionsOnDate = studentSessions.filter(session => session.session_date === sessionDate);
   if (hasSchedulingConflicts(studentSessionsOnDate, requestedSession)) {
     return { available: false, conflict: 'Student has a scheduling conflict' };
   }
 
-  // Check for conflicts with the tutors existing sessions
+  // Check for conflicts with the tutor's existing sessions
   const tutorSessions = await fetchUserSessions(tutorId);
   const tutorSessionsOnDate = tutorSessions.filter(session => session.session_date === sessionDate);
   if (hasSchedulingConflicts(tutorSessionsOnDate, requestedSession)) {
