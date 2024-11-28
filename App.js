@@ -27,6 +27,9 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import NotesPage from "./pages/NotesPage.js";
 import { checkUnreadNotifications } from './scheduling/notificationHelpers.js';
 import { useFocusEffect } from '@react-navigation/native';
+import Messages from "./pages/Messages.js"; // New import for Messages screen
+import supabase from 'C:/Users/barak/OneDrive/Desktop/Thechumbucket/CMPT395C4/supabaseClient';
+
 
 
 const Stack = createStackNavigator();
@@ -151,9 +154,8 @@ export default function App() {
         <Stack.Screen name="SearchResults" component={SearchResults} />
         <Stack.Screen name="TutorProfile" component={TutorProfile} />
         <Stack.Screen name="BookingPage" component={BookingPage} />
-
+        <Stack.Screen name="Messages" component={Messages} />
         <Stack.Screen name="NotesPage" component={NotesPage} /*options={{ title: 'Session Notes' }}*/ />
-        
         <Stack.Screen name="MessagesList" component={MessagesList} />
         <Stack.Screen name="Conversation" component={Conversation} />
       </Stack.Navigator>
