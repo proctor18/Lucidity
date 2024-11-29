@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import axios from 'axios';
 
 /**
  * Checks our database for any notifications that have not been read
@@ -27,23 +28,31 @@ export const checkUnreadNotifications = async (user_id) => {
  * Function that creates a new notification for a user
 */
 export const createNotification = async (user_id, message, email) => {
+  try {
+    // Insert notification into the database
     const { data, error } = await supabase
       .from('notifications')
       .insert({
-        user_id: user_id,
-        message: message,
+        user_id,
+        message,
         is_read: false,
-        created_at: new Date(), 
+        created_at: new Date(),
       });
-    
+
     if (error) {
       console.error('Error creating notification:', error);
-      return null;
+      throw new Error('Failed to create notification');
     }
-    
-    return data;
 
-  };
+    // Send email notification
+    await sendEmailNotification(email, message);
+
+    return data;
+  } catch (err) {
+    console.error('Error in createNotification:', err.message);
+    return null;
+  }
+};
 
 /**
   * Fetches all notifications for a user and sorts them based on the latest notifications
@@ -125,3 +134,43 @@ export const clearAll = async (setNotifications, user_id) => {
 
     setNotifications([]);
   };
+
+/**
+ * Function uses sendgrid API template in order to send emails to tutors/students
+*/
+export const sendEmailNotification = async (email, sessionDetails) => {
+  const SENDGRID_API_KEY = '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';
+  const SENDGRID_URL = 'https://api.sendgrid.com/v3/mail/send';
+
+  const emailData = {
+    personalizations: [
+      {
+        to: [{ email }],
+        subject: 'Your Tutoring Session is Confirmed',
+      },
+    ],
+    from: {
+      email: 'lucidity.notifications@gmail.com',
+      name: 'Lucidity',
+    },
+    content: [
+      {
+        type: 'text/plain',
+        value: `Hi, your session is confirmed! Here are the details:\n\n${sessionDetails}`,
+      },
+    ],
+  };
+
+  try {
+    await axios.post(SENDGRID_URL, emailData, {
+      headers: {
+        Authorization: `Bearer ${SENDGRID_API_KEY}`, 
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log('Email sent successfully!');
+  } catch (error) {
+    console.error('Error sending email:', error.response?.data || error.message);
+    throw new Error('Failed to send email');
+  }
+};

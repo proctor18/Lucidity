@@ -10,7 +10,7 @@ import { useGoogleAuth } from '../components/useGoogleAuth.js';
 import { supabase } from '../lib/supabase';
 // import ourGoogleAuthentication from '../wherever.that.is';
 import { validateBooking, bookSession, fetchUserSessions  } from '../scheduling/calendar.js';
-import { createNotification } from '../scheduling/notificationHelpers.js';
+import { createNotification, sendEmailNotification } from '../scheduling/notificationHelpers.js';
 
 const BookingPage = ({ route }) => {
   const { tutorId, subject } = route.params;
@@ -122,11 +122,12 @@ const BookingPage = ({ route }) => {
       const formattedEndTime = endTime;
 
       if (bookingData) {
+        // Can test/demo the email being sent using temp-mail.org and replacing email variable with generated temp email
         setStatusMessage('Session booked successfully!');
         // Notify the student
         await createNotification(studentId, `Your session on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime} has been confirmed!`, email);
         // Notify the tutor
-        await createNotification(tutorId, `A new session has been booked with you on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime}.`, email);
+        await createNotification(tutorId, `A new session has been booked with you on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime}.`, 'Teachertest@gmail.com');
         if (googleAccessToken) {
           setStatusMessage((prev) => prev + ' Synced with Google Calendar.');
         }
