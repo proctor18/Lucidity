@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { SENDGRID_API_KEY } from '@env';
 import axios from 'axios';
 
 /**
@@ -139,9 +140,9 @@ export const clearAll = async (setNotifications, user_id) => {
  * Function uses sendgrid API template in order to send emails to tutors/students
 */
 export const sendEmailNotification = async (email, sessionDetails) => {
-  const SENDGRID_API_KEY = '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';
   const SENDGRID_URL = 'https://api.sendgrid.com/v3/mail/send';
-
+  const apiKey = SENDGRID_API_KEY
+  
   const emailData = {
     personalizations: [
       {
@@ -164,7 +165,7 @@ export const sendEmailNotification = async (email, sessionDetails) => {
   try {
     await axios.post(SENDGRID_URL, emailData, {
       headers: {
-        Authorization: `Bearer ${SENDGRID_API_KEY}`, 
+        Authorization: `Bearer ${apiKey}`, 
         'Content-Type': 'application/json',
       },
     });

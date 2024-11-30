@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, FlatList, ScrollView, SafeAreaView, Alert } from 'react-native';
 import Button from '../components/Button.js';
+import BouncyCheckbox from "react-native-bouncy-checkbox";
 import  { supabase } from '../lib/supabase.js' ; 
+import moment from 'moment';
+import { useNavigation } from '@react-navigation/native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -12,7 +15,7 @@ const dialog = [
     options: ["Student", "Tutor"]
   },
   {
-    title: "What subjects are you comfortable teaching?" ,
+    title: "What subjects are you comfortable with?" ,
     subTitle: "Help us get to know you better",
     inputType: "text"
   },
@@ -78,10 +81,59 @@ const TOPIC_MAP = [
     icon : "../assets/icons/mathPurple.png"  , 
     activeIcon : "../assets/icons/mathWhite.png" 
   },
-,
-]
+];
 
-export default function PopulateInfo({ route , navigation }) {
+const DAYS_MAP = [
+  {
+    title: "Monday",
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+  {
+    title: "Tuesday",
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+  {
+    title: "Wednesday",
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+  {
+    title: "Thursday",
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+  {
+    title: "Friday",
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+  {
+    title: "Saturday",
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+  {
+    title: "Sunday",
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+];
+
+const generateTimeSlots = (startTime, endTime, interval = 60) => {
+  const slots = [];
+  let current = moment(startTime, "hh:mm A");
+
+  while (current.isBefore(moment(endTime, "hh:mm A"))) {
+    slots.push(current.format("hh:mm A")); // Format times for compatibility
+    current.add(interval, "minutes"); // Increment by the interval
+  }
+
+  return slots;
+};
+
+export default function PopulateInfo({ route }) {
 
   const { first_name , last_name , email , user_id  , password } = route.params ; 
 
@@ -90,54 +142,82 @@ export default function PopulateInfo({ route , navigation }) {
   const [formData, setFormData] = useState({});
   const [topicList , setTopic ] = useState([]) ;
   const [loading , setLoading ] = useState(false) ;
+  const [selectedDays, setSelectedDays] = useState([]);
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState([]);
+  const [isQualified, setIsQualified] = useState(false);
+  const navigation = useNavigation();
+
+  const [timeSlots] = useState(generateTimeSlots("8:00 AM", "11:00 PM", 60));
+  const morningSlots = timeSlots.filter((time) => moment(time, "hh:mm A").hour() < 12);
+  const afternoonSlots = timeSlots.filter((time) => moment(time, "hh:mm A").hour() >= 12);
 
   // console.log(first_name) ;   // Why does this console.log everytime ??
 
   //Function to handle the writing to the database
   async function writeValues() {
-      if (!topicList || !selectedOption) {
-          console.error("Error: Values are missing");
-          return; // Return early if values are missing
+    if (!topicList || !selectedOption) {
+      console.error("Error: Values are missing");
+      return; // Return early if values are missing
+    }
+    setLoading(true);
+  
+    try {
+      // Insert Tutor or Student
+      const userInfo = {
+        role_id: selectedOption === "Tutor" ? 1 : 0,
+        topics: topicList,
+        [selectedOption === "Tutor" ? "tutor_id" : "student_id"]: user_id,
+        password,
+        email,
+        first_name,
+        last_name,
+        ...(selectedOption === "Tutor" && { is_qualified: isQualified })
+      };
+  
+      const { data: tutorData, error: tutorError } = await supabase
+        .from(selectedOption === "Tutor" ? "tutors" : "students")
+        .insert(userInfo);
+  
+      if (tutorError) {
+        console.error("Error while inserting user:", tutorError);
+        Alert.alert("Error", "Failed to save user information.");
+        return;
       }
-      setLoading(true);
-      try {
-        if(selectedOption === "Tutor"){
-          const { error } = await supabase
-              .from("tutors")
-              .insert({
-                  role_id: 1 , 
-                  topics : topicList ,    
-                  tutor_id : user_id , 
-                  password : password , 
-                  email : email , 
-                  first_name : first_name , 
-                  last_name : last_name , 
-              })
-        } else{
-          const { error } = await supabase
-              .from("students")
-              .insert({
-                  role_id: 0 , 
-                  topics : topicList ,    
-                  student_id : user_id , 
-                  password : password , 
-                  email : email , 
-                  first_name : first_name , 
-                  last_name : last_name , 
-              })
+  
+      // Insert Availability (Only for Tutors)
+      if (selectedOption === "Tutor") {
+        if (!selectedDays.length || selectedTimeSlots.length !== 2) {
+          Alert.alert("Error", "Please select days and time slots.");
+          return;
         }
-          if (error) {
-              console.error("Error occurred while inserting:", error);
-              return; // Handle the error as needed
-          }
-
-          
-      } catch  { // I dont know why this assertion is not working ? 
-          // console.error("Error occurred:", error);
-          console.log('hello') 
-      } finally {
-          setLoading(false);
+  
+        const availabilityData = {
+          tutor_id: user_id,
+          day_of_week: selectedDays, 
+          start_time: moment.utc(selectedTimeSlots[0], "hh:mm A").format("HH:mm:ssZ"),
+          end_time: moment.utc(selectedTimeSlots[1], "hh:mm A").format("HH:mm:ssZ"),
+        };
+  
+        const { data: availabilityDataResponse, error: availabilityError } = await supabase
+          .from("availability")
+          .insert(availabilityData);
+  
+        if (availabilityError) {
+          console.error("Error while inserting availability:", availabilityError);
+          Alert.alert("Error", "Failed to save availability.");
+          return;
+        }
       }
+  
+      // Success
+      Alert.alert("Success", "Your information has been saved!");
+      navigation.navigate("Login");
+    } catch (error) {
+      console.error("Unexpected error:", error.message);
+      Alert.alert("Error", "An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 // -------------------------------- Review ------------------------------
   
@@ -152,14 +232,25 @@ export default function PopulateInfo({ route , navigation }) {
       }
   };
 
+  const toggleDay = (day) => {
+    if (selectedDays.includes(day)) {
+      setSelectedDays(selectedDays.filter((d) => d !== day));
+    } else {
+      setSelectedDays([...selectedDays, day]);
+    }
+  };
 
 // -------------------------------- Review ------------------------------
   const handleContinue = () => {
+    if (selectedOption === "Student" && currentStep === 1) {
+      writeValues(); // Directly submit for "Student" at step 1
+      return;
+    }
+
     if (currentStep < dialog.length - 1) {
-      setCurrentStep(currentStep + 1);
+      setCurrentStep(currentStep + 1); // Proceed to next step
     } else {
-      // console.assert(!selectedOption || !topicList  , "Error , Missing values") ;  // Should never occur 
-      writeValues() ; 
+      writeValues(); // Submit on the final step
     }
   };
 
@@ -168,9 +259,20 @@ export default function PopulateInfo({ route , navigation }) {
     setFormData({ ...formData, userType: option });
   };
 
+  const toggleSlot = (slot) => {
+    if (selectedTimeSlots.includes(slot)) {
+      setSelectedTimeSlots(selectedTimeSlots.filter((time) => time !== slot));
+    } else if (selectedTimeSlots.length < 2) {
+      setSelectedTimeSlots([...selectedTimeSlots, slot]);
+    } else {
+      alert("Only two time slots can be selected.");
+    }
+  };
+
   const renderContent = () => {
     const currentDialog = dialog[currentStep];
 
+    // Tutor / Student Selector
     if (currentStep === 0) {
       return (
         <View style={styles.rowTwo}>
@@ -190,7 +292,7 @@ export default function PopulateInfo({ route , navigation }) {
     }
 
 // -------------------------------- Review ------------------------------
-    //
+    // Subject Selecter
     if (currentStep === 1){
       return ( 
         <View style={styles.chipContainer}>
@@ -207,13 +309,104 @@ export default function PopulateInfo({ route , navigation }) {
       )
     }
 
-    if (currentStep === 2){
-      return ( 
-        <View style={styles.chipContainer}>
+    // Availability
+    if (currentStep === 2) {
+      return (
+        <ScrollView contentContainerStyle={styles.fullContainer}>
+        <SafeAreaView style={styles.fullContainer}>
+        <View>
+          {/* Day Selection */}
+          <View style={styles.chipContainer}>
+            {DAYS_MAP.map((day) => (
+              <Button
+                key={day.title}
+                type="chip"
+                text={day.title}
+                callback={() => toggleDay(day.title)}
+                active={selectedDays.includes(day.title)}
+              />
+            ))}
+          </View>
+    
+          {/* Time Slot Selection */}
+          <View style={styles.timeSlotContainer}>
+          <Text style={styles.label}>Select Your Start and End Availability</Text>
+
+          {/* Morning Slots */}
+          <View>
+            <Text style={styles.timeLabel}>Morning</Text>
+            <FlatList
+              data={morningSlots}
+              keyExtractor={(item) => item}
+              horizontal
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => toggleSlot(item)}
+                  style={[
+                    styles.slotButton,
+                    selectedTimeSlots.includes(item) && styles.selectedSlotButton,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.slotText,
+                      selectedTimeSlots.includes(item) && styles.selectedSlotText,
+                    ]}
+                  >
+                    {item}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+
+          {/* Afternoon Slots */}
+          <View>
+            <Text style={styles.timeLabel}>Afternoon</Text>
+            <FlatList
+              data={afternoonSlots}
+              keyExtractor={(item) => item}
+              horizontal
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => toggleSlot(item)}
+                  style={[
+                    styles.slotButton,
+                    selectedTimeSlots.includes(item) && styles.selectedSlotButton,
+                  ]}
+                >
+                  <Text 
+                  style={[
+                    styles.slotText,
+                    selectedTimeSlots.includes(item) && styles.selectedSlotText,
+                  ]}
+                  >
+                    {item}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
         </View>
-      )
-    }
-  };
+        
+        {/* Qualification Checkmark */}
+        <View style={styles.checkContainer}>
+          <BouncyCheckbox
+            size={25}
+            fillColor="#7257FF" // Color when selected
+            unfillColor="#FFFFFF" // Background color when unselected
+            text="Do you consider yourself qualified to be a tutor?"
+            iconStyle={{ borderColor: "#7257FF", borderRadius: 4 }}
+            textStyle={{ fontSize: 16, color: "white", textDecorationLine: "none" }}
+            isChecked={isQualified}
+            onPress={(isChecked) => setIsQualified(isChecked)}
+          />
+        </View>
+    </View>
+    </SafeAreaView>
+    </ScrollView>
+    );
+  }};
 // -------------------------------- Review ------------------------------
 
   return (
@@ -236,9 +429,25 @@ export default function PopulateInfo({ route , navigation }) {
       <View style={styles.buttonContainer}>
         <Button
           type="small"
-          text={currentStep === dialog.length - 1 ? "Submit" : "Continue"}
+          text={
+            selectedOption === "Student" && currentStep === 1
+              ? "Submit"
+              : currentStep === dialog.length - 1
+              ? "Submit"
+              : "Continue"
+          }
           callback={handleContinue}
-          disabled={currentStep === 0 && !selectedOption}
+          disabled={
+            ((currentStep === 0 && !selectedOption) ||
+            (selectedOption === "Tutor" && !isQualified && currentStep == 2)) // Tutor must check qualified to continue
+          }
+          style={[
+            styles.button,
+            (
+              ((currentStep === 0 && !selectedOption) ||
+              (selectedOption === "Tutor" && !isQualified))
+            ) && styles.buttonDisabled
+          ]}
         />
       </View>
     </View>
@@ -256,13 +465,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingTop: 60,
-    paddingBottom: 40,
+    paddingBottom: 20,
+  },
+  fullContainer: {
+    flexGrow: 1,
+    paddingBottom: 20,
+    backgroundColor: 'black',
   },
   contentContainer: {
     flex: 1,
     width: "100%",
-    alignItems: "center",
-    justifyContent: "flex_start",
+    justifyContent: "flex-start",
   },
   pagination: {
     flexDirection: 'row',
@@ -362,5 +575,51 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
-  } ,
+  },
+  timeSlotContainer: {
+    marginTop: 15,
+  },
+  timeLabel: {
+    color: '#ffffff',
+    fontSize: 17,
+    marginTop: 15,
+    fontWeight: "bold",
+  },
+  slotButton: {
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: 'rgba(51, 51, 51, 0.8)',
+    marginHorizontal: 5,
+  },
+  selectedSlotButton: {
+    backgroundColor: "rgba(114, 87, 255, 0.3)",
+    borderRadius: 10,
+    borderColor: "rgba(155, 137, 255, 0.3)",
+    borderWidth: 1
+  },
+  slotText: {
+    fontSize: 16,
+    color: '#ffffff',
+  },
+  selectedSlotText: {
+    color: "rgba(155, 137, 255, 1.0)",
+    fontWeight: "bold"
+  },
+  label: {
+    color: '#ffffff',
+    fontSize: 17,
+    marginTop: 15,
+    fontWeight: "bold",
+  },
+  timeLabel: {
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  buttonDisabled: {
+    backgroundColor: "#D3D3D3",
+    opacity: 0.6,
+  },
+  checkContainer: {
+    paddingTop: 20,
+  },
 });

@@ -4,13 +4,12 @@ import { Calendar } from 'react-native-calendars';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from "@expo/vector-icons";
 import moment from 'moment';
-import { Picker } from '@react-native-picker/picker';
 import { UserContext } from '../components/UserContext.js';
 import { useGoogleAuth } from '../components/useGoogleAuth.js';
 import { supabase } from '../lib/supabase';
 // import ourGoogleAuthentication from '../wherever.that.is';
 import { validateBooking, bookSession, fetchUserSessions  } from '../scheduling/calendar.js';
-import { createNotification, sendEmailNotification } from '../scheduling/notificationHelpers.js';
+import { createNotification } from '../scheduling/notificationHelpers.js';
 
 const BookingPage = ({ route }) => {
   const { tutorId, subject } = route.params;
@@ -157,19 +156,45 @@ const BookingPage = ({ route }) => {
 
 
     const fetchTutorAvailability = async () => {
-      let tutorId = '27b8300a-d69b-4cbc-97f9-e06f59e63bb9' // example ID here, should replace
+      let tutorId = '27b8300a-d69b-4cbc-97f9-e06f59e63bb9'; // Example ID, should replace    
       const { data: availability, error } = await supabase
         .from('availability')
         .select('day_of_week, start_time, end_time')
         .eq('tutor_id', tutorId);
-  
+    
       if (error) {
         console.error('Error fetching availability:', error.message);
         return;
       }
-  
-      if (availability) {
-        markAvailableDates(availability.map((item) => item.day_of_week));
+    
+      /*
+      const { data: timeOff, error: timeOffError } = await supabase
+        .from('time_off')
+        .select('date')
+        .eq('tutor_id', tutorId);
+    
+      if (timeOffError) {
+        console.error('Error fetching time-off:', timeOffError.message);
+        return;
+      }
+      */
+    
+      if (availability && availability.length > 0) {
+        const availableDays = availability.flatMap((item) => item.day_of_week);
+        
+        /*
+        // Exclude time-off dates
+        const unavailableDates = timeOff.map((off) => off.date);
+        const filteredDays = availableDays.filter(
+          (day) => !unavailableDates.includes(moment(day, "dddd").format("YYYY-MM-DD"))
+        );
+        
+    
+        markAvailableDates(filteredDays);
+        setAvailability(filteredDays);
+        */
+
+        markAvailableDates(availableDays);
         setAvailability(availability[0]);
       }
     };
@@ -228,7 +253,7 @@ const BookingPage = ({ route }) => {
     const selectedMoment = moment(selectedTimes[0], 'hh:mm A'); // Parse the existing selected time
     const currentMoment = moment(time, 'hh:mm A'); // Parse the newly selected time
 
-    // Compare the times accurately
+    // Compare the times selected
     if (currentMoment.isAfter(selectedMoment)) {
       setSelectedTimes([...selectedTimes, time]);
     } else {

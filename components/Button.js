@@ -6,12 +6,16 @@ const IMAGE_MAP = {
   rightarrow: require("../assets/icons/rightarrow.png"),
 };
 
-export default function Button({ type, text, callback, leading, trailing  , active }) {
+export default function Button({ type, text, callback, leading, trailing  , active, disabled }) {
   return (
     <View style={styles.container}>
       {type === "small" && (
-        <TouchableOpacity style={styles.small} onPress={callback}>
-          <Text style={styles.text}>{text}</Text>
+        <TouchableOpacity
+          style={[styles.small, disabled && styles.smallDisabled]}
+          onPress={!disabled ? callback : null} 
+          disabled={disabled} 
+        >
+          <Text style={[styles.text, disabled && styles.textDisabled]}>{text}</Text>
         </TouchableOpacity>
       )}
       {type === "medium" && (
@@ -66,6 +70,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderStyle: "solid",
     borderColor: "#2F2F31",
+  },
+  smallDisabled: {
+    opacity: 0.6,
   },
   text: {
     fontWeight: "bold",

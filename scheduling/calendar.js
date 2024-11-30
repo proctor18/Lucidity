@@ -173,7 +173,7 @@ async function tutorAvailability(tutorId, dayOfWeek, startTime, endTime) {
     .from('availability')
     .select('*')
     .eq('tutor_id', tutorId)
-    .eq('day_of_week', dayOfWeek);
+    .contains('day_of_week', [dayOfWeek]);
 
   if (error || !availability || availability.length === 0) {
     console.error('Tutor availability not found:', error);
@@ -195,6 +195,24 @@ async function tutorAvailability(tutorId, dayOfWeek, startTime, endTime) {
 
   return false; // No matching availability found
 }
+
+    // Potential for a time off function
+    // Table would include tutor id and a requested time off date
+    const addTimeOff = async (tutorId, date) => {
+      const { error } = await supabase
+        .from("time_off")
+        .insert({
+          tutor_id: tutorId,
+          date: moment(date).format("YYYY-MM-DD"), // Format as date
+        });
+    
+      if (error) {
+        console.error("Error adding time-off:", error.message);
+        alert("Failed to set time-off. Please try again.");
+      } else {
+        alert("Time-off successfully added!");
+      }
+    };
 
 /**
  * Function that will check if the specified time slot for a student and a tutor 
