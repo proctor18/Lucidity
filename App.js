@@ -28,7 +28,7 @@ import NotesPage from "./pages/NotesPage.js";
 import { checkUnreadNotifications } from './scheduling/notificationHelpers.js';
 import { useFocusEffect } from '@react-navigation/native';
 import Messages from "./pages/Messages.js"; // New import for Messages screen
-import supabase from 'C:/Users/barak/OneDrive/Desktop/Thechumbucket/CMPT395C4/supabaseClient';
+import { supabase } from './lib/supabase.js';
 
 
 
