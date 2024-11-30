@@ -6,7 +6,7 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from '@react-navigation/native';
 import SessionsCarousel from "../components/SessionsCarousel.js";
 import ButtonDiv from "../components/ButtonDiv.js";
@@ -139,7 +139,12 @@ export default function Dashboard({ navigation, route }) {
           greeting={getGreeting()}
           navigation={navigation}
         />
-
+              <TouchableOpacity
+                  style={styles.navigateToMessagesButton}
+                  onPress={() => navigation.navigate('Messages', { user_id })}
+              >
+                  <Text style={styles.buttonText}>Go to Messages</Text>
+              </TouchableOpacity>
         <View style={styles.textContainer}>
           <Text style={styles.sessionText}>Sessions</Text>
           {error && <Text style={styles.errorText}>Error: {error}</Text>}

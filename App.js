@@ -27,13 +27,8 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import NotesPage from "./pages/NotesPage.js";
 import { checkUnreadNotifications } from './scheduling/notificationHelpers.js';
 import { useFocusEffect } from '@react-navigation/native';
-import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
-
-configureReanimatedLogger({
-  // Disables some warnings
-  level: ReanimatedLogLevel.warn,
-  strict: false,
-});
+import Messages from "./pages/Messages.js"; // New import for Messages screen
+import { supabase } from './lib/supabase.js';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -140,6 +135,7 @@ function MainTabs({ route }) {
   );
 }
 
+
 // Root Stack for managing all navigation flows
 export default function App() {
   return (
@@ -158,9 +154,8 @@ export default function App() {
         <Stack.Screen name="SearchResults" component={SearchResults} />
         <Stack.Screen name="TutorProfile" component={TutorProfile} />
         <Stack.Screen name="BookingPage" component={BookingPage} />
-
+        <Stack.Screen name="Messages" component={Messages} />
         <Stack.Screen name="NotesPage" component={NotesPage} /*options={{ title: 'Session Notes' }}*/ />
-        
         <Stack.Screen name="MessagesList" component={MessagesList} />
         <Stack.Screen name="Conversation" component={Conversation} />
       </Stack.Navigator>
