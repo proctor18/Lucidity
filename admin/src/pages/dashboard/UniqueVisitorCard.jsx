@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState , useEffect } from 'react';
 
 // material-ui
 import Button from '@mui/material/Button';
@@ -10,12 +10,12 @@ import Box from '@mui/material/Box';
 // project import
 import MainCard from 'components/MainCard';
 import IncomeAreaChart from './IncomeAreaChart';
+import { supabase } from "lib/supabase.js";
 
 // ==============================|| DEFAULT - UNIQUE VISITOR ||============================== //
 
 export default function UniqueVisitorCard() {
   const [slot, setSlot] = useState('week');
-
   return (
     <>
       <Grid container alignItems="center" justifyContent="space-between">

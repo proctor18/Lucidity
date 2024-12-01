@@ -12,6 +12,11 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
+
+//react  import
+
+import { useState , useEffect } from "react";
+
 // project import
 import MainCard from 'components/MainCard';
 import AnalyticEcommerce from 'components/cards/statistics/AnalyticEcommerce';
@@ -99,7 +104,7 @@ export default function DashboardDefault() {
       <Grid item xs={12} md={7} lg={8}>
         <Grid container alignItems="center" justifyContent="space-between">
           <Grid item>
-            <Typography variant="h5">Verification Requests</Typography>
+            <Typography variant="h5">Recent Orders</Typography>
           </Grid>
           <Grid item />
         </Grid>
