@@ -57,7 +57,7 @@ export default function DashboardDefault() {
         <Typography variant="h5">Dashboard</Typography>
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={3}>
-        <AnalyticEcommerce title="Total Page Views" count="4,42,236" percentage={59.3} extra="35,000" />
+        <AnalyticEcommerce title="Current Users" count="4,42,236" percentage={59.3} extra="35,000" />
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={3}>
         <AnalyticEcommerce title="Total Users" count="78,250" percentage={70.5} extra="8,900" />
@@ -99,7 +99,7 @@ export default function DashboardDefault() {
       <Grid item xs={12} md={7} lg={8}>
         <Grid container alignItems="center" justifyContent="space-between">
           <Grid item>
-            <Typography variant="h5">Recent Orders</Typography>
+            <Typography variant="h5">Verification Requests</Typography>
           </Grid>
           <Grid item />
         </Grid>
