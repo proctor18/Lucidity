@@ -62,6 +62,10 @@ export default function DashboardDefault() {
 
   const [ userCount , setUserCount ] = useState(0) ;
   const [ sessionCount, setSessionCount ] = useState(0) ;
+  const [ badApples , setBadApples ] = useState(0) ;
+  const [ studentData , setStudentData ] = useState(null) ; 
+  const [ tutorData, setTutorData ] = useState(null) ; 
+  const [ sessionData , setSessionData ] = useState(null) ; 
   useEffect(() => {
     fetchData() ; 
   } , [userCount]) ; 
@@ -69,6 +73,18 @@ export default function DashboardDefault() {
 
 
 
+  function calculateBadPerformers(tutorData){
+    let badApples = {} ; 
+    for( const [ key , value ] of Object.entries(tutorData)){
+      // check if legth is less than four 
+      // if it is less than four add the lowest values 
+      if (Object.keys(badApples).length < 4) {
+        badApples[key] = value ; 
+      }
+    }
+    setBadApples(badApples) ; 
+    console.log('Bad apples' , badApples) ; 
+  }
   async function fetchData(){
       try {
         // Fetch teacher data
@@ -88,13 +104,16 @@ export default function DashboardDefault() {
         if (tutorData && studentData && sessionData ) {
           let value = Object.keys(studentData).length + Object.keys(tutorData).length; 
           setUserCount(value) ; 
+          setStudentData(studentData) ; 
+          setTutorData(tutorData) ; 
+          setSessionData(sessionData) ; 
           setSessionCount(Object.keys(sessionData).length) ; 
-
+          calculateBadPerformers(tutorData) ; 
         }else{
           console.log('Data unpopulated')
         }
       } catch (error) { // Might not work 
-        console.log('Error occured while fetching data')
+        console.log('Error occured while fetching data' , error)
       }
     } 
 	
@@ -113,9 +132,9 @@ export default function DashboardDefault() {
       <Grid item xs={12} sm={6} md={4} lg={3}>
         <AnalyticEcommerce title="Average Stars" count="4.3" percentage={1.4} isLoss color="error" extra="5 Stars" />
       </Grid>
-      {/* <Grid item xs={12} sm={6} md={4} lg={3}> */}
-      {/*   <AnalyticEcommerce title="Total Sales" count="$35,078" percentage={27.4} isLoss color="warning" extra="$20,395" /> */}
-      {/* </Grid> */}
+      <Grid item xs={12} sm={6} md={4} lg={3}>
+        <AnalyticEcommerce title="Total Sales" count="$35,078" percentage={27.4} isLoss color="warning" extra="$20,395" />
+      </Grid>
 
       <Grid item md={8} sx={{ display: { sm: 'none', md: 'block', lg: 'none' } }} />
 
@@ -126,20 +145,123 @@ export default function DashboardDefault() {
       <Grid item xs={12} md={5} lg={4}>
         <Grid container alignItems="center" justifyContent="space-between">
           <Grid item>
-            <Typography variant="h5">Income Overview</Typography>
+            <Typography variant="h5">Bad apples</Typography>
           </Grid>
           <Grid item />
         </Grid>
         <MainCard sx={{ mt: 2 }} content={false}>
-          <Box sx={{ p: 3, pb: 0 }}>
-            <Stack spacing={2}>
-              <Typography variant="h6" color="text.secondary">
-                This Week Statistics
-              </Typography>
-              <Typography variant="h3">$7,650</Typography>
-            </Stack>
-          </Box>
-          <MonthlyBarChart />
+          <List
+            component="nav"
+            sx={{
+              px: 0,
+              py: 0,
+              '& .MuiListItemButton-root': {
+                py: 1.5,
+                '& .MuiAvatar-root': avatarSX,
+                '& .MuiListItemSecondaryAction-root': { ...actionSX, position: 'relative' }
+              }
+            }}
+          >
+            <ListItemButton divider>
+              <ListItemAvatar>
+                <Avatar sx={{ color: 'success.main', bgcolor: 'success.lighter' }}>
+                  <GiftOutlined />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText primary={<Typography variant="subtitle1">Order #002434</Typography>} secondary="Today, 2:00 AM" />
+              <ListItemSecondaryAction>
+                <Stack alignItems="flex-end">
+                  <Typography variant="subtitle1" noWrap>
+                    + $1,430
+                  </Typography>
+                  <Typography variant="h6" color="secondary" noWrap>
+                    78%
+                  </Typography>
+                </Stack>
+              </ListItemSecondaryAction>
+            </ListItemButton>
+            <ListItemButton divider>
+              <ListItemAvatar>
+                <Avatar sx={{ color: 'success.main', bgcolor: 'success.lighter' }}>
+                  <GiftOutlined />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText primary={<Typography variant="subtitle1">Order #002434</Typography>} secondary="Today, 2:00 AM" />
+              <ListItemSecondaryAction>
+                <Stack alignItems="flex-end">
+                  <Typography variant="subtitle1" noWrap>
+                    + $1,430
+                  </Typography>
+                  <Typography variant="h6" color="secondary" noWrap>
+                    78%
+                  </Typography>
+                </Stack>
+              </ListItemSecondaryAction>
+            </ListItemButton>
+            <ListItemButton divider>
+              <ListItemAvatar>
+                <Avatar sx={{ color: 'primary.main', bgcolor: 'primary.lighter' }}>
+                  <MessageOutlined />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText primary={<Typography variant="subtitle1">Order #984947</Typography>} secondary="5 August, 1:45 PM" />
+              <ListItemSecondaryAction>
+                <Stack alignItems="flex-end">
+                  <Typography variant="subtitle1" noWrap>
+                    + $302
+                  </Typography>
+                  <Typography variant="h6" color="secondary" noWrap>
+                    8%
+                  </Typography>
+                </Stack>
+              </ListItemSecondaryAction>
+            </ListItemButton>
+            <ListItemButton>
+              <ListItemAvatar>
+                <Avatar sx={{ color: 'error.main', bgcolor: 'error.lighter' }}>
+                  <SettingOutlined />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText primary={<Typography variant="subtitle1">Order #988784</Typography>} secondary="7 hours ago" />
+              <ListItemSecondaryAction>
+                <Stack alignItems="flex-end">
+                  <Typography variant="subtitle1" noWrap>
+                    + $682
+                  </Typography>
+                  <Typography variant="h6" color="secondary" noWrap>
+                    16%
+                  </Typography>
+                </Stack>
+              </ListItemSecondaryAction>
+            </ListItemButton>
+          </List>
+        </MainCard>
+        <MainCard sx={{ mt: 2 }}>
+          <Stack spacing={3}>
+            <Grid container justifyContent="space-between" alignItems="center">
+              <Grid item>
+                <Stack>
+                  <Typography variant="h5" noWrap>
+                    Revoke tutoring rigts 
+                  </Typography>
+                  <Typography variant="caption" color="secondary" noWrap>
+                    Remove the low performing tutors
+                  </Typography>
+                </Stack>
+              </Grid>
+              <Grid item>
+                <AvatarGroup sx={{ '& .MuiAvatar-root': { width: 32, height: 32 } }}>
+                  <Avatar alt="Remy Sharp" src={avatar1} />
+                  <Avatar alt="Travis Howard" src={avatar2} />
+                  <Avatar alt="Cindy Baker" src={avatar3} />
+                  <Avatar alt="Agnes Walker" src={avatar4} />
+                </AvatarGroup>
+              </Grid>
+            </Grid>
+            <Button size="small" variant="contained" sx={{ textTransform: 'capitalize' }}>
+              Remove
+            </Button>
+          </Stack>
         </MainCard>
       </Grid>
 
