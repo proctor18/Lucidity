@@ -60,16 +60,16 @@ const actionSX = {
 
 export default function DashboardDefault() {
 
-
   const [ userCount , setUserCount ] = useState(0) ;
+  const [ sessionCount, setSessionCount ] = useState(0) ;
   useEffect(() => {
-    fetchCardData(); 
+    fetchData() ; 
   } , [userCount]) ; 
 
 
 
 
-  async function fetchCardData(){
+  async function fetchData(){
       try {
         // Fetch teacher data
         const { data : tutorData , error : tutorError } = await supabase
@@ -81,9 +81,15 @@ export default function DashboardDefault() {
           .from('students')
           .select('*')
 
-        if (tutorData && studentData) {
+        // Fetch session data
+        const { data : sessionData  , error : sessionError} = await supabase
+          .from('sessions')
+          .select('*')
+        if (tutorData && studentData && sessionData ) {
           let value = Object.keys(studentData).length + Object.keys(tutorData).length; 
           setUserCount(value) ; 
+          setSessionCount(Object.keys(sessionData).length) ; 
+
         }else{
           console.log('Data unpopulated')
         }
@@ -99,17 +105,17 @@ export default function DashboardDefault() {
         <Typography variant="h5">Dashboard</Typography>
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={3}>
-        <AnalyticEcommerce title="Current Users" count="4,42,236" percentage={59.3} extra="35,000" />
+        <AnalyticEcommerce title="Current Users" count={userCount} percentage={59.3} extra={userCount} />
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={3}>
-        <AnalyticEcommerce title="Total Users" count="78,250" percentage={70.5} extra="8,900" />
+        <AnalyticEcommerce title="Sessions Completed" count={sessionCount} percentage={70.5} extra={sessionCount} />
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={3}>
-        <AnalyticEcommerce title="Total Order" count="18,800" percentage={27.4} isLoss color="warning" extra="1,943" />
+        <AnalyticEcommerce title="Average Stars" count="4.3" percentage={1.4} isLoss color="error" extra="5 Stars" />
       </Grid>
-      <Grid item xs={12} sm={6} md={4} lg={3}>
-        <AnalyticEcommerce title="Total Sales" count="$35,078" percentage={27.4} isLoss color="warning" extra="$20,395" />
-      </Grid>
+      {/* <Grid item xs={12} sm={6} md={4} lg={3}> */}
+      {/*   <AnalyticEcommerce title="Total Sales" count="$35,078" percentage={27.4} isLoss color="warning" extra="$20,395" /> */}
+      {/* </Grid> */}
 
       <Grid item md={8} sx={{ display: { sm: 'none', md: 'block', lg: 'none' } }} />
 
