@@ -17,6 +17,10 @@ import Box from '@mui/material/Box';
 
 import { useState , useEffect } from "react";
 
+//database import 
+
+import { supabase } from "lib/supabase.js";
+
 // project import
 import MainCard from 'components/MainCard';
 import AnalyticEcommerce from 'components/cards/statistics/AnalyticEcommerce';
@@ -55,6 +59,39 @@ const actionSX = {
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
 
 export default function DashboardDefault() {
+
+
+  const [ userCount , setUserCount ] = useState(0) ;
+  useEffect(() => {
+    fetchCardData(); 
+  } , [userCount]) ; 
+
+
+
+
+  async function fetchCardData(){
+      try {
+        // Fetch teacher data
+        const { data : tutorData , error : tutorError } = await supabase
+          .from('tutors')
+          .select('*') ; 
+
+        // Fetch student data
+        const { data : studentData, error : studentError} = await supabase
+          .from('students')
+          .select('*')
+
+        if (tutorData && studentData) {
+          let value = Object.keys(studentData).length + Object.keys(tutorData).length; 
+          setUserCount(value) ; 
+        }else{
+          console.log('Data unpopulated')
+        }
+      } catch (error) { // Might not work 
+        console.log('Error occured while fetching data')
+      }
+    } 
+	
   return (
     <Grid container rowSpacing={4.5} columnSpacing={2.75}>
       {/* row 1 */}
