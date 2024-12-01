@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Alert } from "react-native";
+import { View, Text, StyleSheet, Alert, ScrollView } from "react-native";
 import { useState } from 'react';
 import { supabase } from '../lib/supabase.js';
 import Button from "../components/Button.js";
@@ -62,6 +62,7 @@ export default function Signup({ navigation }) {
   }
 
   return (
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
     <View style={styles.container}>
       <View style={styles.placeholder} />
       <Text style={styles.signUpHeader}>Sign up</Text>
@@ -97,6 +98,7 @@ export default function Signup({ navigation }) {
         />
       </View>
     </View>
+    </ScrollView>
   );
 }
 

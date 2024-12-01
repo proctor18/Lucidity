@@ -30,8 +30,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import Messages from "./pages/Messages.js"; // New import for Messages screen
 import { supabase } from './lib/supabase.js';
 
-
-
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -151,6 +149,7 @@ export default function App() {
         <Stack.Screen name="Signup" component={Signup} />
         <Stack.Screen name="PopulateInfo" component={PopulateInfo} />
         <Stack.Screen name="Launch" component={Launch} />
+        <Stack.Screen name="Dashboard" component={Dashboard} />
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="SearchResults" component={SearchResults} />
         <Stack.Screen name="TutorProfile" component={TutorProfile} />

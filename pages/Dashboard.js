@@ -4,6 +4,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from '@react-navigation/native';
@@ -43,7 +44,7 @@ const Header = ({
   );
 };
 export default function Dashboard({ navigation, route }) {
-  const { email, first_name, last_name, role_id, user_id } = route.params;
+  const { email, first_name, last_name, role_id, user_id, bookingSuccess } = route.params;
   const [loading, setLoading] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [error, setError] = useState(null);
@@ -68,6 +69,12 @@ export default function Dashboard({ navigation, route }) {
       fetchSessions(role_id);
     }, [role_id])
   );
+
+  useEffect(() => {
+    if (bookingSuccess) {
+      Alert.alert('Success', 'Your session has been successfully booked!');
+    }
+  }, [bookingSuccess]);
 
   async function fetchSessions(role_id) {
     try {

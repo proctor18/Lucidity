@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext} from "react";
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import ReviewsCarousel from "../components/ReviewsCarousel";
 import { UserContext } from '../components/UserContext.js';
 
 const TutorProfile = ({ route }) => {
-  const { name, sessions, rating, description } = route.params;
+  const { name, sessions, rating, description, subject, tutorID } = route.params;
   const { user } = useContext(UserContext);
   const navigation = useNavigation();
 
@@ -105,7 +105,7 @@ const TutorProfile = ({ route }) => {
       {role_id !== 1 && (
         <TouchableOpacity
             style={styles.bookButton}
-            onPress={() => navigation.navigate("BookingPage")}
+            onPress={() => navigation.navigate("BookingPage", { tutorID, subject })}
           >
             <Ionicons name="calendar-outline" size={20} color="#FFFFFF" />
             <Text style={styles.bookButtonText}>Book Session</Text>

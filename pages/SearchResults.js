@@ -78,6 +78,8 @@ const SearchResults = ({ route , searchKey }) => {
           sessions: item.sessions,
           rating: 5, // 5 star rating as a placeholder
           description: `Hi! I'm ${item.name}, this is a placeholder description.`,
+          subject,
+          tutorID: item.id,
         })
       }>
       <Image source={{ uri: item.avatar }} style={styles.avatar} />
