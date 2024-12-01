@@ -72,19 +72,14 @@ export default function DashboardDefault() {
 
 
 
-
+ // if this doesnt work just use the query 
   function calculateBadPerformers(tutorData){
-    let badApples = {} ; 
-    for( const [ key , value ] of Object.entries(tutorData)){
-      // check if legth is less than four 
-      // if it is less than four add the lowest values 
-      if (Object.keys(badApples).length < 4) {
-        badApples[key] = value ; 
-      }
-    }
-    setBadApples(badApples) ; 
-    console.log('Bad apples' , badApples) ; 
+    let badApples = tutorData.sort(( a , b ) => a.rank - b.rank);
+    setBadApples(Object.entries(badApples).slice(0,4).map(entry => entry[1])) ; 
+    console.log('New Bad apples' , badApples) ; 
   }
+
+
   async function fetchData(){
       try {
         // Fetch teacher data
