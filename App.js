@@ -57,8 +57,9 @@ function MainTabs({ route }) {
           backgroundColor: "rgba(26, 26, 26, 1)", // swap out later for transparent blur
           borderTopColor: "#2A2A2A",
           borderTopWidth: 1,
-          paddingBottom: 10,
-          height: 65,
+          paddingBottom: 32,
+          paddingTop: 6,
+          height: 80,
         },
 
         tabBarActiveTintColor: "#7257FF",

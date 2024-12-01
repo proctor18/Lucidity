@@ -19,6 +19,7 @@ const Header = ({
   userName = "Username",
   greeting = "Good Morning!",
   navigation,
+  user_id = user_id , 
 }) => {
 
   return (
@@ -37,9 +38,10 @@ const Header = ({
         {/* Chat button */}
         <TouchableOpacity
           style={styles.messageButton}
-          onPress={() => navigation.navigate("MessagesList")}>
+          onPress={() => navigation.navigate("Messages", { user_id })}
+        >
           <Ionicons name="chatbubble-outline" size={24} color="white" />
-        </TouchableOpacity>
+</TouchableOpacity>
       </View>
   );
 };
@@ -138,13 +140,8 @@ export default function Dashboard({ navigation, route }) {
           userName={first_name}
           greeting={getGreeting()}
           navigation={navigation}
+          user_id={user_id}
         />
-              <TouchableOpacity
-                  style={styles.navigateToMessagesButton}
-                  onPress={() => navigation.navigate('Messages', { user_id })}
-              >
-                  <Text style={styles.buttonText}>Go to Messages</Text>
-              </TouchableOpacity>
         <View style={styles.textContainer}>
           <Text style={styles.sessionText}>Sessions</Text>
           {error && <Text style={styles.errorText}>Error: {error}</Text>}
