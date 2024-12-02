@@ -19,6 +19,7 @@ const Header = ({
   userName = "Username",
   greeting = "Good Morning!",
   navigation,
+  user_id = user_id , 
 }) => {
 
   return (
@@ -37,9 +38,10 @@ const Header = ({
         {/* Chat button */}
         <TouchableOpacity
           style={styles.messageButton}
-          onPress={() => navigation.navigate("MessagesList")}>
+          onPress={() => navigation.navigate("Messages", { user_id })}
+        >
           <Ionicons name="chatbubble-outline" size={24} color="white" />
-        </TouchableOpacity>
+</TouchableOpacity>
       </View>
   );
 };
@@ -126,7 +128,79 @@ export default function Dashboard({ navigation, route }) {
   };
 
   return (
-    <>
+    // Check if role_id is 1 (tutor)
+    // -------------------------- TUTOR DASHBOARD --------------------------
+    role_id === 1 ? 
+  <>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      overScrollMode="never"
+      bounces={true}
+      endFillColor="#131313"
+      style={styles.scrollView}>
+      <Header
+        userName={first_name}
+        greeting={getGreeting()}
+        navigation={navigation}
+        user_id={user_id}
+      />
+      <View style={styles.textContainer}>
+        <Text style={styles.sessionText}>Sessions with Students</Text>
+        {error && <Text style={styles.errorText}>Error: {error}</Text>}
+      </View>
+
+      <View style={styles.CarouselContainer}>
+        <SessionsCarousel
+          sessions={sessions}
+          loading={loading}
+          currentIndex={currentIndex}
+          itemCallback={handleVisibleSession}
+        />
+      </View>
+
+      <View style={styles.rowTwo}>
+        <View style={styles.textContainer}>
+          <Text style={styles.sessionText}>Details</Text>
+        </View>
+        <View style={styles.buttonDiv}>
+          <ButtonDiv
+            date="Wednesday"
+            buttonText={
+              loading
+                ? "Loading..."
+                : currentSession.value?.session_date || "No sessions"
+            }
+            countDown="2 weeks"
+          />
+          <View style={styles.horizontalContainer}>
+            <ButtonDiv
+              type="wide"
+              loading={loading}
+              data={currentSession.value}
+            />
+            <ButtonDiv
+              type="wide"
+              loading={loading}
+              data={currentSession.value}
+            />
+          </View>
+        </View>
+      </View>
+    </ScrollView>
+
+    <SessionDrawer
+      visible={sessionVisible}
+      onClose={() => setSessionVisible(false)}
+      session={currentSession}
+      onUpdateTime={(type, newTime) => {
+        console.log(type, newTime);
+      }}
+      onCancelSession={() => {
+        console.log("Session cancelled");
+      }}
+    />
+  </> : /* -------------------------- STUDENT DASHBOARD -------------------------- */ 
+  <> 
       <ScrollView
         contentContainerStyle={styles.container}
         overScrollMode="never"
@@ -137,15 +211,10 @@ export default function Dashboard({ navigation, route }) {
           userName={first_name}
           greeting={getGreeting()}
           navigation={navigation}
+          user_id={user_id}
         />
-              <TouchableOpacity
-                  style={styles.navigateToMessagesButton}
-                  onPress={() => navigation.navigate('Messages', { user_id })}
-              >
-                  <Text style={styles.buttonText}>Go to Messages</Text>
-              </TouchableOpacity>
         <View style={styles.textContainer}>
-          <Text style={styles.sessionText}>Sessions</Text>
+          <Text style={styles.sessionText}>Sessions with Tutors</Text>
           {error && <Text style={styles.errorText}>Error: {error}</Text>}
         </View>
 
@@ -200,6 +269,8 @@ export default function Dashboard({ navigation, route }) {
         }}
       />
     </>
+
+    
   );
 }
 
