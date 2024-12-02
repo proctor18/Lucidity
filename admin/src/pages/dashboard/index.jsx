@@ -31,7 +31,7 @@ import SaleReportCard from './SaleReportCard';
 import OrdersTable from './OrdersTable';
 
 // assets
-import GiftOutlined from '@ant-design/icons/GiftOutlined';
+import GiftOutlined from '@ant-design/icons/ExclamationCircleOutlined';
 import MessageOutlined from '@ant-design/icons/MessageOutlined';
 import SettingOutlined from '@ant-design/icons/SettingOutlined';
 import avatar1 from 'assets/images/users/avatar-1.png';
@@ -66,19 +66,49 @@ export default function DashboardDefault() {
   const [ studentData , setStudentData ] = useState(null) ; 
   const [ tutorData, setTutorData ] = useState(null) ; 
   const [ sessionData , setSessionData ] = useState(null) ; 
+
   useEffect(() => {
     fetchData() ; 
   } , [userCount]) ; 
 
 
 
- // if this doesnt work just use the query 
+
   function calculateBadPerformers(tutorData){
     let badApples = tutorData.sort(( a , b ) => a.rank - b.rank);
     setBadApples(Object.entries(badApples).slice(0,4).map(entry => entry[1])) ; 
-    console.log('New Bad apples' , badApples) ; 
   }
 
+  async function removeLeastValuable(badApples) {
+    try {
+      // Check if badApples is not empty
+      if (badApples && badApples.length > 0) {
+        // Get the tutor_id of the first (lowest-ranked) tutor
+        const tutorToRemove = badApples[0].tutor_id;
+
+        // Delete the tutor from the 'tutors' table
+        const { data, error } = await supabase
+          .from('tutors')
+          .delete()
+          .eq('tutor_id', tutorToRemove);
+
+        // Check for errors during deletion
+        if (error) {
+          console.error('Error occurred while deleting tutor:', error);
+          return false;
+        }
+
+        console.log(`Removed tutor with ID: ${tutorToRemove}`);
+        return true;
+      } else {
+        console.log('No tutors to remove');
+        return false;
+      }
+    } catch (error) {
+      console.error('Unexpected error in removeLeastValuable:', error);
+      return false;
+    }
+  }
 
   async function fetchData(){
       try {
@@ -145,6 +175,9 @@ export default function DashboardDefault() {
           <Grid item />
         </Grid>
         <MainCard sx={{ mt: 2 }} content={false}>
+
+{/* ----------------------------------------------------------------------------------------------------------------------------- */}
+
           <List
             component="nav"
             sx={{
@@ -157,79 +190,31 @@ export default function DashboardDefault() {
               }
             }}
           >
+          {Object.entries(badApples).map(([key, value]) => (
             <ListItemButton divider>
-              <ListItemAvatar>
-                <Avatar sx={{ color: 'success.main', bgcolor: 'success.lighter' }}>
-                  <GiftOutlined />
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText primary={<Typography variant="subtitle1">Order #002434</Typography>} secondary="Today, 2:00 AM" />
-              <ListItemSecondaryAction>
-                <Stack alignItems="flex-end">
-                  <Typography variant="subtitle1" noWrap>
-                    + $1,430
-                  </Typography>
-                  <Typography variant="h6" color="secondary" noWrap>
-                    78%
-                  </Typography>
-                </Stack>
-              </ListItemSecondaryAction>
-            </ListItemButton>
-            <ListItemButton divider>
-              <ListItemAvatar>
-                <Avatar sx={{ color: 'success.main', bgcolor: 'success.lighter' }}>
-                  <GiftOutlined />
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText primary={<Typography variant="subtitle1">Order #002434</Typography>} secondary="Today, 2:00 AM" />
-              <ListItemSecondaryAction>
-                <Stack alignItems="flex-end">
-                  <Typography variant="subtitle1" noWrap>
-                    + $1,430
-                  </Typography>
-                  <Typography variant="h6" color="secondary" noWrap>
-                    78%
-                  </Typography>
-                </Stack>
-              </ListItemSecondaryAction>
-            </ListItemButton>
-            <ListItemButton divider>
-              <ListItemAvatar>
-                <Avatar sx={{ color: 'primary.main', bgcolor: 'primary.lighter' }}>
-                  <MessageOutlined />
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText primary={<Typography variant="subtitle1">Order #984947</Typography>} secondary="5 August, 1:45 PM" />
-              <ListItemSecondaryAction>
-                <Stack alignItems="flex-end">
-                  <Typography variant="subtitle1" noWrap>
-                    + $302
-                  </Typography>
-                  <Typography variant="h6" color="secondary" noWrap>
-                    8%
-                  </Typography>
-                </Stack>
-              </ListItemSecondaryAction>
-            </ListItemButton>
-            <ListItemButton>
               <ListItemAvatar>
                 <Avatar sx={{ color: 'error.main', bgcolor: 'error.lighter' }}>
-                  <SettingOutlined />
+                  <GiftOutlined />
                 </Avatar>
               </ListItemAvatar>
-              <ListItemText primary={<Typography variant="subtitle1">Order #988784</Typography>} secondary="7 hours ago" />
+              <ListItemText primary={<Typography variant="subtitle1">{`${value.first_name} ${value.last_name}`}</Typography>} secondary="Bad Performer" />
               <ListItemSecondaryAction>
                 <Stack alignItems="flex-end">
                   <Typography variant="subtitle1" noWrap>
-                    + $682
+                      {`${value.rank} stars`}
                   </Typography>
                   <Typography variant="h6" color="secondary" noWrap>
-                    16%
+                    {`${value.rank / 5 * 100}%`}
                   </Typography>
                 </Stack>
               </ListItemSecondaryAction>
             </ListItemButton>
+          ))}
+
           </List>
+
+{/* ----------------------------------------------------------------------------------------------------------------------------- */}
+
         </MainCard>
         <MainCard sx={{ mt: 2 }}>
           <Stack spacing={3}>
@@ -237,7 +222,7 @@ export default function DashboardDefault() {
               <Grid item>
                 <Stack>
                   <Typography variant="h5" noWrap>
-                    Revoke tutoring rigts 
+                    Revoke tutoring rights 
                   </Typography>
                   <Typography variant="caption" color="secondary" noWrap>
                     Remove the low performing tutors
@@ -253,7 +238,7 @@ export default function DashboardDefault() {
                 </AvatarGroup>
               </Grid>
             </Grid>
-            <Button size="small" variant="contained" sx={{ textTransform: 'capitalize' }}>
+            <Button size="small" variant="contained" sx={{ textTransform: 'capitalize' }} onClick={() => removeLeastValuable(badApples)}>
               Remove
             </Button>
           </Stack>
@@ -310,6 +295,9 @@ export default function DashboardDefault() {
           <Grid item />
         </Grid>
         <MainCard sx={{ mt: 2 }} content={false}>
+
+{/* ----------------------------------------------------------------------------------------------------------------------------- */}
+
           <List
             component="nav"
             sx={{
@@ -322,24 +310,30 @@ export default function DashboardDefault() {
               }
             }}
           >
-            <ListItemButton divider>
-              <ListItemAvatar>
-                <Avatar sx={{ color: 'success.main', bgcolor: 'success.lighter' }}>
-                  <GiftOutlined />
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText primary={<Typography variant="subtitle1">Order #002434</Typography>} secondary="Today, 2:00 AM" />
-              <ListItemSecondaryAction>
-                <Stack alignItems="flex-end">
-                  <Typography variant="subtitle1" noWrap>
-                    + $1,430
-                  </Typography>
-                  <Typography variant="h6" color="secondary" noWrap>
-                    78%
-                  </Typography>
-                </Stack>
-              </ListItemSecondaryAction>
-            </ListItemButton>
+
+{/* ----------------------------------------------------------------------------------------------------------------------------- */}
+
+            {/* <ListItemButton divider> */}
+            {/*   <ListItemAvatar> */}
+            {/*     <Avatar sx={{ color: 'success.main', bgcolor: 'success.lighter' }}> */}
+            {/*       <GiftOutlined /> */}
+            {/*     </Avatar> */}
+            {/*   </ListItemAvatar> */}
+            {/*   <ListItemText primary={<Typography variant="subtitle1">Order #002434</Typography>} secondary="Today, 2:00 AM" /> */}
+            {/*   <ListItemSecondaryAction> */}
+            {/*     <Stack alignItems="flex-end"> */}
+            {/*       <Typography variant="subtitle1" noWrap> */}
+            {/*         + $1,430 */}
+            {/*       </Typography> */}
+            {/*       <Typography variant="h6" color="secondary" noWrap> */}
+            {/*         78% */}
+            {/*       </Typography> */}
+            {/*     </Stack> */}
+            {/*   </ListItemSecondaryAction> */}
+            {/* </ListItemButton> */}
+
+{/* ----------------------------------------------------------------------------------------------------------------------------- */}
+
             <ListItemButton divider>
               <ListItemAvatar>
                 <Avatar sx={{ color: 'primary.main', bgcolor: 'primary.lighter' }}>
@@ -377,6 +371,9 @@ export default function DashboardDefault() {
               </ListItemSecondaryAction>
             </ListItemButton>
           </List>
+
+{/* ----------------------------------------------------------------------------------------------------------------------------- */}
+
         </MainCard>
         <MainCard sx={{ mt: 2 }}>
           <Stack spacing={3}>
