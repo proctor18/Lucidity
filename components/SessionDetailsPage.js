@@ -2,8 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import { useContext } from 'react';
-import { deleteSession } from '../scheduling/calendar.js'
+import { deleteSession } from '../scheduling/calendar.js';
+import { createNotification } from '../scheduling/notificationHelpers.js';
+import moment from 'moment';
+import { supabase } from '../lib/supabase';
 
 const SessionDetailsPage = ({ route }) => {
   const navigation = useNavigation();
@@ -22,13 +24,56 @@ const SessionDetailsPage = ({ route }) => {
     setEndPickerVisible(false);
   };
 
-  // Logic to handle a cancel button (deleteSessions is under ../scheduling/calendar)
+
+  // Logic to handle a cancel button (deleteSessions is under ../scheduling/calendar) and cancellation notification
   const handleCancel = async () => {
     try {
+      // Fetch student email from students table
+      const { data: studentData, error: studentError } = await supabase
+        .from('students')
+        .select('email')
+        .eq('student_id', session.student_id)
+        .single();
+      if (studentError) throw new Error('Failed to fetch student email');
+  
+      // Fetch tutor email from tutors table
+      const { data: tutorData, error: tutorError } = await supabase
+        .from('tutors')
+        .select('email')
+        .eq('tutor_id', session.tutor_id)
+        .single();
+      if (tutorError) throw new Error('Failed to fetch tutor email');
+  
+      // Cancel the session
       await deleteSession(session_id);
+  
+      // Format date and time for the notification message
+      const formattedDate = moment(session.date).format('MMMM D');
+      const formattedStartTime = moment(session.start_time, 'HH:mm:ssZ').format('HH:mm:ss');
+      const formattedEndTime = moment(session.end_time, 'HH:mm:ssZ').format('HH:mm:ss');
+  
+      // Notify the student
+      if (session.student_id && studentData.email) {
+        await createNotification(
+          session.student_id,
+          `Your session for ${session.subject} on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime} has been cancelled!`,
+          studentData.email
+        );
+      }
+  
+      // Notify the tutor
+      if (session.tutor_id && tutorData.email) {
+        await createNotification(
+          session.tutor_id,
+          `A session has been cancelled with you for ${session.subject} on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime}.`,
+          tutorData.email
+        );
+      }
+  
       Alert.alert("Success", "Session canceled successfully");
       navigation.goBack();
     } catch (error) {
+      console.error('Error in handleCancel:', error.message);
       Alert.alert("Error", error.message || "Failed to cancel session");
     }
   };

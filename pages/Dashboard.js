@@ -83,10 +83,9 @@ export default function Dashboard({ navigation, route }) {
 
       const isStudent = role_id !== 1; // role_id 1 is for tutors (therfore !== 1 means student)
 
-      // Select based on the role that signed in
-    const selectFields = isStudent 
-    ? 'session_id, start_time, end_time, tutor_id, subject, session_date' 
-    : 'session_id, start_time, end_time, student_id, subject, session_date';
+      const selectFields = `
+        session_id, start_time, end_time, student_id, tutor_id, subject, session_date
+      `;
       
       console.log(`Fetching ${isStudent ? 'Student' : 'Tutor'} sessions for user ${user_id}`);
 

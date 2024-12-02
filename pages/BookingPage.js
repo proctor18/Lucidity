@@ -124,9 +124,9 @@ const BookingPage = ({ route }) => {
         // Can test/demo the email being sent using temp-mail.org and replacing email variable with generated temp email
         setStatusMessage('Session booked successfully!');
         // Notify the student
-        await createNotification(studentId, `Your session on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime} has been confirmed!`, email);
+        await createNotification(studentId, `Your session for ${subject} on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime} has been confirmed!`, email);
         // Notify the tutor
-        await createNotification(tutorId, `A new session has been booked with you on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime}.`, 'Teachertest@gmail.com');
+        await createNotification(tutorId, `A new session has been booked with you for ${subject} on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime}.`, 'Teachertest@gmail.com');
         if (googleAccessToken) {
           setStatusMessage((prev) => prev + ' Synced with Google Calendar.');
         }
