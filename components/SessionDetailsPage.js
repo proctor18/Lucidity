@@ -52,12 +52,14 @@ const SessionDetailsPage = ({ route }) => {
       const formattedStartTime = moment(session.start_time, 'HH:mm:ssZ').format('HH:mm:ss');
       const formattedEndTime = moment(session.end_time, 'HH:mm:ssZ').format('HH:mm:ss');
   
+      let type = 'cancelled'
       // Notify the student
       if (session.student_id && studentData.email) {
         await createNotification(
-          session.student_id,
+          session.student_id, 
           `Your session for ${session.subject} on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime} has been cancelled!`,
-          studentData.email
+           studentData.email,
+           type
         );
       }
   
@@ -66,7 +68,8 @@ const SessionDetailsPage = ({ route }) => {
         await createNotification(
           session.tutor_id,
           `A session has been cancelled with you for ${session.subject} on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime}.`,
-          tutorData.email
+          tutorData.email,
+          type
         );
       }
   

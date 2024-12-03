@@ -170,7 +170,8 @@ bellIcon: {
     padding: 10,
   },
   clearAllButtonText: {
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: "rgba(255, 77, 77, 0.7)",
+    fontWeight: '600',
     fontSize: 16,
   },
   unread: { 

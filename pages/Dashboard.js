@@ -13,13 +13,14 @@ import ButtonDiv from "../components/ButtonDiv.js";
 import SessionDrawer from "../components/SessionDrawer.js";
 import { supabase } from "../lib/supabase.js";
 import { useSharedValue, useDerivedValue } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
 
 const Header = ({
   userName = "Username",
   greeting = "Good Morning!",
   navigation,
-  user_id = user_id , 
+  role_id,
+  user_id,
 }) => {
 
   return (
@@ -35,14 +36,27 @@ const Header = ({
         </View>
       </View>
   
-        {/* Chat button */}
+      {/* Right Container for Icons */}
+      <View style={styles.rightContainer}>
+        {/* Time Off Button */}
+        {role_id === 1 && (
         <TouchableOpacity
-          style={styles.messageButton}
+          style={styles.iconButton}
+          onPress={() => navigation.navigate("TimeOff", { tutorId: user_id })}
+        >
+          <FontAwesome name="calendar-times-o" size={24} color="white" />
+        </TouchableOpacity>
+      )}
+      
+        {/* Chat Button */}
+        <TouchableOpacity
+          style={styles.iconButton}
           onPress={() => navigation.navigate("Messages", { user_id })}
         >
           <Ionicons name="chatbubble-outline" size={24} color="white" />
-</TouchableOpacity>
+        </TouchableOpacity>
       </View>
+    </View>
   );
 };
 export default function Dashboard({ navigation, route }) {
@@ -143,6 +157,7 @@ export default function Dashboard({ navigation, route }) {
         greeting={getGreeting()}
         navigation={navigation}
         user_id={user_id}
+        role_id={role_id}
       />
       <View style={styles.textContainer}>
         <Text style={styles.sessionText}>Sessions with Students</Text>
@@ -405,5 +420,13 @@ const styles = StyleSheet.create({
   },
   rowTwo: {
     flex: 1,
+  },
+  rightContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 5,
+  },
+  iconButton: {
+    marginLeft: 20,
   },
 });
