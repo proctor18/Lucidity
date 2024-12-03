@@ -225,7 +225,7 @@ export default function Dashboard({ navigation, route }) {
                 availabilityDays.length
                   ? `${availabilityDays.join(", ")}\n\n${
                       availabilityTimes.start_time && availabilityTimes.end_time
-                        ? `${moment.utc(availabilityTimes.start_time, "HH:mm:ssZ").format("h:mm A")} - ${moment.utc(availabilityTimes.end_time, "HH:mm:ssZ").local().format("h:mm A")}`
+                        ? `${moment.utc(availabilityTimes.start_time, "HH:mm:ssZ").format("h:mm A")} - ${moment.utc(availabilityTimes.end_time, "HH:mm:ssZ").format("h:mm A")}`
                         : ""
                     }`
                   : "No Availability Set"
@@ -237,7 +237,7 @@ export default function Dashboard({ navigation, route }) {
               }}
               onPress={() => navigation.navigate('UpdateAvailability')}
             />
-            
+
             <ButtonDiv
               type="wide"
               loading={loading}
