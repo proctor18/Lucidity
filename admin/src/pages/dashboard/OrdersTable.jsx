@@ -10,87 +10,48 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-
 // third-party
 import { NumericFormat } from 'react-number-format';
+import { supabase } from "lib/supabase.js";
+import { useState , useEffect } from "react";
 
 // project import
 import Dot from 'components/@extended/Dot';
 
-function createData(tracking_no, name, fat, carbs, protein) {
-  return { tracking_no, name, fat, carbs, protein };
-}
-
-const rows = [
-  createData(84564564, 'Camera Lens', 40, 2, 40570),
-  createData(98764564, 'Laptop', 300, 0, 180139),
-  createData(98756325, 'Mobile', 355, 1, 90989),
-  createData(98652366, 'Handset', 50, 1, 10239),
-  createData(13286564, 'Computer Accessories', 100, 1, 83348),
-  createData(86739658, 'TV', 99, 0, 410780),
-  createData(13256498, 'Keyboard', 125, 2, 70999),
-  createData(98753263, 'Mouse', 89, 2, 10570),
-  createData(98753275, 'Desktop', 185, 1, 98063),
-  createData(98753291, 'Chair', 100, 0, 14001)
-];
-
-function descendingComparator(a, b, orderBy) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
-}
-
-function getComparator(order, orderBy) {
-  return order === 'desc' ? (a, b) => descendingComparator(a, b, orderBy) : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-function stableSort(array, comparator) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) {
-      return order;
-    }
-    return a[1] - b[1];
-  });
-  return stabilizedThis.map((el) => el[0]);
+function createData(id, name, totalSessions, status, requestDate) {
+  return { id, name, totalSessions, status, requestDate };
 }
 
 const headCells = [
   {
-    id: 'tracking_no',
+    id: 'id',
     align: 'left',
     disablePadding: false,
-    label: 'Tracking No.'
+    label: 'User ID'
   },
   {
     id: 'name',
     align: 'left',
     disablePadding: true,
-    label: 'Product Name'
+    label: 'Tutor Name'
   },
   {
-    id: 'fat',
+    id: 'totalSessions',
     align: 'right',
     disablePadding: false,
-    label: 'Total Order'
+    label: 'Total Sessions'
   },
   {
-    id: 'carbs',
+    id: 'status',
     align: 'left',
     disablePadding: false,
-
     label: 'Status'
   },
   {
-    id: 'protein',
+    id: 'requestDate',
     align: 'right',
     disablePadding: false,
-    label: 'Total Amount'
+    label: 'Request Date'
   }
 ];
 
@@ -148,8 +109,38 @@ function OrderStatus({ status }) {
 // ==============================|| ORDER TABLE ||============================== //
 
 export default function OrderTable() {
+  const [requests, setRequests] = useState([]);
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('auth_request')
+          .select('*, tutors:tutor_id(*)')
+          .order('created_at', { ascending: false });
+
+        if (!error) {
+          const formattedData = data.map((request) => createData(
+            request.tutor_id,
+            `${request.tutors.first_name} ${request.tutors.last_name}`,
+            0,
+            request.status,
+            request.created_at
+          ));
+          setRequests(formattedData);
+        } else {
+          console.error(error);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchRequests();
+  }, []);
+
   const order = 'asc';
-  const orderBy = 'tracking_no';
+  const orderBy = 'id';
 
   return (
     <Box>
@@ -166,7 +157,7 @@ export default function OrderTable() {
         <Table aria-labelledby="tableTitle">
           <OrderTableHead order={order} orderBy={orderBy} />
           <TableBody>
-            {stableSort(rows, getComparator(order, orderBy)).map((row, index) => {
+            {requests.map((row, index) => {
               const labelId = `enhanced-table-checkbox-${index}`;
 
               return (
@@ -175,18 +166,18 @@ export default function OrderTable() {
                   role="checkbox"
                   sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                   tabIndex={-1}
-                  key={row.tracking_no}
+                  key={row.id}
                 >
                   <TableCell component="th" id={labelId} scope="row">
-                    <Link color="secondary"> {row.tracking_no}</Link>
+                    <Link color="secondary">{row.id}</Link>
                   </TableCell>
                   <TableCell>{row.name}</TableCell>
-                  <TableCell align="right">{row.fat}</TableCell>
+                  <TableCell align="right">{row.totalSessions}</TableCell>
                   <TableCell>
-                    <OrderStatus status={row.carbs} />
+                    <OrderStatus status={row.status} />
                   </TableCell>
                   <TableCell align="right">
-                    <NumericFormat value={row.protein} displayType="text" thousandSeparator prefix="$" />
+                    <NumericFormat value={row.requestDate} displayType="text" dateFormat="yyyy-MM-dd HH:mm:ss" />
                   </TableCell>
                 </TableRow>
               );
