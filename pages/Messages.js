@@ -1,379 +1,321 @@
-import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, FlatList, Text, TouchableOpacity, StyleSheet, Modal, Alert } from 'react-native';
-import { useRoute } from '@react-navigation/native';
-import { supabase } from '../supabaseClient';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Animated,
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { useRoute, useNavigation } from "@react-navigation/native";
+import { supabase } from "../supabaseClient";
 
 export default function Messages() {
-    const [content, setContent] = useState('');
-    const [messages, setMessages] = useState([]);
-    const [conversations, setConversations] = useState([]);
-    const [currentChat, setCurrentChat] = useState(null);
-    const [newReceiverEmail, setNewReceiverEmail] = useState('');
-    const [isModalVisible, setModalVisible] = useState(false);
-    const [userRole, setUserRole] = useState(null);
-    const route = useRoute(); // Access the route object
-    const { user_id: currentUserId } = route.params || {};
+  const [search, setSearch] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [conversations, setConversations] = useState([]);
+  const [newReceiverEmail, setNewReceiverEmail] = useState("");
+  const [messageContent, setMessageContent] = useState("");
+  const [slideUpAnimation] = useState(
+    new Animated.Value(Dimensions.get("window").height)
+  );
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { user_id: currentUserId } = route.params || {};
 
+  if (!currentUserId) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.emptyText}>
+          User ID not found. Please log in again.
+        </Text>
+      </View>
+    );
+  }
 
-    if (!currentUserId) {
-        console.error("User ID is undefined");
-        return (
-            <View style={styles.container}>
-                <Text>User ID not found. Please log in again.</Text>
-            </View>
-        );
+  // Move loadConversations out of useEffect so it can be reused
+  const loadConversations = async () => {
+    try {
+      let { data, error } = await supabase
+        .from("messages")
+        .select("sender_id, receiver_id, content, sent_at")
+        .or(`sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId}`)
+        .neq("content", "") // Exclude empty messages
+        .order("sent_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching conversations:", error.message);
+        return;
+      }
+
+      // Extract unique conversation partners
+      const uniqueConversations = Array.from(
+        new Set(
+          data.map(({ sender_id, receiver_id }) =>
+            sender_id === currentUserId ? receiver_id : sender_id
+          )
+        )
+      );
+
+      const conversationData = uniqueConversations.map((id) => ({
+        id,
+        name: `User ${id}`, // Fetch and format user names if needed
+        message: data.find(
+          (msg) =>
+            (msg.sender_id === id && msg.receiver_id === currentUserId) ||
+            (msg.receiver_id === id && msg.sender_id === currentUserId)
+        )?.content,
+        time: "Just now", // You can convert the `sent_at` timestamp into a human-readable format
+      }));
+
+      setConversations(conversationData);
+    } catch (err) {
+      console.error("Error loading conversations:", err.message);
+    }
+  };
+
+  // Call loadConversations on component mount and when currentUserId changes
+  useEffect(() => {
+    loadConversations();
+  }, [currentUserId]);
+
+  const showNewMessageModal = () => {
+    Animated.timing(slideUpAnimation, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const hideNewMessageModal = () => {
+    Animated.timing(slideUpAnimation, {
+      toValue: Dimensions.get("window").height,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const sendMessage = async () => {
+    if (!newReceiverEmail || !messageContent) {
+      Alert.alert("Error", "Please provide both an email and a message.");
+      return;
     }
 
-    // Fetch user name by ID
-    const fetchUserName = async (id) => {
-        console.log(`Fetching user name for ID: ${id}`);
+    try {
+      // Insert the message into the database
+      const { error } = await supabase.from("messages").insert([
+        {
+          sender_id: currentUserId,
+          receiver_id: newReceiverEmail,
+          content: messageContent,
+          sent_at: new Date(),
+        },
+      ]);
 
-        try {
-            // Attempt to fetch from tutors first
-            let { data: userData, error: userError } = await supabase
-                .from('tutors')
-                .select('first_name, last_name')
-                .eq('tutor_id', id)
-                .single();
+      if (error) {
+        console.error("Error sending message:", error.message);
+        Alert.alert("Error", "Failed to send the message.");
+        return;
+      }
 
-            if (userError || !userData) {
-                // If not found, try the students table
-                ({ data: userData, error: userError } = await supabase
-                    .from('students')
-                    .select('first_name, last_name')
-                    .eq('student_id', id)
-                    .single());
-            }
+      // Clear input fields
+      setMessageContent("");
+      setNewReceiverEmail("");
 
-            if (userError || !userData) {
-                console.error(`User not found for ID ${id}:`, userError?.message || "Unknown error");
-                return { id, name: "Unknown" };
-            }
+      // Reload the conversations list to include the new message
+      await loadConversations();
 
-            const fullName = `${userData.first_name} ${userData.last_name}`;
-            console.log(`Name found for ID ${id}: ${fullName}`);
-            return { id, name: fullName };
-        } catch (error) {
-            console.error(`Error fetching user name for ID ${id}:`, error.message);
-            return { id, name: "Unknown" };
+      // Hide the modal
+      hideNewMessageModal();
+    } catch (err) {
+      console.error("Error sending message:", err.message);
+      Alert.alert("Error", "Something went wrong while sending the message.");
+    }
+  };
+
+  const renderConversation = ({ item }) => (
+    <TouchableOpacity style={styles.messageItem} onPress={() => {}}>
+      <View style={styles.avatar}>
+        <FontAwesome name="user-circle" size={40} color="#8E8E8F" />
+      </View>
+      <View style={styles.messageContent}>
+        <Text style={styles.tutorName}>{item.name}</Text>
+        <Text style={styles.messageText}>{item.message}</Text>
+      </View>
+      <Text style={styles.messageTime}>{item.time}</Text>
+    </TouchableOpacity>
+  );
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}>
+          <Ionicons name="chevron-back" size={24} color="#7257FF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Messages</Text>
+        <TouchableOpacity
+          onPress={showNewMessageModal}
+          style={styles.addButton}>
+          <Ionicons name="add" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Search */}
+      <View style={styles.searchBar}>
+        <Ionicons name="search-outline" size={20} color="#8E8E8F" />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search"
+          placeholderTextColor="#8E8E8F"
+          value={search}
+          onChangeText={setSearch}
+        />
+      </View>
+
+      {/* Conversations */}
+      <FlatList
+        data={conversations}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderConversation}
+        contentContainerStyle={styles.messagesList}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>No conversations found.</Text>
         }
-    };
+      />
 
-    // Load conversations and user names
-    useEffect(() => {
-        const loadConversations = async () => {
-            try {
-                let { data, error } = await supabase
-                    .from('messages')
-                    .select('sender_id, receiver_id, content')
-                    .or(`sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId}`)
-                    .neq('content', '')  // Filter out messages with empty content
-                    .order('sent_at', { ascending: false });
-
-                if (error) {
-                    console.error("Error fetching conversations:", error.message);
-                    return;
-                }
-
-                // Extract unique conversation partners
-                const uniqueConversations = Array.from(
-                    new Set(
-                        data.map(({ sender_id, receiver_id }) =>
-                            sender_id === currentUserId ? receiver_id : sender_id
-                        )
-                    )
-                );
-
-                console.log("Unique Conversation Partner IDs with messages:", uniqueConversations);
-
-                // Fetch user names for each unique conversation partner
-                const conversationData = await Promise.all(
-                    uniqueConversations.map(async (id) => await fetchUserName(id))
-                );
-
-                // Filter out unknown users
-                setConversations(conversationData.filter(conv => conv.name !== "Unknown"));
-            } catch (err) {
-                console.error("Error loading conversations:", err.message);
-            }
-        };
-
-        loadConversations();
-    }, [currentUserId]);
-
-    // Mark messages as read when loading messages
-    const markMessagesAsRead = async (chatPartnerId) => {
-        try {
-            const { error } = await supabase
-                .from('messages')
-                .update({ is_read: true })
-                .eq('receiver_id', currentUserId)
-                .eq('sender_id', chatPartnerId)
-                .is('is_read', false); // Update only unread messages
-
-            if (error) {
-                console.error("Error marking messages as read:", error.message);
-            }
-        } catch (error) {
-            console.error("Error marking messages as read:", error.message);
-        }
-    };
-
-
-    // Load messages in the selected conversation
-    const loadMessages = async (chatPartnerId) => {
-        let { data, error } = await supabase
-            .from('messages')
-            .select('*')
-            .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${chatPartnerId}),and(sender_id.eq.${chatPartnerId},receiver_id.eq.${currentUserId})`)
-            .order('sent_at', { ascending: true });
-
-        if (error) return console.error("Error loading messages:", error.message);
-
-        setMessages(data);
-        setCurrentChat(chatPartnerId);
-
-        // Mark messages as read
-        await markMessagesAsRead(chatPartnerId);
-    };
-
-    // Send a message
-    const sendMessage = async () => {
-        if (!content || !currentChat) return;
-
-        const { error } = await supabase
-            .from('messages')
-            .insert([{ sender_id: currentUserId, receiver_id: currentChat, content, is_read: false, sent_at: new Date() }]); // Use new Date() for the timestamp
-
-        if (error) {
-            console.error("Error sending message:", error.message);
-            return;
-        }
-
-        setContent('');
-        loadMessages(currentChat);
-    };
-
-    // Add a new conversation by receiver's email
-    const addConversation = async () => {
-        if (!newReceiverEmail) return;
-
-        try {
-            let { data, error } = await supabase
-                .from('tutors')
-                .select('tutor_id, first_name, last_name')
-                .ilike('email', newReceiverEmail);
-
-            let receiverId = data?.[0]?.tutor_id;
-            let receiverName = data?.[0] ? `${data[0].first_name} ${data[0].last_name}` : null;
-
-            if (!receiverId) {
-                ({ data, error } = await supabase
-                    .from('students')
-                    .select('student_id, first_name, last_name')
-                    .ilike('email', newReceiverEmail));
-
-                if (data?.[0]) {
-                    receiverId = data[0].student_id;
-                    receiverName = `${data[0].first_name} ${data[0].last_name}`;
-                }
-            }
-
-            if (!receiverId) {
-                console.error("Receiver not found");
-                Alert.alert("Error", "Receiver not found with that email.");
-                return;
-            }
-
-            setModalVisible(false);
-            setNewReceiverEmail('');
-            loadMessages(receiverId);
-
-            const isExistingConversation = conversations.some(conv => conv.id === receiverId);
-            if (!isExistingConversation) {
-                setConversations(prevConversations => [
-                    ...prevConversations,
-                    { id: receiverId, name: receiverName }
-                ]);
-            }
-        } catch (error) {
-            console.error("Error fetching receiver:", error.message);
-            Alert.alert("Error", "An error occurred while trying to fetch the receiver.");
-        }
-    };
-
-    // Delete a conversation
-    const deleteConversation = async () => {
-        if (!currentChat) return;
-
-        Alert.alert(
-            "Delete Conversation",
-            "Are you sure you want to delete this conversation?",
-            [
-                { text: "Cancel", style: "cancel" },
-                {
-                    text: "Delete",
-                    onPress: async () => {
-                        const { error } = await supabase
-                            .from('messages')
-                            .delete()
-                            .or(`and(sender_id.eq.${currentUserId},receiver_id.eq.${currentChat}),and(sender_id.eq.${currentChat},receiver_id.eq.${currentUserId})`);
-
-                        if (error) {
-                            console.error("Error deleting conversation:", error.message);
-                            return;
-                        }
-
-                        setCurrentChat(null);
-                        setConversations(conversations.filter(conv => conv.id !== currentChat));
-                    },
-                    style: "destructive"
-                }
-            ]
-        );
-    };
-
-
-    return (
-        <View style={styles.container}>
-            {!currentChat ? (
-                <View>
-                    <Button title="Start New Conversation" onPress={() => setModalVisible(true)} />
-
-                    {/* Modal for Adding a New Conversation */}
-                    <Modal visible={isModalVisible} transparent={true} animationType="slide">
-                        <View style={styles.modalContainer}>
-                            <View style={styles.modalContent}>
-                                <Text style={styles.modalTitle}>Enter Receiver's Email</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Receiver's Email"
-                                    value={newReceiverEmail}
-                                    onChangeText={setNewReceiverEmail}
-                                />
-                                <Button title="Add" onPress={addConversation} />
-                                <Button title="Cancel" onPress={() => setModalVisible(false)} color="#ff5c5c" />
-                            </View>
-                        </View>
-                    </Modal>
-
-                    <FlatList
-                        data={conversations}
-                        keyExtractor={(item) => item.id}
-                        renderItem={({ item }) => (
-                            <TouchableOpacity
-                                style={styles.conversationItem}
-                                onPress={() => loadMessages(item.id)}
-                            >
-                                {/* Display the full name of the receiver */}
-                                <Text style={styles.conversationText}>{item.name}</Text>
-                            </TouchableOpacity>
-                        )}
-                        ListEmptyComponent={<Text style={styles.emptyText}>No conversations found.</Text>}
-                    />
-                </View>
-            ) : (
-                <View style={styles.chatContainer}>
-                    <FlatList
-                        data={messages}
-                        keyExtractor={(item) => item.message_id.toString()}
-                        renderItem={({ item }) => (
-                            <View style={item.sender_id === currentUserId ? styles.sentMessage : styles.receivedMessage}>
-                                <Text style={styles.messageText}>
-                                    {item.sender_id === currentUserId ? "" : ""}{item.content}
-                                </Text>
-                            </View>
-                        )}
-                    />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Type your message"
-                        value={content}
-                        onChangeText={setContent}
-                    />
-                    <Button title="Send" onPress={sendMessage} />
-                    <Button title="Back to Conversations" onPress={() => setCurrentChat(null)} color="#555" />
-                    <Button title="Delete Conversation" onPress={deleteConversation} color="#ff5c5c" />
-                </View>
-            )}
-        </View>
-    );
+      {/* Sliding Modal */}
+      <Animated.View
+        style={[
+          styles.fullScreenModal,
+          { transform: [{ translateY: slideUpAnimation }] },
+        ]}>
+        <KeyboardAvoidingView
+          style={styles.modalContainer}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={80}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>New Message</Text>
+            <TouchableOpacity onPress={hideNewMessageModal}>
+              <Text style={styles.modalCancel}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.modalToField}>
+            <Text style={styles.toLabel}>To:</Text>
+            <TextInput
+              style={styles.toInput}
+              placeholder="Enter receiver's email"
+              placeholderTextColor="#8E8E8F"
+              value={newReceiverEmail}
+              onChangeText={setNewReceiverEmail}
+            />
+          </View>
+          <View style={styles.modalBottomBar}>
+            <TextInput
+              style={styles.messageInput}
+              placeholder="Type a message"
+              placeholderTextColor="#8E8E8F"
+              value={messageContent}
+              onChangeText={setMessageContent}
+            />
+            <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+              <Ionicons name="send" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Animated.View>
+    </View>
+  );
 }
 
-
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f8f8f8',
-        padding: 10,
-    },
-    conversationItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
-        backgroundColor: '#fff',
-        marginBottom: 10,
-        borderRadius: 8,
-    },
-    conversationText: {
-        fontSize: 16,
-        color: '#333',
-    },
-    chatContainer: {
-        flex: 1,
-        padding: 10,
-        justifyContent: 'space-between',
-    },
-    sentMessage: {
-        alignSelf: 'flex-end',
-        backgroundColor: '#007AFF',
-        padding: 10,
-        borderRadius: 15,
-        marginBottom: 5,
-        maxWidth: '70%',
-    },
-    receivedMessage: {
-        alignSelf: 'flex-start',
-        backgroundColor: '#000000',
-        padding: 10,
-        borderRadius: 15,
-        marginBottom: 5,
-        maxWidth: '70%',
-    },
-    messageText: {
-        color: '#fff',
-    },
-    input: {
-        height: 40,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        borderRadius: 8,
-        paddingHorizontal: 10,
-        backgroundColor: '#fff',
-    },
-    modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-        width: '80%',
-        padding: 20,
-        backgroundColor: '#fff',
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 15,
-    },
-    emptyText: {
-        textAlign: 'center',
-        color: '#888',
-        marginTop: 20,
-    },
+  container: {
+    flex: 1,
+    backgroundColor: "#131313",
+    padding: 16,
+    paddingTop: 80,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  backButton: { marginRight: 16 },
+  addButton: { marginLeft: 16 },
+  headerTitle: { fontSize: 20, color: "#FFFFFF", fontWeight: "bold" },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2A2A2A",
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 16,
+  },
+  searchInput: { flex: 1, color: "#FFFFFF", fontSize: 14 },
+  messagesList: { paddingBottom: 20 },
+  messageItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2A2A2A",
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  avatar: { marginRight: 12 },
+  messageContent: { flex: 1 },
+  tutorName: { color: "#FFFFFF", fontSize: 16, fontWeight: "bold" },
+  messageText: { color: "#8E8E8F", fontSize: 14 },
+  messageTime: { color: "#8E8E8F", fontSize: 12 },
+  fullScreenModal: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#131313",
+    padding: 16,
+    paddingTop: 80,
+  },
+  modalContainer: { flex: 1 },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  modalTitle: { fontSize: 18, color: "#FFFFFF", fontWeight: "bold" },
+  modalCancel: { color: "#007AFF", fontSize: 16 },
+  modalToField: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2A2A2A",
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 16,
+  },
+  toLabel: { color: "#FFFFFF", fontSize: 16, marginRight: 8 },
+  toInput: { flex: 1, color: "#FFFFFF", fontSize: 14 },
+  modalBottomBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2A2A2A",
+    padding: 10,
+    borderRadius: 10,
+    position: "absolute",
+    bottom: 16,
+    left: 16,
+    right: 16,
+  },
+  messageInput: { flex: 1, color: "#FFFFFF", fontSize: 14 },
+  sendButton: { marginLeft: 8 },
+  emptyText: { color: "#8E8E8F", textAlign: "center" },
 });
