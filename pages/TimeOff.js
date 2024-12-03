@@ -170,33 +170,28 @@ export default function TimeOff({ route, navigation }) {
                             try {
                                 await onRemoveTimeOff(date); // Remove time off
                                 await loadTimeOffDates(); // Refresh
-                            } catch (error) {
-                                console.error(
-                                "Error removing time off:",
-                                error.message
-                                );
+                            } catch (error) {console.error("Error removing time off:",error.message);
                                 Alert.alert("Error", "Failed to remove time off.");
-                            }
-                            },
+                            }},
                         },
                         ]
-                    )
-                    }
+                    )}
                 >
                     <Ionicons
                     name="trash-outline"
-                    size={20}
+                    size={17}
                     color="rgba(128, 128, 128, 0.6)"
+                    marginLeft={6}
                     />
                 </TouchableOpacity>
                 </View>
             ))}
-        </View>
-        ) : (
-        <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No time off dates added yet.</Text>
-        </View>
-        )}
+          </View>
+          ) : (
+          <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No time off dates added yet.</Text>
+          </View>
+          )}
       </View>
       </ScrollView>
     </>
@@ -244,7 +239,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#2A2A2A",
     borderRadius: 8,
     marginBottom: 12,
-    marginHorizontal: 20,
+    width: "47%",
   },
   dateDot: {
     width: 8,
@@ -257,9 +252,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#1A1A1A",
     marginTop: 16,
     paddingHorizontal: 10,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
   },
   dateText: {
-    right: 50,
     fontSize: 14,
     color: "#FFFFFF",
     fontWeight: "300"
