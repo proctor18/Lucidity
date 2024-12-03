@@ -119,7 +119,6 @@ export default function TimeOff({ route, navigation }) {
       <View style={styles.container}>
   
         {/* Calendar */}
-        <View style={{ borderBottomWidth: 1, borderBottomColor: '#2A2A2A' }}>
         <Calendar
           markedDates={markedDates}
           disableAllTouchEventsForDisabledDays
@@ -135,12 +134,12 @@ export default function TimeOff({ route, navigation }) {
             todayTextColor: "#7257FF",
           }}
         />
-        </View>
+        <View style={{ borderBottomWidth: 1, borderBottomColor: '#2A2A2A' }}></View>
+        <Text style={styles.listTitle}>Your Time Off Dates</Text>
   
         {/* Time Off List */}
         {timeOffDates.length > 0 ? (
         <View style={styles.timeOffList}>
-            <Text style={styles.listTitle}>Your Time Off Dates</Text>
             {timeOffDates
             .slice()
             .sort((a, b) => moment(a).diff(moment(b))) // Sort based on closest to furthest date
@@ -269,7 +268,8 @@ const styles = StyleSheet.create({
   listTitle: {
     fontSize: 16,
     color: "#9A9A9A",
-    marginBottom: 20,
+    marginTop: 20,
+    marginBottom: 10,
     fontWeight: "bold",
     textAlign: 'center',
   },

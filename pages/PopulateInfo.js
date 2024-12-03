@@ -689,7 +689,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   timeLabel: {
-    color: '#ffffff',
+    color: "rgba(128, 128, 128, 1.0)",
     fontSize: 17,
     marginTop: 15,
     fontWeight: "bold",
@@ -723,6 +723,9 @@ const styles = StyleSheet.create({
   timeLabel: {
     fontSize: 14,
     fontWeight: "bold",
+    color: "#FFFFFF",
+    marginBottom: 10,
+    marginTop: 20
   },
   buttonDisabled: {
     backgroundColor: "#D3D3D3",

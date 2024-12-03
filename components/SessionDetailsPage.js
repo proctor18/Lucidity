@@ -114,7 +114,11 @@ const SessionDetailsPage = ({ route }) => {
             >
               <Text style={styles.label}>Start Time</Text>
               <View style={styles.timeContainer}>
-                <Text style={styles.timeText}>{session?.start_time || '12:45AM'}</Text>
+              <Text style={styles.timeText}>
+                {session?.start_time 
+                  ? moment.utc(session.start_time, "hh:mm A").format("h:mm A")
+                  : '12:45AM'}
+              </Text>
                 <Text style={styles.arrowIcon}>›</Text>
               </View>
             </TouchableOpacity>
@@ -125,7 +129,11 @@ const SessionDetailsPage = ({ route }) => {
             >
               <Text style={styles.label}>End Time</Text>
               <View style={styles.timeContainer}>
-                <Text style={styles.timeText}>{session?.end_time || '12:45AM'}</Text>
+              <Text style={styles.timeText}>
+                {session?.end_time 
+                  ? moment.utc(session.end_time, "hh:mm A").format("h:mm A")
+                  : '12:45AM'}
+              </Text>
                 <Text style={styles.arrowIcon}>›</Text>
               </View>
             </TouchableOpacity>

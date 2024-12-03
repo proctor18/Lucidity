@@ -197,6 +197,62 @@ async function tutorAvailability(tutorId, dayOfWeek, startTime, endTime) {
 }
 
 /**
+ * Function that will update a tutors availability
+*/
+async function updateTutorAvailability(tutorId, newDaysOfWeek, startTime, endTime) {
+  try {
+    const { data, error } = await supabase
+      .from('availability')
+      .update({
+        day_of_week: newDaysOfWeek,
+        start_time: startTime,
+        end_time: endTime,
+      })
+      .eq('tutor_id', tutorId);
+
+    if (error) {
+      console.error('Error updating tutor availability:', error);
+      return { success: false, error };
+    }
+
+    console.log('Tutor availability updated successfully:', data);
+    return { success: true, data };
+  } catch (err) {
+    console.error('Unexpected error during update:', err);
+    return { success: false, error: err };
+  }
+}
+
+async function fetchDayAvailability(tutorId) {
+  try {
+    const { data, error } = await supabase
+      .from('availability')
+      .select('day_of_week, start_time, end_time') // Fetch additional columns
+      .eq('tutor_id', tutorId);
+
+    if (error) {
+      console.error('Error fetching tutor availability:', error);
+      return null;
+    }
+
+    // Assuming only one record per tutor in the table
+    if (data.length > 0) {
+      const { day_of_week, start_time, end_time } = data[0];
+      return {
+        day_of_week: day_of_week || [],
+        start_time: start_time || null,
+        end_time: end_time || null,
+      };
+    }
+
+    return { day_of_week: [], start_time: null, end_time: null };
+  } catch (err) {
+    console.error('Unexpected error fetching tutor availability:', err);
+    return { day_of_week: [], start_time: null, end_time: null };
+  }
+}
+
+/**
  * Function that will check if the specified time slot for a student and a tutor 
  * This checks only the SPECIFIED time slot for conflict, rather than the entirety of the users' schedules
 */
@@ -364,4 +420,6 @@ export {
   addTimeOff,
   fetchTimeOff,
   removeTimeOff,
+  updateTutorAvailability,
+  fetchDayAvailability,
 };

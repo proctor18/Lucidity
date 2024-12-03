@@ -20,6 +20,7 @@ import TutorProfile from "./pages/TutorProfile.js";
 import MessagesList from "./pages/MessagesList";
 import Conversation from "./pages/Conversation";
 import TimeOff from "./pages/TimeOff.js";
+import UpdateAvailability from "./pages/UpdateAvailability.js"
 import { UserProvider } from './components/UserContext.js';
 import "react-native-gesture-handler";
 import { NavigationContainer } from "@react-navigation/native";
@@ -153,6 +154,7 @@ export default function App() {
         <Stack.Screen name="Launch" component={Launch} />
         <Stack.Screen name="Dashboard" component={Dashboard} />
         <Stack.Screen name="TimeOff" component={TimeOff} />
+        <Stack.Screen name="UpdateAvailability" component={UpdateAvailability} />
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="SearchResults" component={SearchResults} />
         <Stack.Screen name="TutorProfile" component={TutorProfile} />

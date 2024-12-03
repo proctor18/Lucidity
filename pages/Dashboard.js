@@ -14,6 +14,8 @@ import SessionDrawer from "../components/SessionDrawer.js";
 import { supabase } from "../lib/supabase.js";
 import { useSharedValue, useDerivedValue } from "react-native-reanimated";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { fetchDayAvailability } from "../scheduling/calendar.js";
+import moment from 'moment'
 
 const Header = ({
   userName = "Username",
@@ -61,6 +63,8 @@ const Header = ({
 };
 export default function Dashboard({ navigation, route }) {
   const { email, first_name, last_name, role_id, user_id, bookingSuccess } = route.params;
+  const [availabilityDays, setAvailabilityDays] = useState([]);
+  const [availabilityTimes, setAvailabilityTimes] = useState({ start_time: null, end_time: null });
   const [loading, setLoading] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [error, setError] = useState(null);
@@ -75,11 +79,34 @@ export default function Dashboard({ navigation, route }) {
     return sessions[index];
   });
 
+  const loadAvailability = async () => {
+    try {
+      const availability = await fetchDayAvailability(user_id);
+      setAvailabilityDays(availability.day_of_week || []);
+      setAvailabilityTimes({
+        start_time: availability.start_time,
+        end_time: availability.end_time,
+      });
+    } catch (error) {
+      console.error('Error loading availability:', error);
+    }
+  };
+
   function handleVisibleSession() {
     navigation.navigate("SessionDetails", {
       session: currentSession.value,
     });
   }
+
+  // Load availability only if role_id === 1 (a tutor)
+  useFocusEffect(
+    useCallback(() => {
+      if (role_id === 1) {
+        loadAvailability();
+      }
+    }, [user_id])
+  );
+
   useFocusEffect(
     useCallback(() => {
       fetchSessions(role_id);
@@ -188,11 +215,29 @@ export default function Dashboard({ navigation, route }) {
             countDown="2 weeks"
           />
           <View style={styles.horizontalContainer}>
-            <ButtonDiv
+          {/* Tutor Availability Button */}
+          <ButtonDiv
               type="wide"
               loading={loading}
-              data={currentSession.value}
+              showIcon={false}
+              buttonText="Your Availability"
+              buttonSubtext={
+                availabilityDays.length
+                  ? `${availabilityDays.join(", ")}\n\n${
+                      availabilityTimes.start_time && availabilityTimes.end_time
+                        ? `${moment.utc(availabilityTimes.start_time, "HH:mm:ssZ").format("h:mm A")} - ${moment.utc(availabilityTimes.end_time, "HH:mm:ssZ").local().format("h:mm A")}`
+                        : ""
+                    }`
+                  : "No Availability Set"
+              }
+              buttonSubtextStyle={{
+                textAlign: 'center',
+                paddingTop: 30,
+                whiteSpace: 'pre-line',
+              }}
+              onPress={() => navigation.navigate('UpdateAvailability')}
             />
+            
             <ButtonDiv
               type="wide"
               loading={loading}
