@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   TextInput,
@@ -27,6 +27,9 @@ export default function Messages() {
   const [receiverEmail, setReceiverEmail] = useState(""); // State for new receiver's email
   const route = useRoute();
   const { user_id: currentUserId } = route.params || {};
+
+  // Reference for FlatList
+  const flatListRef = useRef(null);
 
   if (!currentUserId) {
     console.error("User ID is undefined");
@@ -109,6 +112,11 @@ export default function Messages() {
     setMessages(data);
     setCurrentChat(chatPartnerId);
     setCurrentChatName(await fetchUserName(chatPartnerId));
+
+    // Scroll to the end of the list when messages are loaded
+    if (flatListRef.current) {
+      flatListRef.current.scrollToEnd({ animated: true });
+    }
   };
 
   // Send a message
@@ -280,11 +288,12 @@ export default function Messages() {
             <TouchableOpacity onPress={() => setCurrentChat(null)}>
               <Ionicons name="chevron-back" size={24} color="#7257FF" />
             </TouchableOpacity>
-            <Text style={styles.tutorName}>Chat with {currentChatName}</Text>
+            <Text style={styles.tutorName}>{currentChatName}</Text>
             <View style={{ width: 24 }} />
           </View>
 
           <FlatList
+            ref={flatListRef}
             data={messages}
             keyExtractor={(item) => item.message_id.toString()}
             renderItem={({ item }) => (
@@ -297,6 +306,7 @@ export default function Messages() {
                 <Text style={styles.messageText}>{item.content}</Text>
               </View>
             )}
+            keyboardShouldPersistTaps="handled"
           />
 
           <View style={styles.inputContainer}>
@@ -318,7 +328,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#131313",
-    paddingTop: 40, // Reduced padding from 80 to 40
+    paddingTop: 40, // Padding to create space at the top
   },
   header: {
     flexDirection: "row",
@@ -333,6 +343,30 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "center",
   },
+  sentMessage: {
+    backgroundColor: "#7257FF", // Blue background for sent messages
+    alignSelf: "flex-end", // Align to the right
+    padding: 12,
+    borderRadius: 15,
+    marginVertical: 5,
+    maxWidth: "80%",
+    marginRight: 15,
+  },
+
+  receivedMessage: {
+    backgroundColor: "#404040", // Dark gray for received messages
+    alignSelf: "flex-start", // Align to the left
+    padding: 12,
+    borderRadius: 15,
+    marginVertical: 5,
+    maxWidth: "80%",
+  },
+
+  messageText: {
+    color: "#FFFFFF", // White text
+    fontSize: 16, // Increase text size for readability
+    lineHeight: 20, // Add line height for spacing
+  },
   messagesList: {
     paddingHorizontal: 16,
     paddingTop: 10,
@@ -345,17 +379,20 @@ const styles = StyleSheet.create({
     borderTopColor: "#2A2A2A",
     marginBottom: 25,
   },
+
   input: {
     flex: 1,
-    backgroundColor: "#2A2A2A",
-    borderRadius: 20,
+    backgroundColor: "#2A2A2A", // Dark background for contrast
+    borderRadius: 20, // Rounded corners for the input
     paddingHorizontal: 16,
     paddingVertical: 12,
     color: "#FFFFFF",
+    fontSize: 16,
     marginRight: 10,
   },
+
   sendButton: {
-    backgroundColor: "#7257FF",
+    backgroundColor: "#7257FF", // Blue for Send button
     padding: 10,
     borderRadius: 20,
   },
@@ -369,32 +406,37 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     marginVertical: 4,
   },
+
   messageContainer: {
-    maxWidth: "80%",
-    padding: 10,
+    maxWidth: "80%", // Restrict width for better bubble size
+    padding: 12,
     borderRadius: 15,
     marginVertical: 5,
+    minWidth: 100, // Ensure bubbles are not too small
   },
+
   userMessageContainer: {
-    backgroundColor: "#7257FF",
+    backgroundColor: "#7257FF", // Blue background for sent messages
+    alignSelf: "flex-end", // Sent messages align to the right
   },
+
   tutorMessageContainer: {
-    backgroundColor: "#404040",
+    backgroundColor: "#404040", // Dark gray for received messages
+    alignSelf: "flex-start", // Received messages align to the left
   },
+
   messageText: {
-    color: "#FFFFFF",
-    fontSize: 16,
+    color: "#FFFFFF", // White text color for contrast
+    fontSize: 16, // Adequate font size for readability
+    lineHeight: 20, // Space between lines to avoid text cramped together
   },
+
   timeText: {
     fontSize: 10,
     color: "#8E8E8F",
     marginTop: 5,
   },
-  emptyText: {
-    color: "#FFFFFF",
-    textAlign: "center",
-    marginTop: 20,
-  },
+
   conversationItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -441,12 +483,14 @@ const styles = StyleSheet.create({
   plusButton: {
     paddingLeft: 10,
   },
+
   modalOverlay: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
+
   modalContent: {
     backgroundColor: "#1A1A1A",
     width: "80%",
@@ -455,12 +499,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 10,
   },
+
   modalTitle: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#FFFFFF",
     marginBottom: 10,
   },
+
   modalInput: {
     backgroundColor: "#2A2A2A", // Dark background for input field
     color: "#FFFFFF", // White text color for visibility
