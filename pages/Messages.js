@@ -8,6 +8,9 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  Button,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
@@ -20,6 +23,8 @@ export default function Messages() {
   const [currentChat, setCurrentChat] = useState(null);
   const [currentChatName, setCurrentChatName] = useState(""); // Store current chat name
   const [searchQuery, setSearchQuery] = useState(""); // State for search bar
+  const [isModalVisible, setIsModalVisible] = useState(false); // State for modal visibility
+  const [receiverEmail, setReceiverEmail] = useState(""); // State for new receiver's email
   const route = useRoute();
   const { user_id: currentUserId } = route.params || {};
 
@@ -131,6 +136,65 @@ export default function Messages() {
     conversation.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Start a new conversation
+  const startNewConversation = async () => {
+    if (!receiverEmail) {
+      Alert.alert("Error", "Please enter a valid email.");
+      return;
+    }
+
+    try {
+      let { data, error } = await supabase
+        .from("tutors")
+        .select("tutor_id, first_name, last_name")
+        .ilike("email", receiverEmail);
+
+      let receiverId = data?.[0]?.tutor_id;
+      let receiverName = data?.[0]
+        ? `${data[0].first_name} ${data[0].last_name}`
+        : null;
+
+      if (!receiverId) {
+        ({ data, error } = await supabase
+          .from("students")
+          .select("student_id, first_name, last_name")
+          .ilike("email", receiverEmail));
+
+        if (data?.[0]) {
+          receiverId = data[0].student_id;
+          receiverName = `${data[0].first_name} ${data[0].last_name}`;
+        }
+      }
+
+      if (!receiverId) {
+        Alert.alert("Error", "Receiver not found with that email.");
+        return;
+      }
+
+      setIsModalVisible(false);
+      setReceiverEmail("");
+
+      const isExistingConversation = conversations.some(
+        (conv) => conv.id === receiverId
+      );
+
+      if (!isExistingConversation) {
+        setConversations((prevConversations) => [
+          ...prevConversations,
+          { id: receiverId, name: receiverName },
+        ]);
+      }
+
+      loadMessages(receiverId);
+    } catch (error) {
+      console.error("Error fetching receiver:", error.message);
+      Alert.alert(
+        "Error",
+        "An error occurred while trying to fetch the receiver."
+      );
+    }
+  };
+
   return (
     <View style={styles.container}>
       {!currentChat ? (
@@ -145,7 +209,8 @@ export default function Messages() {
             />
             <TouchableOpacity
               style={styles.plusButton}
-              onPress={() => console.log("Start new conversation")}>
+              onPress={() => setIsModalVisible(true)} // Open the modal to start a new conversation
+            >
               <Ionicons name="add-circle" size={30} color="#7257FF" />
             </TouchableOpacity>
           </View>
@@ -177,6 +242,34 @@ export default function Messages() {
               <Text style={styles.emptyText}>No conversations found.</Text>
             }
           />
+
+          {/* Modal for Adding a New Conversation */}
+          <Modal
+            visible={isModalVisible}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setIsModalVisible(false)}>
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Enter Tutor's Email</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Email"
+                  value={receiverEmail}
+                  onChangeText={setReceiverEmail} // Update receiver's email
+                />
+                <Button
+                  title="Start Conversation"
+                  onPress={startNewConversation}
+                />
+                <Button
+                  title="Cancel"
+                  onPress={() => setIsModalVisible(false)}
+                  color="#ff5c5c"
+                />
+              </View>
+            </View>
+          </Modal>
         </View>
       ) : (
         <KeyboardAvoidingView
@@ -198,38 +291,22 @@ export default function Messages() {
               <View
                 style={
                   item.sender_id === currentUserId
-                    ? styles.userMessageWrapper
-                    : styles.tutorMessageWrapper
+                    ? styles.sentMessage
+                    : styles.receivedMessage
                 }>
-                <View
-                  style={[
-                    styles.messageContainer,
-                    item.sender_id === currentUserId
-                      ? styles.userMessageContainer
-                      : styles.tutorMessageContainer,
-                  ]}>
-                  <Text style={styles.messageText}>{item.content}</Text>
-                </View>
-                <Text style={styles.timeText}>
-                  {new Date(item.sent_at).toLocaleTimeString()}
-                </Text>
+                <Text style={styles.messageText}>{item.content}</Text>
               </View>
             )}
-            contentContainerStyle={styles.messagesList}
-            inverted={true} // To display most recent messages at the bottom
           />
 
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
+              placeholder="Type a message"
               value={content}
               onChangeText={setContent}
-              placeholder="Type a message"
-              placeholderTextColor="#8E8E8F"
             />
-            <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
-              <Ionicons name="send" size={20} color="#FFFFFF" />
-            </TouchableOpacity>
+            <Button title="Send" onPress={sendMessage} />
           </View>
         </KeyboardAvoidingView>
       )}
@@ -348,7 +425,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: 10,
+    paddingTop: 40,
     paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: "#2A2A2A",
@@ -363,5 +440,37 @@ const styles = StyleSheet.create({
   },
   plusButton: {
     paddingLeft: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#1A1A1A",
+    width: "80%",
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    marginBottom: 10,
+  },
+  modalInput: {
+    backgroundColor: "#2A2A2A", // Dark background for input field
+    color: "#FFFFFF", // White text color for visibility
+    width: "100%", // Full width of the modal content
+    height: 40, // Increased height for better typing space
+    paddingVertical: 10, // Vertical padding for better spacing
+    paddingHorizontal: 15, // Horizontal padding for better space
+    borderRadius: 10, // Slight curve to the input's corners
+    fontSize: 16, // Set a reasonable font size
+    marginTop: 10,
+    marginBottom: 10, // Space below the input field
   },
 });
