@@ -70,7 +70,7 @@ export default function ReportAreaChart() {
   useEffect(() => {
     setOptions((prevState) => ({
       ...prevState,
-      colors: [theme.palette.warning.main],
+      colors: [theme.palette.success.main],
       xaxis: {
         labels: {
           style: {
@@ -92,7 +92,7 @@ export default function ReportAreaChart() {
   const [series] = useState([
     {
       name: 'Series 1',
-      data: [58, 115, 28, 83, 63, 75, 35, 55]
+      data: [0, 0, 0,  80, 432, 381, 291, 55]
     }
   ]);
 

@@ -158,7 +158,7 @@ export default function DashboardDefault() {
         <AnalyticEcommerce title="Average Stars" count="4.3" percentage={1.4} isLoss color="error" extra="5 Stars" />
       </Grid>
       <Grid item xs={12} sm={6} md={4} lg={3}>
-        <AnalyticEcommerce title="Total Sales" count="$35,078" percentage={27.4} isLoss color="warning" extra="$20,395" />
+        <AnalyticEcommerce title="Satisfaction Rate" count="86%" percentage={860} color="success" extra="860%" />
       </Grid>
 
       <Grid item md={8} sx={{ display: { sm: 'none', md: 'block', lg: 'none' } }} />
@@ -249,7 +249,7 @@ export default function DashboardDefault() {
       <Grid item xs={12} md={7} lg={8}>
         <Grid container alignItems="center" justifyContent="space-between">
           <Grid item>
-            <Typography variant="h5"></Typography>
+            <Typography variant="h5">Verification Requests</Typography>
           </Grid>
           <Grid item />
         </Grid>
@@ -267,15 +267,15 @@ export default function DashboardDefault() {
         <MainCard sx={{ mt: 2 }} content={false}>
           <List sx={{ p: 0, '& .MuiListItemButton-root': { py: 2 } }}>
             <ListItemButton divider>
-              <ListItemText primary="Company Finance Growth" />
-              <Typography variant="h5">+45.14%</Typography>
+              <ListItemText primary="Database Reads" />
+              <Typography variant="h5">43</Typography>
             </ListItemButton>
             <ListItemButton divider>
-              <ListItemText primary="Company Expenses Ratio" />
-              <Typography variant="h5">0.58%</Typography>
+              <ListItemText primary="Microservices Expenses" />
+              <Typography variant="h5">TBD</Typography>
             </ListItemButton>
             <ListItemButton>
-              <ListItemText primary="Business Risk Cases" />
+              <ListItemText primary="User Traffic" />
               <Typography variant="h5">Low</Typography>
             </ListItemButton>
           </List>
