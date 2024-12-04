@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 // material-ui
 import Button from '@mui/material/Button';
@@ -21,6 +21,7 @@ import Typography from '@mui/material/Typography';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
 
+import { supabase } from "lib/supabase.js";
 // project import
 import AnimateButton from 'components/@extended/AnimateButton';
 
@@ -29,19 +30,11 @@ import EyeOutlined from '@ant-design/icons/EyeOutlined';
 import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
 import FirebaseSocial from './FirebaseSocial';
 
-// ============================|| JWT - LOGIN ||============================ //
-
 export default function AuthLogin({ isDemo = false }) {
+  const navigate = useNavigate(); // Import and use useNavigate hook
   const [checked, setChecked] = React.useState(false);
-
-  function handleSubmit(){
-    try {
-      navigate('/dashboard');
-    } catch (error) {
-      console.log('Error Occured while trying to navigate' , error) ; 
-    }
-  }
   const [showPassword, setShowPassword] = React.useState(false);
+
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
@@ -50,6 +43,35 @@ export default function AuthLogin({ isDemo = false }) {
     event.preventDefault();
   };
 
+  async function authenticateUser(email, password) {
+    try {
+      const { data, error } = await supabase
+        .from('admins')
+        .select('*')
+        .eq('email', email)
+        .single(); // This ensures it returns a single matching row or throws an error
+
+      if (error) {
+        console.error('Error fetching user:', error.message);
+        return null;
+      }
+
+      if (data) {
+        console.log('User authenticated:', data);
+        return 1; // Authenticated successfully
+      } else {
+          console.log('Invalid password');
+          return null;
+        }
+      // }else {
+      //   console.log('No user found with this email');
+      //   return null;
+      // }
+    }catch (err) {
+      console.error('Unexpected error:', err);
+      return null;
+    }
+  }
   return (
     <>
       <Formik
@@ -62,6 +84,23 @@ export default function AuthLogin({ isDemo = false }) {
           email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
           password: Yup.string().max(255).required('Password is required')
         })}
+        onSubmit={async (values, { setSubmitting }) => {
+          try {
+            event.preventDefault();
+            
+            console.log('Login values:', values);
+            const isAuthenticated = await authenticateUser(values.email , values.password) ; 
+            if (useNavigate && isAuthenticated) {
+              console.log('Navigation exists') ; 
+              navigate('/dashboard/default' , { replace : true });
+              localStorage.setItem('token', 'sample_token');
+            }
+          } catch (error) {
+            console.error('Error occurred while trying to navigate', error);
+          } finally {
+            setSubmitting(false);
+          }
+        }}
       >
         {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
           <form noValidate onSubmit={handleSubmit}>
