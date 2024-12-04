@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  FlatList,
 } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from '@react-navigation/native';
@@ -13,13 +14,16 @@ import ButtonDiv from "../components/ButtonDiv.js";
 import SessionDrawer from "../components/SessionDrawer.js";
 import { supabase } from "../lib/supabase.js";
 import { useSharedValue, useDerivedValue } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { fetchDayAvailability } from "../scheduling/calendar.js";
+import moment from 'moment'
 
 const Header = ({
   userName = "Username",
   greeting = "Good Morning!",
   navigation,
-  user_id = user_id , 
+  role_id,
+  user_id,
 }) => {
 
   return (
@@ -35,18 +39,33 @@ const Header = ({
         </View>
       </View>
   
-        {/* Chat button */}
+      {/* Right Container for Icons */}
+      <View style={styles.rightContainer}>
+        {/* Time Off Button */}
+        {role_id === 1 && (
         <TouchableOpacity
-          style={styles.messageButton}
+          style={styles.iconButton}
+          onPress={() => navigation.navigate("TimeOff", { tutorId: user_id })}
+        >
+          <FontAwesome name="calendar-times-o" size={24} color="white" />
+        </TouchableOpacity>
+      )}
+      
+        {/* Chat Button */}
+        <TouchableOpacity
+          style={styles.iconButton}
           onPress={() => navigation.navigate("Messages", { user_id })}
         >
           <Ionicons name="chatbubble-outline" size={24} color="white" />
-</TouchableOpacity>
+        </TouchableOpacity>
       </View>
+    </View>
   );
 };
 export default function Dashboard({ navigation, route }) {
   const { email, first_name, last_name, role_id, user_id, bookingSuccess } = route.params;
+  const [availabilityDays, setAvailabilityDays] = useState([]);
+  const [availabilityTimes, setAvailabilityTimes] = useState({ start_time: null, end_time: null });
   const [loading, setLoading] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [error, setError] = useState(null);
@@ -61,11 +80,34 @@ export default function Dashboard({ navigation, route }) {
     return sessions[index];
   });
 
+  const loadAvailability = async () => {
+    try {
+      const availability = await fetchDayAvailability(user_id);
+      setAvailabilityDays(availability.day_of_week || []);
+      setAvailabilityTimes({
+        start_time: availability.start_time,
+        end_time: availability.end_time,
+      });
+    } catch (error) {
+      console.error('Error loading availability:', error);
+    }
+  };
+
   function handleVisibleSession() {
     navigation.navigate("SessionDetails", {
       session: currentSession.value,
     });
   }
+
+  // Load availability only if role_id === 1 (a tutor)
+  useFocusEffect(
+    useCallback(() => {
+      if (role_id === 1) {
+        loadAvailability();
+      }
+    }, [user_id])
+  );
+
   useFocusEffect(
     useCallback(() => {
       fetchSessions(role_id);
@@ -85,10 +127,9 @@ export default function Dashboard({ navigation, route }) {
 
       const isStudent = role_id !== 1; // role_id 1 is for tutors (therfore !== 1 means student)
 
-      // Select based on the role that signed in
-    const selectFields = isStudent 
-    ? 'session_id, start_time, end_time, tutor_id, subject, session_date' 
-    : 'session_id, start_time, end_time, student_id, subject, session_date';
+      const selectFields = `
+        session_id, start_time, end_time, student_id, tutor_id, subject, session_date
+      `;
       
       console.log(`Fetching ${isStudent ? 'Student' : 'Tutor'} sessions for user ${user_id}`);
 
@@ -144,20 +185,51 @@ export default function Dashboard({ navigation, route }) {
         greeting={getGreeting()}
         navigation={navigation}
         user_id={user_id}
+        role_id={role_id}
       />
       <View style={styles.textContainer}>
         <Text style={styles.sessionText}>Sessions with Students</Text>
         {error && <Text style={styles.errorText}>Error: {error}</Text>}
       </View>
 
-      <View style={styles.CarouselContainer}>
-        <SessionsCarousel
-          sessions={sessions}
-          loading={loading}
-          currentIndex={currentIndex}
-          itemCallback={handleVisibleSession}
-        />
+      <View style={styles.listContainer}>
+      <FlatList
+  data={sessions}
+  keyExtractor={(item) => item.session_id.toString()}
+  renderItem={({ item, index }) => (
+    <TouchableOpacity
+      style={styles.listItem}
+      onPress={() => navigation.navigate("SessionDetails", { session: item })}
+    >
+      <View style={styles.sessionDetails}>
+        {/* Session title using session number */}
+        <Text style={styles.sessionTitle}>{`Session ${index + 1}`}</Text>
+        {/* Display the subject as a subtitle */}
+        <Text style={styles.sessionSubject}>{item.subject || "No Subject Provided"}</Text>
+        {/* Display the session date */}
+        <Text style={styles.sessionDate}>
+          {moment(item.session_date).format("MMMM D, YYYY")}
+        </Text>
       </View>
+      {/* Display session times */}
+      <Text style={styles.sessionTime}>
+        {moment(item.start_time, "HH:mm:ss").format("h:mm A")} -{" "}
+        {moment(item.end_time, "HH:mm:ss").format("h:mm A")}
+      </Text>
+    </TouchableOpacity>
+  )}
+  ListEmptyComponent={
+    loading ? (
+      <Text style={styles.loadingText}>Loading sessions...</Text>
+    ) : (
+      <Text style={styles.emptyText}>No sessions available.</Text>
+    )
+  }
+/>
+
+
+</View>
+
 
       <View style={styles.rowTwo}>
         <View style={styles.textContainer}>
@@ -174,11 +246,29 @@ export default function Dashboard({ navigation, route }) {
             countDown="2 weeks"
           />
           <View style={styles.horizontalContainer}>
-            <ButtonDiv
+          {/* Tutor Availability Button */}
+          <ButtonDiv
               type="wide"
               loading={loading}
-              data={currentSession.value}
+              showIcon={false}
+              buttonText="Your Availability"
+              buttonSubtext={
+                availabilityDays.length
+                  ? `${availabilityDays.join(", ")}\n\n${
+                      availabilityTimes.start_time && availabilityTimes.end_time
+                        ? `${moment.utc(availabilityTimes.start_time, "HH:mm:ssZ").format("h:mm A")} - ${moment.utc(availabilityTimes.end_time, "HH:mm:ssZ").format("h:mm A")}`
+                        : ""
+                    }`
+                  : "No Availability Set"
+              }
+              buttonSubtextStyle={{
+                textAlign: 'center',
+                paddingTop: 30,
+                whiteSpace: 'pre-line',
+              }}
+              onPress={() => navigation.navigate('UpdateAvailability')}
             />
+
             <ButtonDiv
               type="wide"
               loading={loading}
@@ -407,4 +497,62 @@ const styles = StyleSheet.create({
   rowTwo: {
     flex: 1,
   },
+  rightContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 5,
+  },
+  iconButton: {
+    marginLeft: 20,
+  },
+  listContainer: {
+  marginVertical: 16,
+  paddingHorizontal: 16,
+},
+listItem: {
+  backgroundColor: "#2A2A2A",
+  padding: 16,
+  marginBottom: 12,
+  borderRadius: 8,
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
+sessionDetails: {
+  flex: 1,
+},
+sessionTitle: {
+  color: "#FFFFFF",
+  fontSize: 16,
+  fontWeight: "600",
+  marginBottom: 4,
+},
+sessionDate: {
+  color: "#CCCCCC",
+  fontSize: 14,
+},
+sessionTime: {
+  color: "#FFFFFF",
+  fontSize: 14,
+  textAlign: "right",
+},
+loadingText: {
+  color: "#CCCCCC",
+  fontSize: 16,
+  textAlign: "center",
+  marginTop: 16,
+},
+emptyText: {
+  color: "#CCCCCC",
+  fontSize: 16,
+  textAlign: "center",
+  marginTop: 16,
+},
+sessionSubject: {
+  color: "#CCCCCC",
+  fontSize: 14,
+  marginBottom: 4,
+},
+
+
 });

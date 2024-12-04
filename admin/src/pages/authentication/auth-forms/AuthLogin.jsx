@@ -34,6 +34,13 @@ import FirebaseSocial from './FirebaseSocial';
 export default function AuthLogin({ isDemo = false }) {
   const [checked, setChecked] = React.useState(false);
 
+  function handleSubmit(){
+    try {
+      navigate('/dashboard');
+    } catch (error) {
+      console.log('Error Occured while trying to navigate' , error) ; 
+    }
+  }
   const [showPassword, setShowPassword] = React.useState(false);
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
