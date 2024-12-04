@@ -49,7 +49,7 @@ export default function AuthLogin({ isDemo = false }) {
         .from('admins')
         .select('*')
         .eq('email', email)
-        .single(); // This ensures it returns a single matching row or throws an error
+        .single(); 
 
       if (error) {
         console.error('Error fetching user:', error.message);
@@ -58,7 +58,7 @@ export default function AuthLogin({ isDemo = false }) {
 
       if (data) {
         console.log('User authenticated:', data);
-        return 1; // Authenticated successfully
+        return data ; 
       } else {
           console.log('Invalid password');
           return null;
@@ -89,10 +89,10 @@ export default function AuthLogin({ isDemo = false }) {
             event.preventDefault();
             
             console.log('Login values:', values);
-            const isAuthenticated = await authenticateUser(values.email , values.password) ; 
-            if (useNavigate && isAuthenticated) {
+            const userData = await authenticateUser(values.email , values.password) ; 
+            if (useNavigate && userData) {
               console.log('Navigation exists') ; 
-              navigate('/dashboard/default' , { replace : true });
+              navigate('/dashboard/default' , { replace : true  , state : userData});
               localStorage.setItem('token', 'sample_token');
             }
           } catch (error) {
