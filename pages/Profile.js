@@ -67,7 +67,7 @@ export default function Profile({ route, navigation }) {
           first_name: newFirstName,
           last_name: newLastName,
         })
-        .eq("student_id", user_id);
+        .eq("student_id", user_id); // or eq("tutor_id", user_id) if it's a tutor
 
       if (error) {
         Alert.alert("Error", "Failed to update profile.");
@@ -77,7 +77,12 @@ export default function Profile({ route, navigation }) {
 
       // Successfully updated profile
       Alert.alert("Success", "Profile updated successfully.");
+
+      // After update, set the state to reflect the new data
       setIsEditing(false); // Exit editing mode
+      route.params.email = newEmail; // Update the route params with new email
+      route.params.first_name = newFirstName; // Update first name
+      route.params.last_name = newLastName; // Update last name
     } catch (error) {
       console.error("Error saving profile:", error);
       Alert.alert("Error", "An error occurred while saving the profile.");
@@ -131,8 +136,10 @@ export default function Profile({ route, navigation }) {
             </>
           ) : (
             <>
-              <Text style={styles.usernameInfo}>{first_name}</Text>
-              <Text style={styles.userEmailInfo}>{email}</Text>
+              <Text style={styles.usernameInfo}>
+                {newFirstName} {newLastName}
+              </Text>
+              <Text style={styles.userEmailInfo}>{newEmail}</Text>
             </>
           )}
         </View>
