@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  FlatList,
 } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from '@react-navigation/native';
@@ -191,14 +192,44 @@ export default function Dashboard({ navigation, route }) {
         {error && <Text style={styles.errorText}>Error: {error}</Text>}
       </View>
 
-      <View style={styles.CarouselContainer}>
-        <SessionsCarousel
-          sessions={sessions}
-          loading={loading}
-          currentIndex={currentIndex}
-          itemCallback={handleVisibleSession}
-        />
+      <View style={styles.listContainer}>
+      <FlatList
+  data={sessions}
+  keyExtractor={(item) => item.session_id.toString()}
+  renderItem={({ item, index }) => (
+    <TouchableOpacity
+      style={styles.listItem}
+      onPress={() => navigation.navigate("SessionDetails", { session: item })}
+    >
+      <View style={styles.sessionDetails}>
+        {/* Session title using session number */}
+        <Text style={styles.sessionTitle}>{`Session ${index + 1}`}</Text>
+        {/* Display the subject as a subtitle */}
+        <Text style={styles.sessionSubject}>{item.subject || "No Subject Provided"}</Text>
+        {/* Display the session date */}
+        <Text style={styles.sessionDate}>
+          {moment(item.session_date).format("MMMM D, YYYY")}
+        </Text>
       </View>
+      {/* Display session times */}
+      <Text style={styles.sessionTime}>
+        {moment(item.start_time, "HH:mm:ss").format("h:mm A")} -{" "}
+        {moment(item.end_time, "HH:mm:ss").format("h:mm A")}
+      </Text>
+    </TouchableOpacity>
+  )}
+  ListEmptyComponent={
+    loading ? (
+      <Text style={styles.loadingText}>Loading sessions...</Text>
+    ) : (
+      <Text style={styles.emptyText}>No sessions available.</Text>
+    )
+  }
+/>
+
+
+</View>
+
 
       <View style={styles.rowTwo}>
         <View style={styles.textContainer}>
@@ -474,4 +505,54 @@ const styles = StyleSheet.create({
   iconButton: {
     marginLeft: 20,
   },
+  listContainer: {
+  marginVertical: 16,
+  paddingHorizontal: 16,
+},
+listItem: {
+  backgroundColor: "#2A2A2A",
+  padding: 16,
+  marginBottom: 12,
+  borderRadius: 8,
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+},
+sessionDetails: {
+  flex: 1,
+},
+sessionTitle: {
+  color: "#FFFFFF",
+  fontSize: 16,
+  fontWeight: "600",
+  marginBottom: 4,
+},
+sessionDate: {
+  color: "#CCCCCC",
+  fontSize: 14,
+},
+sessionTime: {
+  color: "#FFFFFF",
+  fontSize: 14,
+  textAlign: "right",
+},
+loadingText: {
+  color: "#CCCCCC",
+  fontSize: 16,
+  textAlign: "center",
+  marginTop: 16,
+},
+emptyText: {
+  color: "#CCCCCC",
+  fontSize: 16,
+  textAlign: "center",
+  marginTop: 16,
+},
+sessionSubject: {
+  color: "#CCCCCC",
+  fontSize: 14,
+  marginBottom: 4,
+},
+
+
 });
