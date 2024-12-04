@@ -15,6 +15,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
 import { supabase } from "../supabaseClient"; // Assuming supabaseClient is properly set up
+import { Swipeable } from "react-native-gesture-handler";
 
 export default function Messages() {
   const [content, setContent] = useState("");
@@ -65,26 +66,35 @@ export default function Messages() {
       try {
         let { data, error } = await supabase
           .from("messages")
-          .select("sender_id, receiver_id, content")
+          .select("sender_id, receiver_id, content, sent_at")
           .or(`sender_id.eq.${currentUserId},receiver_id.eq.${currentUserId}`)
           .neq("content", "") // Exclude empty messages
           .order("sent_at", { ascending: false });
 
         if (error) return console.error("Error fetching conversations:", error);
 
-        // Get unique conversation partners
-        const uniqueConversations = Array.from(
-          new Set(
-            data.map(({ sender_id, receiver_id }) =>
-              sender_id === currentUserId ? receiver_id : sender_id
-            )
-          )
-        );
+        // Group by conversation partner and take the latest message
+        const conversationsMap = data.reduce((acc, message) => {
+          const partnerId =
+            message.sender_id === currentUserId
+              ? message.receiver_id
+              : message.sender_id;
+
+          if (!acc[partnerId]) {
+            acc[partnerId] = { ...message, partnerId };
+          }
+          return acc;
+        }, {});
 
         const conversationData = await Promise.all(
-          uniqueConversations.map(async (id) => {
-            const name = await fetchUserName(id);
-            return { id, name };
+          Object.values(conversationsMap).map(async (conversation) => {
+            const name = await fetchUserName(conversation.partnerId);
+            return {
+              id: conversation.partnerId,
+              name,
+              lastMessage: conversation.content,
+              sentAt: conversation.sent_at,
+            };
           })
         );
 
@@ -203,6 +213,41 @@ export default function Messages() {
     }
   };
 
+  const deleteConversation = async (conversationId) => {
+    try {
+      // Delete all messages from the database for this conversation
+      const { error } = await supabase
+        .from("messages")
+        .delete()
+        .or(
+          `and(sender_id.eq.${currentUserId},receiver_id.eq.${conversationId}),and(sender_id.eq.${conversationId},receiver_id.eq.${currentUserId})`
+        );
+
+      if (error) {
+        console.error("Error deleting conversation:", error);
+        return;
+      }
+
+      // Remove the conversation from the state
+      setConversations((prev) =>
+        prev.filter((conversation) => conversation.id !== conversationId)
+      );
+
+      console.log("Conversation deleted successfully.");
+    } catch (err) {
+      console.error("Error deleting conversation:", err.message);
+    }
+  };
+
+  // Render the right swipe action
+  const renderRightActions = (conversationId) => (
+    <TouchableOpacity
+      style={styles.deleteButton}
+      onPress={() => deleteConversation(conversationId)}>
+      <Text style={styles.deleteButtonText}>Delete</Text>
+    </TouchableOpacity>
+  );
+
   return (
     <View style={styles.container}>
       {!currentChat ? (
@@ -229,7 +274,25 @@ export default function Messages() {
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.conversationItem}
-                onPress={() => loadMessages(item.id)}>
+                onPress={() => loadMessages(item.id)}
+                onLongPress={() => {
+                  // Long press triggers a confirmation alert to delete the conversation
+                  Alert.alert(
+                    "Delete Conversation",
+                    "Are you sure you want to delete this conversation?",
+                    [
+                      {
+                        text: "Cancel",
+                        style: "cancel",
+                      },
+                      {
+                        text: "Delete",
+                        style: "destructive",
+                        onPress: () => deleteConversation(item.id),
+                      },
+                    ]
+                  );
+                }}>
                 <View style={styles.avatar}>
                   <Ionicons
                     name="person-circle-outline"
@@ -240,14 +303,25 @@ export default function Messages() {
                 <View style={styles.messageDetails}>
                   <Text style={styles.conversationName}>{item.name}</Text>
                   <Text style={styles.conversationMessage} numberOfLines={1}>
-                    {item.message || "No messages yet"}
+                    {item.lastMessage || "No messages yet"}
                   </Text>
                 </View>
-                <Text style={styles.timestamp}>Just now</Text>
+                <Text style={styles.timestamp}>
+                  {item.sentAt
+                    ? new Date(item.sentAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : ""}
+                </Text>
               </TouchableOpacity>
             )}
             ListEmptyComponent={
-              <Text style={styles.emptyText}>No conversations found.</Text>
+              <View style={styles.emptyMessageContainer}>
+                <Text style={styles.emptyMessageText}>
+                  No conversations at this time.
+                </Text>
+              </View>
             }
           />
 
@@ -471,6 +545,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: "#2A2A2A",
+    paddingBottom: 30,
   },
   searchInput: {
     flex: 1,
@@ -518,5 +593,16 @@ const styles = StyleSheet.create({
     fontSize: 16, // Set a reasonable font size
     marginTop: 10,
     marginBottom: 10, // Space below the input field
+  },
+
+  emptyMessageContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: 250,
+  },
+  emptyMessageText: {
+    fontSize: 16,
+    color: "rgba(255, 255, 255, 0.6)",
   },
 });
