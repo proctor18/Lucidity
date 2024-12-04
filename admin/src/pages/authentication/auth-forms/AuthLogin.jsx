@@ -21,7 +21,7 @@ import Typography from '@mui/material/Typography';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
 
-import { supabse  } from "lib/supabase.js";
+import { supabse } from "lib/supabase.js";
 // project import
 import AnimateButton from 'components/@extended/AnimateButton';
 
