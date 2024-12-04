@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, FlatList, ScrollView, SafeAreaView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ScrollView, SafeAreaView, Alert } from 'react-native';
 import Button from '../components/Button.js';
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import  { supabase } from '../lib/supabase.js' ; 
 import moment from 'moment';
 import { useNavigation } from '@react-navigation/native';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const dialog = [
   {
@@ -18,6 +16,11 @@ const dialog = [
     title: "What subjects are you comfortable with?" ,
     subTitle: "Help us get to know you better",
     inputType: "text"
+  },
+  {
+    title: "Select your preferred grade level",
+    subTitle: "Help us get to know you better",
+    inputType: "int",
   },
   {
     title: "What is your availability like?" ,
@@ -83,6 +86,87 @@ const TOPIC_MAP = [
   },
 ];
 
+const GRADE_MAP = [
+  {
+    title: "Grade 1",
+    value: 1,
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+  {
+    title: "Grade 2",
+    value: 2,
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+  {
+    title: "Grade 3",
+    value: 3,
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+  {
+    title: "Grade 4",
+    value: 4,
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+  {
+    title: "Grade 5",
+    value: 5,
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+  {
+    title: "Grade 6",
+    value: 6,
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+  {
+    title: "Grade 7",
+    value: 7,
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+  {
+    title: "Grade 8",
+    value: 8,
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+  {
+    title: "Grade 9",
+    value: 9,
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+  {
+    title: "Grade 10",
+    value: 10,
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+  {
+    title: "Grade 11",
+    value: 11,
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+  {
+    title: "Grade 12",
+    value: 12,
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+  {
+    title: "Post Secondary",
+    value: 13,
+    icon: "../assets/icons/mathPurple.png",
+    activeIcon: "../assets/icons/mathWhite.png",
+  },
+];
+
 const DAYS_MAP = [
   {
     title: "Monday",
@@ -126,8 +210,8 @@ const generateTimeSlots = (startTime, endTime, interval = 60) => {
   let current = moment(startTime, "hh:mm A");
 
   while (current.isBefore(moment(endTime, "hh:mm A"))) {
-    slots.push(current.format("hh:mm A")); // Format times for compatibility
-    current.add(interval, "minutes"); // Increment by the interval
+    slots.push(current.format("hh:mm A"));
+    current.add(interval, "minutes");
   }
 
   return slots;
@@ -144,14 +228,13 @@ export default function PopulateInfo({ route }) {
   const [loading , setLoading ] = useState(false) ;
   const [selectedDays, setSelectedDays] = useState([]);
   const [selectedTimeSlots, setSelectedTimeSlots] = useState([]);
+  const [selectedGrade, setSelectedGrade] = useState(null);
   const [isQualified, setIsQualified] = useState(false);
   const navigation = useNavigation();
 
   const [timeSlots] = useState(generateTimeSlots("8:00 AM", "11:00 PM", 60));
   const morningSlots = timeSlots.filter((time) => moment(time, "hh:mm A").hour() < 12);
   const afternoonSlots = timeSlots.filter((time) => moment(time, "hh:mm A").hour() >= 12);
-
-  // console.log(first_name) ;   // Why does this console.log everytime ??
 
   //Function to handle the writing to the database
   async function writeValues() {
@@ -171,7 +254,8 @@ export default function PopulateInfo({ route }) {
         email,
         first_name,
         last_name,
-        ...(selectedOption === "Tutor" && { is_qualified: isQualified })
+        ...(selectedOption === "Tutor" && { is_qualified: isQualified }),
+        grade_level: selectedGrade
       };
   
       const { data: tutorData, error: tutorError } = await supabase
@@ -241,18 +325,19 @@ export default function PopulateInfo({ route }) {
   };
 
 // -------------------------------- Review ------------------------------
-  const handleContinue = () => {
-    if (selectedOption === "Student" && currentStep === 1) {
-      writeValues(); // Directly submit for "Student" at step 1
-      return;
-    }
+const handleContinue = () => {
+  if (selectedOption === "Student" && currentStep === 2) {
+    writeValues();
+    return;
+  }
 
-    if (currentStep < dialog.length - 1) {
-      setCurrentStep(currentStep + 1); // Proceed to next step
-    } else {
-      writeValues(); // Submit on the final step
-    }
-  };
+  // Proceed to the next step if not at the end
+  if (currentStep < dialog.length - 1) {
+    setCurrentStep(currentStep + 1);
+  } else {
+    writeValues(); // Submit on the final step
+  }
+};
 
   const handleOptionSelect = (option) => {
     setSelectedOption(option);
@@ -309,8 +394,26 @@ export default function PopulateInfo({ route }) {
       )
     }
 
-    // Availability
+    // Grade Level
     if (currentStep === 2) {
+      return (
+        <View style={styles.chipContainer}>
+          {GRADE_MAP.map((grade) => (
+            <Button
+              key={grade.value}
+              type="chip"
+              text={grade.title}
+              callback={() => setSelectedGrade(grade.value)}
+              active={selectedGrade === grade.value}
+              icon={selectedGrade === grade.value ? grade.activeIcon : grade.icon}
+            />
+          ))}
+        </View>
+      );
+    }
+
+    // Availability
+    if (currentStep === 3) {
       return (
         <ScrollView contentContainerStyle={styles.fullContainer}>
         <SafeAreaView style={styles.fullContainer}>
@@ -412,12 +515,18 @@ export default function PopulateInfo({ route }) {
   return (
     <View style={styles.container}>
       <View style={styles.pagination}>
-        {dialog.map((_, index) => (
-          <View
-            key={index}
-            style={[styles.paginationDot, currentStep === index && styles.activeDot]}
-          />
-        ))}
+        {dialog.map((_, index) => {
+          // Only render the first two dots if selectedOption is "Student"
+          if (selectedOption === "Student" && index > 2) {
+            return null;
+          }
+          return (
+            <View
+              key={index}
+              style={[styles.paginationDot, currentStep === index && styles.activeDot]}
+            />
+          );
+        })}
       </View>
       <View style={styles.contentContainer}>
         <View style={styles.rowOne}>
@@ -430,7 +539,7 @@ export default function PopulateInfo({ route }) {
         <Button
           type="small"
           text={
-            selectedOption === "Student" && currentStep === 1
+            selectedOption === "Student" && currentStep === 2
               ? "Submit"
               : currentStep === dialog.length - 1
               ? "Submit"
@@ -439,7 +548,7 @@ export default function PopulateInfo({ route }) {
           callback={handleContinue}
           disabled={
             ((currentStep === 0 && !selectedOption) ||
-            (selectedOption === "Tutor" && !isQualified && currentStep == 2)) // Tutor must check qualified to continue
+            (selectedOption === "Tutor" && !isQualified && currentStep == 3)) // Tutor must check qualified to continue
           }
           style={[
             styles.button,
@@ -580,7 +689,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   timeLabel: {
-    color: '#ffffff',
+    color: "rgba(128, 128, 128, 1.0)",
     fontSize: 17,
     marginTop: 15,
     fontWeight: "bold",
@@ -614,6 +723,9 @@ const styles = StyleSheet.create({
   timeLabel: {
     fontSize: 14,
     fontWeight: "bold",
+    color: "#FFFFFF",
+    marginBottom: 10,
+    marginTop: 20
   },
   buttonDisabled: {
     backgroundColor: "#D3D3D3",

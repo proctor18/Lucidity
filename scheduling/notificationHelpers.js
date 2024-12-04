@@ -28,7 +28,7 @@ export const checkUnreadNotifications = async (user_id) => {
 /**
  * Function that creates a new notification for a user
 */
-export const createNotification = async (user_id, message, email) => {
+export const createNotification = async (user_id, message, email, type) => {
   try {
     // Insert notification into the database
     const { data, error } = await supabase
@@ -46,7 +46,7 @@ export const createNotification = async (user_id, message, email) => {
     }
 
     // Send email notification
-    await sendEmailNotification(email, message);
+    await sendEmailNotification(email, message, type);
 
     return data;
   } catch (err) {
@@ -139,15 +139,29 @@ export const clearAll = async (setNotifications, user_id) => {
 /**
  * Function uses sendgrid API template in order to send emails to tutors/students
 */
-export const sendEmailNotification = async (email, sessionDetails) => {
+export const sendEmailNotification = async (email, sessionDetails, type) => {
   const SENDGRID_URL = 'https://api.sendgrid.com/v3/mail/send';
-  const apiKey = SENDGRID_API_KEY
-  
+  const apiKey = SENDGRID_API_KEY;
+
+  // Determine email subject and content based on type
+  let subject = '';
+  let content = '';
+
+  if (type === 'booked') {
+    subject = 'Your Tutoring Session is Confirmed';
+    content = `Hi, your upcoming tutoring session is confirmed! Here are the details:\n\n${sessionDetails}`;
+  } else if (type === 'cancelled') {
+    subject = 'Your Tutoring Session has been Cancelled';
+    content = `Hi, your upcoming tutoring session has been cancelled. Here are the details:\n\n${sessionDetails}`;
+  } else {
+    throw new Error('Invalid email type');
+  }
+
   const emailData = {
     personalizations: [
       {
         to: [{ email }],
-        subject: 'Your Tutoring Session is Confirmed',
+        subject,
       },
     ],
     from: {
@@ -157,7 +171,7 @@ export const sendEmailNotification = async (email, sessionDetails) => {
     content: [
       {
         type: 'text/plain',
-        value: `Hi, your session is confirmed! Here are the details:\n\n${sessionDetails}`,
+        value: content,
       },
     ],
   };
@@ -165,7 +179,7 @@ export const sendEmailNotification = async (email, sessionDetails) => {
   try {
     await axios.post(SENDGRID_URL, emailData, {
       headers: {
-        Authorization: `Bearer ${apiKey}`, 
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
     });

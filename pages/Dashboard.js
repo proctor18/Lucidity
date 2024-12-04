@@ -13,13 +13,16 @@ import ButtonDiv from "../components/ButtonDiv.js";
 import SessionDrawer from "../components/SessionDrawer.js";
 import { supabase } from "../lib/supabase.js";
 import { useSharedValue, useDerivedValue } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import { fetchDayAvailability } from "../scheduling/calendar.js";
+import moment from 'moment'
 
 const Header = ({
   userName = "Username",
   greeting = "Good Morning!",
   navigation,
-  user_id = user_id , 
+  role_id,
+  user_id,
 }) => {
 
   return (
@@ -35,18 +38,33 @@ const Header = ({
         </View>
       </View>
   
-        {/* Chat button */}
+      {/* Right Container for Icons */}
+      <View style={styles.rightContainer}>
+        {/* Time Off Button */}
+        {role_id === 1 && (
         <TouchableOpacity
-          style={styles.messageButton}
+          style={styles.iconButton}
+          onPress={() => navigation.navigate("TimeOff", { tutorId: user_id })}
+        >
+          <FontAwesome name="calendar-times-o" size={24} color="white" />
+        </TouchableOpacity>
+      )}
+      
+        {/* Chat Button */}
+        <TouchableOpacity
+          style={styles.iconButton}
           onPress={() => navigation.navigate("Messages", { user_id })}
         >
           <Ionicons name="chatbubble-outline" size={24} color="white" />
-</TouchableOpacity>
+        </TouchableOpacity>
       </View>
+    </View>
   );
 };
 export default function Dashboard({ navigation, route }) {
   const { email, first_name, last_name, role_id, user_id, bookingSuccess } = route.params;
+  const [availabilityDays, setAvailabilityDays] = useState([]);
+  const [availabilityTimes, setAvailabilityTimes] = useState({ start_time: null, end_time: null });
   const [loading, setLoading] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [error, setError] = useState(null);
@@ -61,11 +79,34 @@ export default function Dashboard({ navigation, route }) {
     return sessions[index];
   });
 
+  const loadAvailability = async () => {
+    try {
+      const availability = await fetchDayAvailability(user_id);
+      setAvailabilityDays(availability.day_of_week || []);
+      setAvailabilityTimes({
+        start_time: availability.start_time,
+        end_time: availability.end_time,
+      });
+    } catch (error) {
+      console.error('Error loading availability:', error);
+    }
+  };
+
   function handleVisibleSession() {
     navigation.navigate("SessionDetails", {
       session: currentSession.value,
     });
   }
+
+  // Load availability only if role_id === 1 (a tutor)
+  useFocusEffect(
+    useCallback(() => {
+      if (role_id === 1) {
+        loadAvailability();
+      }
+    }, [user_id])
+  );
+
   useFocusEffect(
     useCallback(() => {
       fetchSessions(role_id);
@@ -85,10 +126,9 @@ export default function Dashboard({ navigation, route }) {
 
       const isStudent = role_id !== 1; // role_id 1 is for tutors (therfore !== 1 means student)
 
-      // Select based on the role that signed in
-    const selectFields = isStudent 
-    ? 'session_id, start_time, end_time, tutor_id, subject, session_date' 
-    : 'session_id, start_time, end_time, student_id, subject, session_date';
+      const selectFields = `
+        session_id, start_time, end_time, student_id, tutor_id, subject, session_date
+      `;
       
       console.log(`Fetching ${isStudent ? 'Student' : 'Tutor'} sessions for user ${user_id}`);
 
@@ -144,6 +184,7 @@ export default function Dashboard({ navigation, route }) {
         greeting={getGreeting()}
         navigation={navigation}
         user_id={user_id}
+        role_id={role_id}
       />
       <View style={styles.textContainer}>
         <Text style={styles.sessionText}>Sessions with Students</Text>
@@ -174,11 +215,29 @@ export default function Dashboard({ navigation, route }) {
             countDown="2 weeks"
           />
           <View style={styles.horizontalContainer}>
-            <ButtonDiv
+          {/* Tutor Availability Button */}
+          <ButtonDiv
               type="wide"
               loading={loading}
-              data={currentSession.value}
+              showIcon={false}
+              buttonText="Your Availability"
+              buttonSubtext={
+                availabilityDays.length
+                  ? `${availabilityDays.join(", ")}\n\n${
+                      availabilityTimes.start_time && availabilityTimes.end_time
+                        ? `${moment.utc(availabilityTimes.start_time, "HH:mm:ssZ").format("h:mm A")} - ${moment.utc(availabilityTimes.end_time, "HH:mm:ssZ").format("h:mm A")}`
+                        : ""
+                    }`
+                  : "No Availability Set"
+              }
+              buttonSubtextStyle={{
+                textAlign: 'center',
+                paddingTop: 30,
+                whiteSpace: 'pre-line',
+              }}
+              onPress={() => navigation.navigate('UpdateAvailability')}
             />
+
             <ButtonDiv
               type="wide"
               loading={loading}
@@ -406,5 +465,13 @@ const styles = StyleSheet.create({
   },
   rowTwo: {
     flex: 1,
+  },
+  rightContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 5,
+  },
+  iconButton: {
+    marginLeft: 20,
   },
 });

@@ -3,11 +3,13 @@ import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 
 export default function ButtonDiv({ 
   buttonText = "Example", 
+  buttonSubtext = "sub example",
+  buttonSubtextStyle = {},
   date = "12:45PM", 
   countDown = "10 minutes", 
   type = "long",
-  subjectText = 'example' , 
-  subjectSubtext = 'sub example'  
+  onPress,
+  showIcon = true,
 }) {
   return (
     <>
@@ -37,18 +39,20 @@ export default function ButtonDiv({
       {type === "wide" && (
         <TouchableOpacity 
           style={styles.containerWide}
-          onPress={() => {/* Add your onPress handler here */}}
+          onPress={onPress}
         >
           <View style={styles.wideContent}>
-            <View style={styles.iconContainer}>
-              <View style={styles.icon} />
-            </View>
+          {showIcon && (
+              <View style={styles.iconContainer}>
+                <View style={styles.icon} />
+              </View>
+            )}
             <View style={styles.buttonContainer}>
-              <Text style={styles.buttonSubtext}>
-                {subjectText}
-              </Text>
               <Text style={styles.buttonText}>
-                {subjectSubtext}
+                {buttonText}
+              </Text>
+              <Text style={[styles.buttonSubtext, buttonSubtextStyle]}>
+                {buttonSubtext}
               </Text>
             </View>
           </View>
@@ -90,12 +94,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height : '100%' , 
   },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
   textContainer: {
     flex: 1,
     flexDirection: 'column',
@@ -131,11 +129,17 @@ const styles = StyleSheet.create({
     width : '100%' , 
     marginBottom: 8,
   },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   buttonSubtext : {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
-    opacity : 0.4 , 
+    opacity : 0.4 ,
   },
   buttonContainer : {
     width : '100%' , 

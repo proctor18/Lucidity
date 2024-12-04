@@ -123,10 +123,11 @@ const BookingPage = ({ route }) => {
       if (bookingData) {
         // Can test/demo the email being sent using temp-mail.org and replacing email variable with generated temp email
         setStatusMessage('Session booked successfully!');
+        let type = 'booked'
         // Notify the student
-        await createNotification(studentId, `Your session on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime} has been confirmed!`, email);
+        await createNotification(studentId, `Your session for ${subject} on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime} has been confirmed!`, email, type);
         // Notify the tutor
-        await createNotification(tutorId, `A new session has been booked with you on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime}.`, 'Teachertest@gmail.com');
+        await createNotification(tutorId, `A new session has been booked with you for ${subject} on ${formattedDate} from ${formattedStartTime} to ${formattedEndTime}.`, 'Teachertest@gmail.com', type);
         if (googleAccessToken) {
           setStatusMessage((prev) => prev + ' Synced with Google Calendar.');
         }
@@ -156,74 +157,72 @@ const BookingPage = ({ route }) => {
 
 
     const fetchTutorAvailability = async () => {
-      let tutorId = '27b8300a-d69b-4cbc-97f9-e06f59e63bb9'; // Example ID, should replace    
-      const { data: availability, error } = await supabase
-        .from('availability')
-        .select('day_of_week, start_time, end_time')
-        .eq('tutor_id', tutorId);
+      let tutorId = '27b8300a-d69b-4cbc-97f9-e06f59e63bb9'; // Example ID, replace with dynamic value
     
-      if (error) {
-        console.error('Error fetching availability:', error.message);
-        return;
-      }
+      try {
+        // Fetch tutor availability by day of the week
+        const { data: availability, error: availabilityError } = await supabase
+          .from('availability')
+          .select('day_of_week, start_time, end_time')
+          .eq('tutor_id', tutorId);
     
-      /*
-      const { data: timeOff, error: timeOffError } = await supabase
-        .from('time_off')
-        .select('date')
-        .eq('tutor_id', tutorId);
+        if (availabilityError) {
+          console.error('Error fetching availability:', availabilityError.message);
+          return;
+        }
     
-      if (timeOffError) {
-        console.error('Error fetching time-off:', timeOffError.message);
-        return;
-      }
-      */
+        // Fetch time-off dates
+        const { data: timeOff, error: timeOffError } = await supabase
+          .from('time_off')
+          .select('date')
+          .eq('tutor_id', tutorId);
     
-      if (availability && availability.length > 0) {
-        const availableDays = availability.flatMap((item) => item.day_of_week);
-        
-        /*
-        // Exclude time-off dates
+        if (timeOffError) {
+          console.error('Error fetching time-off:', timeOffError.message);
+          return;
+        }
+    
+        // Convert time-off dates into a simple array
         const unavailableDates = timeOff.map((off) => off.date);
-        const filteredDays = availableDays.filter(
-          (day) => !unavailableDates.includes(moment(day, "dddd").format("YYYY-MM-DD"))
-        );
-        
     
-        markAvailableDates(filteredDays);
-        setAvailability(filteredDays);
-        */
-
-        markAvailableDates(availableDays);
-        setAvailability(availability[0]);
+        if (availability && availability.length > 0) {
+          const availableDays = availability.flatMap((item) => item.day_of_week);
+    
+          // Integrate time-off dates
+          markAvailableDates(availableDays, unavailableDates);
+          setAvailability(availability[0]); // Example: setting the first availability
+        }
+      } catch (error) {
+        console.error('Error fetching tutor availability:', error.message);
       }
     };
   
-    const markAvailableDates = (availableDays) => {
+    const markAvailableDates = (availableDays, unavailableDates) => {
       const marked = {};
       const today = moment();
-  
+    
       // Check over 30 days to find available dates
       for (let i = 0; i < 30; i++) {
         const date = today.clone().add(i, 'days');
         const dayOfWeek = date.format('dddd');
         const formattedDate = date.format('YYYY-MM-DD');
-  
-        // Check if this day of the week is in the tutors availability
-        if (availableDays.includes(dayOfWeek)) {
+    
+        // Check if this day of the week is in the tutor's availability
+        if (availableDays.includes(dayOfWeek) && !unavailableDates.includes(formattedDate)) {
           marked[formattedDate] = {
-            selected: true, selectedColor: 'rgba(211, 211, 211, 0.3)'
-        };
-      } else {
-        // Unavailable dates will be formatted differently
-        marked[formattedDate] = {
-          disabled: true,
-          disableTouchEvent: true,
-        };
+            selected: true,
+            selectedColor: 'rgba(211, 211, 211, 0.3)',
+          };
+        } else {
+          // Unavailable dates (either by day or time-off)
+          marked[formattedDate] = {
+            disabled: true,
+            disableTouchEvent: true,
+          };
+        }
       }
-    }
-
-    setMarkedDates(marked);
+    
+      setMarkedDates(marked);
     };
 
     const onDayPress = (day) => {
