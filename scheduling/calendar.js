@@ -196,23 +196,61 @@ async function tutorAvailability(tutorId, dayOfWeek, startTime, endTime) {
   return false; // No matching availability found
 }
 
-    // Potential for a time off function
-    // Table would include tutor id and a requested time off date
-    const addTimeOff = async (tutorId, date) => {
-      const { error } = await supabase
-        .from("time_off")
-        .insert({
-          tutor_id: tutorId,
-          date: moment(date).format("YYYY-MM-DD"), // Format as date
-        });
-    
-      if (error) {
-        console.error("Error adding time-off:", error.message);
-        alert("Failed to set time-off. Please try again.");
-      } else {
-        alert("Time-off successfully added!");
-      }
-    };
+/**
+ * Function that will update a tutors availability
+*/
+async function updateTutorAvailability(tutorId, newDaysOfWeek, startTime, endTime) {
+  try {
+    const { data, error } = await supabase
+      .from('availability')
+      .update({
+        day_of_week: newDaysOfWeek,
+        start_time: startTime,
+        end_time: endTime,
+      })
+      .eq('tutor_id', tutorId);
+
+    if (error) {
+      console.error('Error updating tutor availability:', error);
+      return { success: false, error };
+    }
+
+    console.log('Tutor availability updated successfully:', data);
+    return { success: true, data };
+  } catch (err) {
+    console.error('Unexpected error during update:', err);
+    return { success: false, error: err };
+  }
+}
+
+async function fetchDayAvailability(tutorId) {
+  try {
+    const { data, error } = await supabase
+      .from('availability')
+      .select('day_of_week, start_time, end_time') // Fetch additional columns
+      .eq('tutor_id', tutorId);
+
+    if (error) {
+      console.error('Error fetching tutor availability:', error);
+      return null;
+    }
+
+    // Assuming only one record per tutor in the table
+    if (data.length > 0) {
+      const { day_of_week, start_time, end_time } = data[0];
+      return {
+        day_of_week: day_of_week || [],
+        start_time: start_time || null,
+        end_time: end_time || null,
+      };
+    }
+
+    return { day_of_week: [], start_time: null, end_time: null };
+  } catch (err) {
+    console.error('Unexpected error fetching tutor availability:', err);
+    return { day_of_week: [], start_time: null, end_time: null };
+  }
+}
 
 /**
  * Function that will check if the specified time slot for a student and a tutor 
@@ -299,6 +337,74 @@ async function bookSession(studentId, tutorId, sessionDate, startTime, endTime, 
   }
 }
 
+const addTimeOff = async (tutorId, date) => {
+  const formattedDate = moment(date).format("YYYY-MM-DD");
+
+  try {
+    // Add the time-off entry
+    const { error: insertError } = await supabase
+      .from("time_off")
+      .insert({
+        tutor_id: tutorId,
+        date: formattedDate,
+      });
+
+    if (insertError) throw insertError;
+
+  } catch (error) {
+    console.error("Error adding time-off:", error.message);
+  }
+};
+
+const fetchTimeOff = async (tutorId) => {
+  try {
+    const { data, error } = await supabase
+      .from("time_off")
+      .select("date")
+      .eq("tutor_id", tutorId);
+
+    if (error) throw error;
+
+    return data.map((entry) => entry.date);
+  } catch (error) {
+    console.error("Error fetching time-off:", error.message);
+    alert("Failed to fetch time-off data.");
+    return [];
+  }
+};
+
+const validateTimeOff = async (tutorId, sessionDate) => {
+  try {
+    const { data, error } = await supabase
+      .from("time_off")
+      .select("*")
+      .eq("tutor_id", tutorId)
+      .eq("date", moment(sessionDate).format("YYYY-MM-DD"));
+
+    if (error) throw error;
+
+    return data.length === 0; // True if tutor is available
+  } catch (error) {
+    console.error("Error validating session:", error.message);
+    return false;
+  }
+};
+
+async function removeTimeOff(tutorId, date) {
+  try {
+    const { error } = await supabase
+      .from("time_off")
+      .delete()
+      .eq("tutor_id", tutorId)
+      .eq("date", date);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error("Error removing time-off:", error.message);
+    throw error;
+  }
+}
+
 /**************************************************************
  * EXPORTS
 **************************************************************/
@@ -310,4 +416,10 @@ export {
   bookSession,
   tutorAvailability,
   hasSchedulingConflicts,
+  validateTimeOff,
+  addTimeOff,
+  fetchTimeOff,
+  removeTimeOff,
+  updateTutorAvailability,
+  fetchDayAvailability,
 };
