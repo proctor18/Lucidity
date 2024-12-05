@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 export default function ButtonDiv({ 
   buttonText = "Example", 
@@ -10,6 +11,10 @@ export default function ButtonDiv({
   type = "long",
   onPress,
   showIcon = true,
+  iconName = null,
+  iconSize = 24, 
+  iconColor = '#000', 
+  onIconPress,
 }) {
   return (
     <>
@@ -43,9 +48,12 @@ export default function ButtonDiv({
         >
           <View style={styles.wideContent}>
           {showIcon && (
-              <View style={styles.iconContainer}>
-                <View style={styles.icon} />
-              </View>
+              <TouchableOpacity
+              style={styles.iconContainer}
+              onPress={onIconPress}
+            >
+              <Icon name={iconName} size={iconSize} color={iconColor} />
+            </TouchableOpacity>
             )}
             <View style={styles.buttonContainer}>
               <Text style={styles.buttonText}>
@@ -128,6 +136,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     width : '100%' , 
     marginBottom: 8,
+    padding: 5,
   },
   buttonText: {
     color: '#FFFFFF',
