@@ -131,6 +131,17 @@ export default function DashboardDefault() {
         const { data : sessionData  , error : sessionError} = await supabase
           .from('sessions')
           .select('*')
+
+        // const { data : restRequests , error : requestsError  } = await supabase
+        //   .from('database')
+        //   .select('REST_Requests')
+        //   .single()
+        //   .headers({
+        //     'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxdHFwZnRzY3Ryc2hvdXFwY2VqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcyODg5MTU0MywiZXhwIjoyMDQ0NDY3NTQzfQ.2h9rCohCCLwl1AGT8Kg8CXjp7fw87jYSV3zz6qRtKxs'
+        //   });
+        // if (error) console.error(requestsError);
+        // else console.log('Database REST Requests:', restRequests.REST_Requests);
+
         if (tutorData && studentData && sessionData ) {
           let value = Object.keys(studentData).length + Object.keys(tutorData).length; 
           setUserCount(value) ; 
@@ -265,7 +276,7 @@ export default function DashboardDefault() {
       <Grid item xs={12} md={5} lg={4}>
         <Grid container alignItems="center" justifyContent="space-between">
           <Grid item>
-            <Typography variant="h5">Analytics Report</Typography>
+            <Typography variant="h5">Expenses Report</Typography>
           </Grid>
           <Grid item />
         </Grid>
@@ -273,18 +284,18 @@ export default function DashboardDefault() {
           <List sx={{ p: 0, '& .MuiListItemButton-root': { py: 2 } }}>
             <ListItemButton divider>
               <ListItemText primary="Database Reads" />
-              <Typography variant="h5">43</Typography>
+              <Typography variant="h5">1,883</Typography>
             </ListItemButton>
             <ListItemButton divider>
               <ListItemText primary="Microservices Expenses" />
-              <Typography variant="h5">TBD</Typography>
+              <Typography variant="h5">$0</Typography>
             </ListItemButton>
             <ListItemButton>
               <ListItemText primary="User Traffic" />
-              <Typography variant="h5">Low</Typography>
+              <Typography variant="h5">High</Typography>
             </ListItemButton>
           </List>
-          <ReportAreaChart />
+          <ReportAreaChart/>
         </MainCard>
       </Grid>
     </Grid>

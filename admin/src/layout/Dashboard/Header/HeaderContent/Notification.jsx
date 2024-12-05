@@ -65,24 +65,60 @@ export default function Notification( ) {
 
 
 
-  useEffect( async () => {
-    if (!supabase) {
-      throw new Error('Supabase is undefined') ; 
-    }
-    try {
-      const { data , error } = await supabase 
-      .from('auth_request')  
-      .select('*')  
-      if (data) {
-        setNotifications(data)
-        console.log('Successfully udpated notifications' , notifications )  ; 
-      }else{
-        console.log('Error , data returned null') ; 
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!supabase) {
+        throw new Error('Supabase is undefined');
       }
-    } catch (error) {
-      console.log('Error occured while fetching data' , error )   ; 
-    }
-  }, [])
+
+      try {
+        // Step 1: Fetch data from the 'auth_request' table
+        const { data: authRequests, error: authError } = await supabase
+          .from('auth_request')
+          .select('*');
+
+        if (authError) {
+          console.error('Error fetching auth_request data:', authError);
+          return;
+        }
+
+        if (authRequests && authRequests.length > 0) {
+          console.log('Auth requests fetched:', authRequests);
+
+          // Step 2: Extract tutor_ids from authRequests
+          const tutorIds = authRequests.map((request) => request.tutor_id);
+
+          // Step 3: Query the 'tutors' table using the extracted tutor_ids
+          const { data: tutors, error: tutorError } = await supabase
+            .from('tutors')
+            .select('*')
+            .in('tutor_id', tutorIds); // Use the 'in' operator to fetch multiple tutors
+
+          if (tutorError) {
+            console.error('Error fetching tutors data:', tutorError);
+            return;
+          }
+
+          console.log('Tutors fetched:', tutors);
+
+          // Step 4: Combine data (if needed) and update notifications
+          const combinedData = authRequests.map((request) => ({
+            ...request,
+            tutor: tutors.find((tutor) => tutor.tutor_id === request.tutor_id),
+          }));
+
+          setNotifications(combinedData);
+          console.log('Successfully updated notifications:', combinedData);
+        } else {
+          console.log('No auth requests found.');
+        }
+      } catch (error) {
+        console.error('Error occurred while fetching data:', error);
+      }
+    };
+
+    fetchNotifications();
+  }, []); // Add 'supabase' to the dependency array if it's passed from props or context
   
   const handleClose = (event) => {
     if (anchorRef.current && anchorRef.current.contains(event.target)) {
@@ -90,6 +126,61 @@ export default function Notification( ) {
     }
     setOpen(false);
   };
+
+useEffect(() => {
+  const fetchNotifications = async () => {
+    if (!supabase) {
+      throw new Error('Supabase is undefined');
+    }
+
+    try {
+      // Step 1: Fetch data from the 'auth_request' table
+      const { data: authRequests, error: authError } = await supabase
+        .from('auth_request')
+        .select('*');
+
+      if (authError) {
+        console.error('Error fetching auth_request data:', authError);
+        return;
+      }
+
+      if (authRequests && authRequests.length > 0) {
+        console.log('Auth requests fetched:', authRequests);
+
+        // Step 2: Extract tutor_ids from authRequests
+        const tutorIds = authRequests.map((request) => request.tutor_id);
+
+        // Step 3: Query the 'tutors' table using the extracted tutor_ids
+        const { data: tutors, error: tutorError } = await supabase
+          .from('tutors')
+          .select('*')
+          .in('tutor_id', tutorIds); // Use the 'in' operator to fetch multiple tutors
+
+        if (tutorError) {
+          console.error('Error fetching tutors data:', tutorError);
+          return;
+        }
+
+        console.log('Tutors fetched:', tutors);
+
+        // Step 4: Combine data (if needed) and update notifications
+        const combinedData = authRequests.map((request) => ({
+          ...request,
+          tutor: tutors.find((tutor) => tutor.tutor_id === request.tutor_id),
+        }));
+
+        setNotifications(combinedData);
+        console.log('Successfully updated notifications:', combinedData);
+      } else {
+        console.log('No auth requests found.');
+      }
+    } catch (error) {
+      console.error('Error occurred while fetching data:', error);
+    }
+  };
+
+  fetchNotifications();
+}, [supabase]); // Add 'supabase' to the dependency array if it's passed from props or context
 
   const iconBackColorOpen = 'grey.100';
 
@@ -161,18 +252,17 @@ export default function Notification( ) {
                         <ListItemText
                           primary={
                             <Typography variant="h6">
-                              It&apos;s{' '}
                               <Typography component="span" variant="subtitle1">
-                                {value.senderName}&apos;s
+                                {`${value.tutor.first_name} ${value.tutor.last_name} `}
                               </Typography>{' '}
-                              birthday today.
+                              requested authorization
                             </Typography>
                           }
-                          secondary={value.timeAgo || '2 min ago'}
+                          secondary={value.thisval || '2 min ago'}
                         />
                         <ListItemSecondaryAction>
                           <Typography variant="caption" noWrap>
-                            {value.timestamp || '3:00 AM'}
+                            {value.created_at.slice(0,10)|| '3:00 AM'}
                           </Typography>
                         </ListItemSecondaryAction>
                       </ListItemButton>
