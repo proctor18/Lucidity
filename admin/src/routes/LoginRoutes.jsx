@@ -44,6 +44,10 @@ const LoginRoutes = {
       element: <AuthLogin />
     },
     {
+      path: 'free',
+      element: <AuthLogin/>  
+    },
+    {
       path: 'register',
       element: <AuthRegister />
     }

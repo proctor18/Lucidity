@@ -15,8 +15,10 @@ import { useAnimatedScrollHandler } from 'react-native-reanimated';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { BlurView } from 'expo-blur';
 import 'react-native-gesture-handler';
+import { ensureMinimumWeeklySessions } from '../components/assignWeeklySessions';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+ensureMinimumWeeklySessions(); // This is the function that checks if tutors are assigned atleast one session, function is located here so instructors with no sessions can be assigned sessions before they logged in
 
 const VideoComponent = ({ source, isVisible }) => {
   const video = useRef(null);

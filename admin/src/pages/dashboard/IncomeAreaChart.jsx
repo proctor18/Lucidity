@@ -99,11 +99,11 @@ export default function IncomeAreaChart({ slot }) {
     setSeries([
       {
         name: 'Users',
-        data: slot === 'month' ? [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 6] : [0, 0, 1, 2, 0, 0, 0]
+        data: slot === 'month' ? [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0] : [0, 0, 1, 2, 0, 0, 0]
       },
       {
         name: 'Tutors',
-        data: slot === 'month' ? [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] : [0, 0, 0, 0, 0, 0, 0]
+        data: slot === 'month' ? [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2] : [0, 3, 0, 0, 0, 0, 0]
       }
     ]);
   }, [slot]);
