@@ -249,6 +249,7 @@ export default function Dashboard({ navigation, route }) {
       </Text>
     </TouchableOpacity>
   )}
+  scrollEnabled={false}
   ListEmptyComponent={
     loading ? (
       <Text style={styles.loadingText}>Loading sessions...</Text>
