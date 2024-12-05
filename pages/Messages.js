@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
 import { supabase } from "../supabaseClient"; // Assuming supabaseClient is properly set up
 import { Swipeable } from "react-native-gesture-handler";
+import { v4 as uuidv4 } from "uuid";
 
 export default function Messages() {
   const [content, setContent] = useState("");
@@ -97,6 +98,10 @@ export default function Messages() {
             };
           })
         );
+        if (!conversationData) {
+          console.log("Conversation is null");
+          throw new Error("Conversation is not populated");
+        }
 
         setConversations(conversationData);
       } catch (err) {

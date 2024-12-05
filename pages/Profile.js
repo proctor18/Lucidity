@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Text,
   View,
@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { supabase } from "../lib/supabase.js";
 import Button from "../components/Button"; // Import your new Button component
+import { useNavigation } from "@react-navigation/native";
 
 export default function Profile({ route, navigation }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -18,8 +19,28 @@ export default function Profile({ route, navigation }) {
   const [newLastName, setNewLastName] = useState(route.params.last_name);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isTutor, setIsTutor] = useState(false); // State to track if user is a tutor
 
   const { email, first_name, last_name, role_id, user_id } = route.params;
+
+  // Check if the logged-in user is a tutor
+  useEffect(() => {
+    console.log("role_id:", role_id);
+    if (role_id === 1) {
+      setIsTutor(true);
+    } else {
+      setIsTutor(false);
+    }
+  }, [role_id]);
+
+  // Function to handle verification
+  const handleVerification = () => {
+    // Use the correct tutor_id for navigation
+    console.log("tutor_id", route.params.user_id);
+    navigation.navigate("VerificationScreen", {
+      tutorId: route.params.user_id,
+    });
+  };
 
   // Logic to handle logout
   const handleLogout = async () => {
@@ -175,7 +196,6 @@ export default function Profile({ route, navigation }) {
 
         {/* Edit Button */}
         <View style={styles.buttonContainer}>
-          {/* Only show "Edit Profile" button when not in editing mode */}
           {!isEditing && (
             <Button
               type="small"
@@ -184,6 +204,7 @@ export default function Profile({ route, navigation }) {
             />
           )}
         </View>
+
         {isEditing && (
           <View style={styles.buttonRowContainer}>
             <TouchableOpacity
@@ -197,6 +218,17 @@ export default function Profile({ route, navigation }) {
               onPress={handleSaveProfile}>
               <Text style={styles.saveButtonText}>Save</Text>
             </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Show the Verification button only if user is a tutor */}
+        {isTutor && !isEditing && (
+          <View style={styles.buttonContainer}>
+            <Button
+              type="small"
+              text="Verification"
+              callback={handleVerification}
+            />
           </View>
         )}
 
@@ -220,13 +252,6 @@ const styles = StyleSheet.create({
   },
   profileSection: {
     alignItems: "center",
-  },
-  imageContainer: {
-    height: 90,
-    width: 90,
-    backgroundColor: "#A0A0A0",
-    borderRadius: 45,
-    marginBottom: 15,
   },
   usernameInfo: {
     fontSize: 24,
@@ -259,22 +284,18 @@ const styles = StyleSheet.create({
   },
   buttonRowContainer: {
     flexDirection: "row",
-    justifyContent: "space-between", // Add space between buttons
-    width: "100%", // Ensure it takes full width
+    justifyContent: "space-between",
+    width: "100%",
   },
-
   cancelButton: {
     backgroundColor: "#222",
     borderRadius: 8,
     paddingVertical: 15,
     paddingHorizontal: 25,
     flex: 1,
-    marginRight: 10, // Space between buttons
+    marginRight: 10,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#2F2F31",
-    borderStyle: "solid",
   },
   saveButton: {
     backgroundColor: "#222",
@@ -282,12 +303,8 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 25,
     flex: 1,
-
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#2F2F31",
-    borderStyle: "solid",
   },
   cancelButtonText: {
     color: "white",
@@ -299,28 +316,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-
-  editButton: {
-    backgroundColor: "#f9515e",
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  editButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-
   logoutButtonContainer: {
     width: "100%",
     marginTop: 20,
     paddingBottom: 20,
     justifyContent: "center",
   },
-
   logoutButton: {
     backgroundColor: "#131313",
     marginBottom: 15,
@@ -333,26 +334,24 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignSelf: "center",
     width: "100%",
-    flexDirection: "row",
   },
-
   logoutButtonText: {
     color: "#f9515e",
     fontWeight: "bold",
-    fontSize: 16, // Adjust size for readability
-    textAlign: "center", // Center text horizontally
+    fontSize: 16,
+    textAlign: "center",
   },
   editHeader: {
     fontSize: 24,
     fontWeight: "bold",
     color: "white",
-    marginBottom: 20, // Space between header and inputs
+    marginBottom: 20,
   },
   profilePictureContainer: {
     height: 90,
     width: 90,
     borderRadius: 45,
-    backgroundColor: "#2F2F31", // Placeholder background color
+    backgroundColor: "#2F2F31",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 15,
@@ -360,6 +359,6 @@ const styles = StyleSheet.create({
   profilePictureText: {
     fontSize: 38,
     fontWeight: "bold",
-    color: "white", // Text color for the initial
+    color: "white",
   },
 });

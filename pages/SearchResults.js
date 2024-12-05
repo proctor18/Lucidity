@@ -1,4 +1,4 @@
-import React, { useEffect , useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,38 +9,30 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { supabase } from '../lib/supabase.js' ; 
+import { supabase } from "../lib/supabase.js";
 
-
-
-const SearchResults = ({ route , searchKey }) => {
+const SearchResults = ({ route, searchKey }) => {
   const { subject } = route.params;
   const navigation = useNavigation();
-  const [ loading , setLoading ] = useState(false) ; 
-  const [ data , setData ] = useState("") ; 
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState("");
 
-  useEffect(() =>{
-    fetchData(); 
-  }, [])
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-
-  async function fetchData(){
-    setLoading(true) ;
+  async function fetchData() {
+    setLoading(true);
     try {
-      const { data , error } = await supabase
-        .from('tutors')
-        .select('*')
+      const { data, error } = await supabase.from("tutors").select("*");
       setDate(data);
     } catch (error) {
-        console.log("Error Occured: " , error) 
-    }
-
-    finally{
-      setLoading(false) ;
+      console.log("Error Occured: ", error);
+    } finally {
+      setLoading(false);
     }
   }
 
- 
   const resultsData = [
     {
       id: "1",
@@ -48,7 +40,7 @@ const SearchResults = ({ route , searchKey }) => {
       certification: "Certification",
       status: "Verified",
       sessions: "27 sessions",
-      avatar: "https://via.placeholder.com/50", 
+      avatar: "https://via.placeholder.com/50",
     },
     {
       id: "2",
