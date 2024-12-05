@@ -30,7 +30,6 @@ import NotesPage from "./pages/NotesPage.js";
 import { checkUnreadNotifications } from "./scheduling/notificationHelpers.js";
 import { useFocusEffect } from "@react-navigation/native";
 import Messages from "./pages/Messages.js"; // New import for Messages screen
-
 import { supabase } from "./lib/supabase.js";
 
 const Stack = createStackNavigator();
@@ -38,17 +37,18 @@ const Tab = createBottomTabNavigator();
 
 function MainTabs({ route }) {
   const { email, first_name, last_name, role_id, user_id } = route.params || {};
-  const [hasUnread, setHasUnread] = useState(false);
+    const [hasUnread, setHasUnread] = useState(false);
+
 
   // Check for unread notifications whenever the screen gains focus
-  useFocusEffect(
+    useFocusEffect(
     useCallback(() => {
       const fetchUnreadNotifications = async () => {
         const hasUnreadNotifications = await checkUnreadNotifications(user_id);
         setHasUnread(hasUnreadNotifications);
       };
 
-      fetchUnreadNotifications();
+        fetchUnreadNotifications();
     }, [user_id])
   );
 
