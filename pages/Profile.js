@@ -1,116 +1,213 @@
 import React, { useState } from "react";
-import { Text, View, StyleSheet, Switch, TouchableOpacity, Alert } from "react-native";
+import {
+  Text,
+  View,
+  StyleSheet,
+  Alert,
+  TextInput,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import { supabase } from "../lib/supabase.js";
-import Button from "../components/Button";
-import { Menu, Provider } from 'react-native-paper';
-import Input from "../components/Input";
-import Icon from "react-native-vector-icons/MaterialIcons";
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import Button from "../components/Button"; // Import your new Button component
 
 export default function Profile({ route, navigation }) {
-  const [isDarkMode, setIsDarkMode] = useState(true);
-  const [optionTwo, setOptionTwo] = useState(false);
-  const [optionThree, setOptionThree] = useState(false);
-  const [menuVisible, setMenuVisible] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [newEmail, setNewEmail] = useState(route.params.email);
+  const [newFirstName, setNewFirstName] = useState(route.params.first_name);
+  const [newLastName, setNewLastName] = useState(route.params.last_name);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const { email, first_name, last_name, role_id, user_id } = route.params;
 
-  // Logic to handle our logout
+  // Logic to handle logout
   const handleLogout = async () => {
-    Alert.alert(
-      "Confirm Logout",
-      "Are you sure you want to logout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Logout",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const { error } = await supabase.auth.signOut();
-              if (error) throw error;
-              navigation.navigate('Login');
-            } catch (error) {
-              Alert.alert("Logout Failed", error.message);
-            }
-          },
+    Alert.alert("Confirm Logout", "Are you sure you want to logout?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const { error } = await supabase.auth.signOut();
+            if (error) throw error;
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Login" }],
+            });
+          } catch (error) {
+            Alert.alert("Logout Failed", error.message);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
+
+  // Function to handle profile update
+  const handleSaveProfile = async () => {
+    try {
+      if (
+        newEmail === email &&
+        newFirstName === first_name &&
+        newLastName === last_name &&
+        !newPassword // Don't check password if it's empty
+      ) {
+        Alert.alert("No changes", "You haven't made any changes.");
+        return;
+      }
+
+      // Handle password change if provided
+      if (newPassword !== "" || confirmPassword !== "") {
+        if (newPassword !== confirmPassword) {
+          Alert.alert("Error", "Passwords do not match.");
+          return;
+        }
+        // Include password in the database update
+        const { data, error } = await supabase
+          .from(role_id === "tutor" ? "tutors" : "students")
+          .update({
+            email: newEmail,
+            first_name: newFirstName,
+            last_name: newLastName,
+            password: newPassword, // Update password in the same request
+          })
+          .eq("student_id", user_id);
+
+        if (error) {
+          Alert.alert("Error", "Failed to update profile.");
+          console.error(error);
+          return;
+        }
+      }
+
+      const { data, error } = await supabase
+        .from(role_id === "tutor" ? "tutors" : "students")
+        .update({
+          email: newEmail,
+          first_name: newFirstName,
+          last_name: newLastName,
+        })
+        .eq("student_id", user_id);
+
+      if (error) {
+        Alert.alert("Error", "Failed to update profile.");
+        console.error(error);
+        return;
+      }
+
+      Alert.alert("Success", "Profile updated successfully.");
+      setIsEditing(false);
+      route.params.email = newEmail;
+      route.params.first_name = newFirstName;
+      route.params.last_name = newLastName;
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      Alert.alert("Error", "An error occurred while saving the profile.");
+    }
+  };
+
   return (
-    <Provider>
+    <ScrollView style={styles.container}>
       <View style={styles.container}>
-        {/* Header with menu for logout */}
-        <View style={styles.header}>
-          <Menu
-            visible={menuVisible}
-            onDismiss={() => setMenuVisible(false)}
-            anchor={
-              <TouchableOpacity onPress={() => setMenuVisible(true)}>
-                <Ionicons name="menu" size={24} color="white" />
-              </TouchableOpacity>
-            }
-          >
-            <Menu.Item onPress={handleLogout} title="Logout" />
-          </Menu>
+        {/* Header */}
+        {/* User Profile Section */}
+        <View style={styles.profileSection}>
+          <View style={styles.profilePictureContainer}>
+            <Text style={styles.profilePictureText}>
+              {newFirstName?.charAt(0).toUpperCase() || ""}
+            </Text>
+          </View>
+
+          {isEditing ? (
+            <>
+              <Text style={styles.editHeader}>Edit Profile</Text>
+              <TextInput
+                style={styles.inputField}
+                value={newFirstName}
+                onChangeText={setNewFirstName}
+                placeholder="First Name"
+                placeholderTextColor="#888"
+              />
+              <TextInput
+                style={styles.inputField}
+                value={newLastName}
+                onChangeText={setNewLastName}
+                placeholder="Last Name"
+                placeholderTextColor="#888"
+              />
+              <TextInput
+                style={styles.inputField}
+                value={newEmail}
+                onChangeText={setNewEmail}
+                placeholder="Email"
+                placeholderTextColor="#888"
+                keyboardType="email-address"
+              />
+              <TextInput
+                style={styles.inputField}
+                value={newPassword}
+                onChangeText={setNewPassword}
+                placeholder="New Password"
+                placeholderTextColor="#888"
+                secureTextEntry
+              />
+              <TextInput
+                style={styles.inputField}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholder="Confirm New Password"
+                placeholderTextColor="#888"
+                secureTextEntry
+              />
+            </>
+          ) : (
+            <>
+              <Text style={styles.usernameInfo}>
+                {newFirstName} {newLastName}
+              </Text>
+              <Text style={styles.userEmailInfo}>{newEmail}</Text>
+            </>
+          )}
         </View>
 
-      {/* User Display */}
-      <View style={styles.userDisplay}>
-        <View style={styles.imageContainer}></View>
-        <Text style={styles.usernameInfo}>{first_name}</Text>
-        <Text style={styles.userEmailInfo}>{email}</Text>
-        <Button title="Edit Profile" style={styles.editButton} />
-      </View>
+        {/* Edit Button */}
+        <View style={styles.buttonContainer}>
+          {/* Only show "Edit Profile" button when not in editing mode */}
+          {!isEditing && (
+            <Button
+              type="small"
+              text="Edit Profile"
+              callback={() => setIsEditing(true)}
+            />
+          )}
+        </View>
+        {isEditing && (
+          <View style={styles.buttonRowContainer}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setIsEditing(false)}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
 
-      {/* Options */}
-      <TouchableOpacity style={styles.editProfileButton}>
-        <Text style={styles.editProfileText}>Edit Profile</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.optionRow}>
-        <Icon name="favorite" size={24} color="white" />
-        <Text style={styles.optionText}>Saved Sessions</Text>
-        <Icon name="chevron-right" size={24} color="white" />
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.optionRow}>
-        <Icon name="download" size={24} color="white" />
-        <Text style={styles.optionText}>Downloads</Text>
-        <Icon name="chevron-right" size={24} color="white" />
-      </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={handleSaveProfile}>
+              <Text style={styles.saveButtonText}>Save</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-      {/* Settings */}
-      <Text style={styles.sectionTitle}>Settings</Text>
-      <View style={styles.settingsRow}>
-        <Text style={styles.settingText}>Dark Mode</Text>
-        <Switch
-          value={isDarkMode}
-          onValueChange={setIsDarkMode}
-          trackColor={{ false: "#767577", true: "#7257FF" }}
-          thumbColor={isDarkMode ? "#FFFFFF" : "#f4f3f4"}
-        />
+        {/* Logout Button */}
+        <View style={styles.logoutButtonContainer}>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutButtonText}>Logout</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-      <View style={styles.settingsRow}>
-        <Text style={styles.settingText}>Option Two</Text>
-        <Switch
-          value={optionTwo}
-          onValueChange={setOptionTwo}
-          trackColor={{ false: "#767577", true: "#7257FF" }}
-          thumbColor={isDarkMode ? "#FFFFFF" : "#f4f3f4"}
-        />
-      </View>
-      <View style={styles.settingsRow}>
-        <Text style={styles.settingText}>Option Three</Text>
-        <Switch
-          value={optionThree}
-          onValueChange={setOptionThree}
-          trackColor={{ false: "#767577", true: "#7257FF" }}
-          thumbColor={isDarkMode ? "#FFFFFF" : "#f4f3f4"}
-        />
-      </View>
-
-      <View style={styles.bottomNav}></View>
-    </View>
-    </Provider>
+    </ScrollView>
   );
 }
 
@@ -118,98 +215,151 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#131313",
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 70,
+    paddingHorizontal: 20,
+    paddingVertical: 50,
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "flex-end", // Aligns items to the right
+  profileSection: {
     alignItems: "center",
-    width: "100%",
-    marginBottom: 20,
-  },
-  userDisplay: {
-    alignItems: "center",
-    marginBottom: 15,
   },
   imageContainer: {
-    height: 80,
-    width: 80,
-    backgroundColor: "white",
-    borderRadius: 40,
-    opacity: 0.1,
-    marginBottom: 12,
+    height: 90,
+    width: 90,
+    backgroundColor: "#A0A0A0",
+    borderRadius: 45,
+    marginBottom: 15,
   },
   usernameInfo: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
     color: "white",
+    marginBottom: 5,
   },
   userEmailInfo: {
     fontSize: 14,
     color: "white",
     opacity: 0.6,
+    marginBottom: 20,
   },
-  editButton: {
-    backgroundColor: "#7257FF",
-    marginTop: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 24,
-    borderRadius: 20,
-  },
-  editProfileButton: {
-    backgroundColor: "F0EDFF",
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    alignItems: "center",
-    marginVertical: 5,
-    marginBottom: 25,
-  },
-  editProfileText: {
-    color: "#7257FF",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  optionRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#1A1A1A",
-    padding: 15,
-    borderRadius: 10,
-    marginVertical: 4,
-  },
-  optionText: {
+  inputField: {
+    backgroundColor: "#131313",
     color: "white",
+    marginBottom: 15,
+    paddingHorizontal: 15,
+    paddingVertical: 19,
+    borderRadius: 8,
     fontSize: 16,
-    flex: 1,
-    marginLeft: 10,
+    width: "110%",
+    borderWidth: 1,
+    borderColor: "#2F2F31",
+    borderStyle: "solid",
   },
-  sectionTitle: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-    marginTop: 50,
-    marginBottom: 10,
-  },
-  settingsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#1A1A1A",
-    padding: 15,
-    borderRadius: 10,
-    marginVertical: 4,
-  },
-  settingText: {
-    color: "white",
-    fontSize: 16,
-  },
-  bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
+  buttonContainer: {
     marginTop: 20,
+    width: "100%",
+  },
+  buttonRowContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between", // Add space between buttons
+    width: "100%", // Ensure it takes full width
+  },
+
+  cancelButton: {
+    backgroundColor: "#222",
+    borderRadius: 8,
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    flex: 1,
+    marginRight: 10, // Space between buttons
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#2F2F31",
+    borderStyle: "solid",
+  },
+  saveButton: {
+    backgroundColor: "#222",
+    borderRadius: 8,
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    flex: 1,
+
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#2F2F31",
+    borderStyle: "solid",
+  },
+  cancelButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  saveButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
+  editButton: {
+    backgroundColor: "#f9515e",
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  editButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
+  logoutButtonContainer: {
+    width: "100%",
+    marginTop: 20,
+    paddingBottom: 20,
+    justifyContent: "center",
+  },
+
+  logoutButton: {
+    backgroundColor: "#131313",
+    marginBottom: 15,
+    paddingHorizontal: 15,
+    paddingVertical: 19,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#f9515e",
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    width: "100%",
+    flexDirection: "row",
+  },
+
+  logoutButtonText: {
+    color: "#f9515e",
+    fontWeight: "bold",
+    fontSize: 16, // Adjust size for readability
+    textAlign: "center", // Center text horizontally
+  },
+  editHeader: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "white",
+    marginBottom: 20, // Space between header and inputs
+  },
+  profilePictureContainer: {
+    height: 90,
+    width: 90,
+    borderRadius: 45,
+    backgroundColor: "#2F2F31", // Placeholder background color
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 15,
+  },
+  profilePictureText: {
+    fontSize: 38,
+    fontWeight: "bold",
+    color: "white", // Text color for the initial
   },
 });

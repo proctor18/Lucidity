@@ -12,6 +12,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
+import { useLocation } from 'react-router-dom';
 
 //react  import
 
@@ -60,6 +61,8 @@ const actionSX = {
 
 export default function DashboardDefault() {
 
+  const location = useLocation() ; 
+  const { state } = location ;  
   const [ userCount , setUserCount ] = useState(0) ;
   const [ sessionCount, setSessionCount ] = useState(0) ;
   const [ badApples , setBadApples ] = useState(0) ;
@@ -74,6 +77,8 @@ export default function DashboardDefault() {
 
 
 
+
+  console.log('current state : ' , state) ; 
   function calculateBadPerformers(tutorData){
     let badApples = tutorData.sort(( a , b ) => a.rank - b.rank);
     setBadApples(Object.entries(badApples).slice(0,4).map(entry => entry[1])) ; 

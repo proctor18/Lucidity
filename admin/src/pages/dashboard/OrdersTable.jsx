@@ -1,61 +1,36 @@
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-// material-ui
-import Link from '@mui/material/Link';
-import Stack from '@mui/material/Stack';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
-// third-party
+import {
+  Link,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+  Box,
+  Modal,
+  Card,
+  CardContent,
+} from '@mui/material';
 import { NumericFormat } from 'react-number-format';
-import { supabase } from "lib/supabase.js";
-import { useState , useEffect } from "react";
-
-// project import
+import { supabase } from 'lib/supabase.js';
 import Dot from 'components/@extended/Dot';
+import ProfileRequest from '../../layout/Dashboard/Header/HeaderContent/Profile/ProfileRequest.jsx' ; 
 
 function createData(id, name, totalSessions, status, requestDate) {
   return { id, name, totalSessions, status, requestDate };
 }
 
 const headCells = [
-  {
-    id: 'id',
-    align: 'left',
-    disablePadding: false,
-    label: 'User ID'
-  },
-  {
-    id: 'name',
-    align: 'left',
-    disablePadding: true,
-    label: 'Tutor Name'
-  },
-  {
-    id: 'totalSessions',
-    align: 'right',
-    disablePadding: false,
-    label: 'Total Sessions'
-  },
-  {
-    id: 'status',
-    align: 'left',
-    disablePadding: false,
-    label: 'Status'
-  },
-  {
-    id: 'requestDate',
-    align: 'right',
-    disablePadding: false,
-    label: 'Request Date'
-  }
+  { id: 'id', align: 'left', disablePadding: false, label: 'User ID' },
+  { id: 'name', align: 'left', disablePadding: true, label: 'Tutor Name' },
+  { id: 'totalSessions', align: 'right', disablePadding: false, label: 'Total Sessions' },
+  { id: 'status', align: 'left', disablePadding: false, label: 'Status' },
+  { id: 'requestDate', align: 'right', disablePadding: false, label: 'Request Date' },
 ];
-
-// ==============================|| ORDER TABLE - HEADER ||============================== //
 
 function OrderTableHead({ order, orderBy }) {
   return (
@@ -66,7 +41,6 @@ function OrderTableHead({ order, orderBy }) {
             key={headCell.id}
             align={headCell.align}
             padding={headCell.disablePadding ? 'none' : 'normal'}
-            sortDirection={orderBy === headCell.id ? order : false}
           >
             {headCell.label}
           </TableCell>
@@ -77,26 +51,13 @@ function OrderTableHead({ order, orderBy }) {
 }
 
 function OrderStatus({ status }) {
-  let color;
-  let title;
+  const statusMap = {
+    0: { color: 'warning', title: 'Pending' },
+    1: { color: 'success', title: 'Approved' },
+    2: { color: 'error', title: 'Rejected' },
+  };
 
-  switch (status) {
-    case 0:
-      color = 'warning';
-      title = 'Pending';
-      break;
-    case 1:
-      color = 'success';
-      title = 'Approved';
-      break;
-    case 2:
-      color = 'error';
-      title = 'Rejected';
-      break;
-    default:
-      color = 'primary';
-      title = 'None';
-  }
+  const { color, title } = statusMap[status] || { color: 'primary', title: 'None' };
 
   return (
     <Stack direction="row" spacing={1} alignItems="center">
@@ -106,10 +67,15 @@ function OrderStatus({ status }) {
   );
 }
 
-// ==============================|| ORDER TABLE ||============================== //
-
 export default function OrderTable() {
   const [requests, setRequests] = useState([]);
+  const [selectedRequest, setSelectedRequest] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  function handleRequest(request) {
+    setSelectedRequest(request);
+    setModalVisible(true);
+  }
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -120,13 +86,15 @@ export default function OrderTable() {
           .order('created_at', { ascending: false });
 
         if (!error) {
-          const formattedData = data.map((request) => createData(
-            request.tutor_id,
-            `${request.tutors.first_name} ${request.tutors.last_name}`,
-            0,
-            request.status,
-            request.created_at
-          ));
+          const formattedData = data.map((request) =>
+            createData(
+              request.tutor_id,
+              `${request.tutors.first_name} ${request.tutors.last_name}`,
+              0,
+              request.status,
+              request.created_at
+            )
+          );
           setRequests(formattedData);
         } else {
           console.error(error);
@@ -139,56 +107,71 @@ export default function OrderTable() {
     fetchRequests();
   }, []);
 
-  const order = 'asc';
-  const orderBy = 'id';
-
   return (
     <Box>
-      <TableContainer
-        sx={{
-          width: '100%',
-          overflowX: 'auto',
-          position: 'relative',
-          display: 'block',
-          maxWidth: '100%',
-          '& td, & th': { whiteSpace: 'nowrap' }
-        }}
-      >
+      <TableContainer>
         <Table aria-labelledby="tableTitle">
-          <OrderTableHead order={order} orderBy={orderBy} />
+          <OrderTableHead order="asc" orderBy="id" />
           <TableBody>
-            {requests.map((row, index) => {
-              const labelId = `enhanced-table-checkbox-${index}`;
-
-              return (
-                <TableRow
-                  hover
-                  role="checkbox"
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                  tabIndex={-1}
-                  key={row.id}
-                >
-                  <TableCell component="th" id={labelId} scope="row">
-                    <Link color="secondary">{row.id}</Link>
-                  </TableCell>
-                  <TableCell>{row.name}</TableCell>
-                  <TableCell align="right">{row.totalSessions}</TableCell>
-                  <TableCell>
-                    <OrderStatus status={row.status} />
-                  </TableCell>
-                  <TableCell align="right">
-                    <NumericFormat value={row.requestDate} displayType="text" dateFormat="yyyy-MM-dd HH:mm:ss" />
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+            {requests.map((row) => (
+              <TableRow
+                hover
+                key={row.id}
+                onClick={() => handleRequest(row)}
+              >
+                <TableCell>
+                  <Link color="secondary">{row.id}</Link>
+                </TableCell>
+                <TableCell>{row.name}</TableCell>
+                <TableCell align="right">{row.totalSessions}</TableCell>
+                <TableCell>
+                  <OrderStatus status={row.status} />
+                </TableCell>
+                <TableCell align="right">
+                  <NumericFormat value={row.requestDate} displayType="text" />
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </TableContainer>
+      <Modal
+        open={modalVisible}
+        onClose={() => setModalVisible(false)}
+        aria-labelledby="modal-title"
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 4,
+            maxWidth: '70%', 
+            minWidth: '320px', 
+            width: 'auto', 
+            height: 'auto', 
+            borderRadius : "2%" , 
+          }}
+        >
+          {selectedRequest && (
+            <Card elevation={0} sx={{ width: '100%' }}>
+              <ProfileRequest fname={selectedRequest.name} id={selectedRequest.id} />
+            </Card>
+          )}
+        </Box>
+      </Modal>
     </Box>
   );
 }
 
-OrderTableHead.propTypes = { order: PropTypes.any, orderBy: PropTypes.string };
+OrderTableHead.propTypes = {
+  order: PropTypes.string,
+  orderBy: PropTypes.string,
+};
 
-OrderStatus.propTypes = { status: PropTypes.number };
+OrderStatus.propTypes = {
+  status: PropTypes.number,
+};
