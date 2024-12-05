@@ -7,7 +7,7 @@ const config = {
   miniDrawer: false,
   container: true,
   mode: 'dark',
-  presetColor: 'default',
+  presetColor: 'theme4',
   themeDirection: 'ltr'
 };
 
