@@ -30,6 +30,9 @@ import NotesPage from "./pages/NotesPage.js";
 import { checkUnreadNotifications } from "./scheduling/notificationHelpers.js";
 import { useFocusEffect } from "@react-navigation/native";
 import Messages from "./pages/Messages.js"; // New import for Messages screen
+
+import VerificationScreen from "./pages/VerificationScreen.js";
+
 import { supabase } from "./lib/supabase.js";
 
 const Stack = createStackNavigator();
@@ -162,6 +165,11 @@ export default function App() {
           <Stack.Screen name="TutorProfile" component={TutorProfile} />
           <Stack.Screen name="BookingPage" component={BookingPage} />
           <Stack.Screen name="Messages" component={Messages} />
+          {/* <Stack.Screen name="AddReview" component={AddReview} /> */}
+          <Stack.Screen
+            name="VerificationScreen"
+            component={VerificationScreen}
+          />
 
           <Stack.Screen
             name="NotesPage"

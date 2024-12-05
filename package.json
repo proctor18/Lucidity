@@ -30,6 +30,9 @@
     "expo-auth-session": "~6.0.1",
     "expo-av": "~15.0.1",
     "expo-blur": "~14.0.1",
+    "expo-camera": "~16.0.9",
+    "expo-document-picker": "~13.0.1",
+    "expo-image-picker": "~16.0.3",
     "expo-status-bar": "~2.0.0",
     "expo-updates": "~0.26.9",
     "expo-web-browser": "~14.0.1",
@@ -46,6 +49,7 @@
     "react-native-gesture-handler": "~2.20.2",
     "react-native-get-random-values": "~1.11.0",
     "react-native-linear-gradient": "^2.8.3",
+    "react-native-mail": "^6.1.1",
     "react-native-modal-datetime-picker": "^18.0.0",
     "react-native-paper": "^5.12.5",
     "react-native-reanimated": "~3.16.1",
@@ -56,7 +60,8 @@
     "supabase": "^1.215.0",
     "typescript": "^5.3.3",
     "undefined": "expo-auth-session/providers/google",
-    "uuid": "^10.0.0"
+    "uuid": "^10.0.0",
+    "expo-file-system": "~18.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
