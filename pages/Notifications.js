@@ -25,7 +25,7 @@ const NotificationsList = () => {
     useCallback(() => {
       loadNotifications();
 
-      // Real time notifications displayed in app
+      // Real time notifications
       const notificationsChannel = supabase
         .channel('notifications')
         .on(

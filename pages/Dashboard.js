@@ -15,7 +15,7 @@ import SessionDrawer from "../components/SessionDrawer.js";
 import { supabase } from "../lib/supabase.js";
 import { useSharedValue, useDerivedValue } from "react-native-reanimated";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
-import { fetchDayAvailability } from "../scheduling/calendar.js";
+import { fetchDayAvailability, deleteSession, fetchMostOverdueSession } from "../scheduling/calendar.js";
 import moment from 'moment'
 
 const Header = ({
@@ -64,6 +64,7 @@ const Header = ({
 };
 export default function Dashboard({ navigation, route }) {
   const { email, first_name, last_name, role_id, user_id, bookingSuccess } = route.params;
+  const [overdueSession, setOverdueSession] = useState(null);
   const [availabilityDays, setAvailabilityDays] = useState([]);
   const [availabilityTimes, setAvailabilityTimes] = useState({ start_time: null, end_time: null });
   const [loading, setLoading] = useState(false);
@@ -71,6 +72,7 @@ export default function Dashboard({ navigation, route }) {
   const [error, setError] = useState(null);
   const currentIndex = useSharedValue(0);
   const [sessionVisible, setSessionVisible] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const currentSession = useDerivedValue(() => {
     const index = Math.min(
@@ -99,6 +101,19 @@ export default function Dashboard({ navigation, route }) {
     });
   }
 
+  // For session removal in bottom right
+  async function handleDeleteSession(sessionId) {
+    setLoading(true);
+    try {
+      await deleteSession(sessionId);
+      setRefreshKey((prevKey) => prevKey + 1);
+    } catch (error) {
+      console.error('Error deleting session:', error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   // Load availability only if role_id === 1 (a tutor)
   useFocusEffect(
     useCallback(() => {
@@ -119,6 +134,22 @@ export default function Dashboard({ navigation, route }) {
       Alert.alert('Success', 'Your session has been successfully booked!');
     }
   }, [bookingSuccess]);
+
+  useEffect(() => {
+    // Will fetch most recent overdue session (refresh ui when one is deleted)
+    async function loadOverdueSession() {
+      setLoading(true);
+      try {
+        const session = await fetchMostOverdueSession();
+        setOverdueSession(session || null);
+      } catch (error) {
+        console.error('Error fetching overdue session:', error.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadOverdueSession();
+  }, [refreshKey]);
 
   async function fetchSessions(role_id) {
     try {
@@ -218,6 +249,7 @@ export default function Dashboard({ navigation, route }) {
       </Text>
     </TouchableOpacity>
   )}
+  scrollEnabled={false}
   ListEmptyComponent={
     loading ? (
       <Text style={styles.loadingText}>Loading sessions...</Text>
@@ -246,34 +278,57 @@ export default function Dashboard({ navigation, route }) {
             countDown="2 weeks"
           />
           <View style={styles.horizontalContainer}>
-          {/* Tutor Availability Button */}
-          <ButtonDiv
-              type="wide"
-              loading={loading}
-              showIcon={false}
-              buttonText="Your Availability"
-              buttonSubtext={
-                availabilityDays.length
-                  ? `${availabilityDays.join(", ")}\n\n${
-                      availabilityTimes.start_time && availabilityTimes.end_time
-                        ? `${moment.utc(availabilityTimes.start_time, "HH:mm:ssZ").format("h:mm A")} - ${moment.utc(availabilityTimes.end_time, "HH:mm:ssZ").format("h:mm A")}`
-                        : ""
-                    }`
-                  : "No Availability Set"
-              }
+            {/* Tutor Availability Button */}
+            <ButtonDiv
+                type="wide"
+                loading={loading}
+                showIcon={false}
+                buttonText="Your Availability"
+                buttonSubtext={
+                  availabilityDays.length
+                    ? `${availabilityDays.join(", ")}\n\n${
+                        availabilityTimes.start_time && availabilityTimes.end_time
+                          ? `${moment.utc(availabilityTimes.start_time, "HH:mm:ssZ").format("h:mm A")} - ${moment.utc(availabilityTimes.end_time, "HH:mm:ssZ").format("h:mm A")}`
+                          : ""
+                      }`
+                    : "No Availability Set"
+                }
+                buttonSubtextStyle={{
+                  textAlign: 'center',
+                  paddingTop: 30,
+                  whiteSpace: 'pre-line',
+                }}
+                onPress={() => navigation.navigate('UpdateAvailability')}
+              />
+
+            {/* Session Removal Button */}
+            {overdueSession ? (
+              <ButtonDiv
+              buttonText={'Remove Completed Session?'}
+              buttonSubtext={`${overdueSession.subject}\n\n${moment(overdueSession.session_date).format('MMM Do YYYY')}
+                | ${moment(overdueSession.end_time,'HH:mm:ss').format('h:mm A')}`}
               buttonSubtextStyle={{
                 textAlign: 'center',
                 paddingTop: 30,
                 whiteSpace: 'pre-line',
               }}
-              onPress={() => navigation.navigate('UpdateAvailability')}
-            />
-
-            <ButtonDiv
               type="wide"
-              loading={loading}
-              data={currentSession.value}
+              iconName="delete-outline"
+              iconSize={24}
+              iconColor="rgba(255, 77, 77, 0.7)"
+              onIconPress={() => handleDeleteSession(overdueSession.session_id)}
             />
+            ) : (
+              <ButtonDiv
+                buttonText={'No Overdue Sessions'}
+                buttonSubtext={'No Completed Session Found'}
+                buttonSubtextStyle={{
+                  textAlign: 'center',
+                  paddingTop: 30,
+                }}
+                type="wide"
+              />
+            )}
           </View>
         </View>
       </View>
@@ -338,11 +393,34 @@ export default function Dashboard({ navigation, route }) {
                 loading={loading}
                 data={currentSession.value}
               />
-              <ButtonDiv
-                type="wide"
-                loading={loading}
-                data={currentSession.value}
-              />
+              {/* Session Removal Button */}
+                {overdueSession ? (
+                  <ButtonDiv
+                  buttonText={'Remove Completed Session?'}
+                  buttonSubtext={`${overdueSession.subject}\n\n${moment(overdueSession.session_date).format('MMM Do YYYY')}
+                   | ${moment(overdueSession.end_time,'HH:mm:ss').format('h:mm A')}`}
+                  buttonSubtextStyle={{
+                    textAlign: 'center',
+                    paddingTop: 30,
+                    whiteSpace: 'pre-line',
+                  }}
+                  type="wide"
+                  iconName="delete-outline"
+                  iconSize={24}
+                  iconColor="rgba(255, 77, 77, 0.7)"
+                  onIconPress={() => handleDeleteSession(overdueSession.session_id)}
+                />
+                ) : (
+                  <ButtonDiv
+                    buttonText={'No Overdue Sessions'}
+                    buttonSubtext={'No Completed Session Found'}
+                    buttonSubtextStyle={{
+                      textAlign: 'center',
+                      paddingTop: 30,
+                    }}
+                    type="wide"
+                  />
+                )}
             </View>
           </View>
         </View>

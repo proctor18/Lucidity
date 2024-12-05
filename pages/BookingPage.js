@@ -117,8 +117,8 @@ const BookingPage = ({ route }) => {
 
       // Format date and time for the notification message
       const formattedDate = moment(selectedDate).format('MMMM D');
-      const formattedStartTime = startTime;
-      const formattedEndTime = endTime;
+      const formattedStartTime = moment.utc(startTime, 'HH:mm:ss').format('h:mm A');
+      const formattedEndTime = moment.utc(endTime, 'HH:mm:ss').format('h:mm A');
 
       if (bookingData) {
         // Can test/demo the email being sent using temp-mail.org and replacing email variable with generated temp email
@@ -378,7 +378,11 @@ const BookingPage = ({ route }) => {
       {statusMessage ? <Text style={styles.status}>{statusMessage}</Text> : null}
   
       {/* Confirmation Button */}
-      <TouchableOpacity style={styles.confirmButton} onPress={handleBooking} disabled={isBooking}>
+      <TouchableOpacity 
+        style={[styles.confirmButton, isBooking && styles.disabledButton]}
+        onPress={handleBooking} 
+        disabled={isBooking}
+      >
         <Text style={styles.confirmButtonText}>{isBooking ? 'Booking...' : 'Confirm Booking'}</Text>
       </TouchableOpacity>
     </View>
@@ -438,6 +442,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#7257FF', // Purple button color
     borderRadius: 8,
     alignItems: 'center',
+  },
+  disabledButton: {
+    opacity: 0.6,
   },
   confirmButtonText: {
     color: '#ffffff',

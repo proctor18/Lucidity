@@ -25,6 +25,26 @@ async function fetchUserSessions(userId) {
   }
 }
 
+/**
+ * Fetches the most overdue session from the database.
+ */
+async function fetchMostOverdueSession() {
+  try {
+    const { data, error } = await supabase
+      .from('sessions')
+      .select('*')
+      .lt('session_date', moment().format('YYYY-MM-DD')) // Filter for sessions before today
+      .order('session_date', { ascending: true }) // Sort by closest date in the past
+      .order('end_time', { ascending: true }) // Further sort by earliest end_time on that date
+      .limit(1); // Limit to one record
+
+    if (error) throw error;
+    return data[0] || null;
+  } catch (error) {
+    console.error('Error fetching most overdue session:', error.message);
+    throw error;
+  }
+}
 
 /**
  * Function to delete an event from database and then sync with Google Calendar
@@ -227,7 +247,7 @@ async function fetchDayAvailability(tutorId) {
   try {
     const { data, error } = await supabase
       .from('availability')
-      .select('day_of_week, start_time, end_time') // Fetch additional columns
+      .select('day_of_week, start_time, end_time')
       .eq('tutor_id', tutorId);
 
     if (error) {
@@ -422,4 +442,5 @@ export {
   removeTimeOff,
   updateTutorAvailability,
   fetchDayAvailability,
+  fetchMostOverdueSession,
 };
