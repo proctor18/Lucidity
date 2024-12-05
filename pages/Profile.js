@@ -32,7 +32,10 @@ export default function Profile({ route, navigation }) {
           try {
             const { error } = await supabase.auth.signOut();
             if (error) throw error;
-            navigation.navigate("Login");
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Login" }],
+            });
           } catch (error) {
             Alert.alert("Logout Failed", error.message);
           }
@@ -112,7 +115,12 @@ export default function Profile({ route, navigation }) {
         {/* Header */}
         {/* User Profile Section */}
         <View style={styles.profileSection}>
-          <View style={styles.imageContainer}></View>
+          <View style={styles.profilePictureContainer}>
+            <Text style={styles.profilePictureText}>
+              {newFirstName?.charAt(0).toUpperCase() || ""}
+            </Text>
+          </View>
+
           {isEditing ? (
             <>
               <Text style={styles.editHeader}>Edit Profile</Text>
@@ -339,5 +347,19 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "white",
     marginBottom: 20, // Space between header and inputs
+  },
+  profilePictureContainer: {
+    height: 90,
+    width: 90,
+    borderRadius: 45,
+    backgroundColor: "#2F2F31", // Placeholder background color
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 15,
+  },
+  profilePictureText: {
+    fontSize: 38,
+    fontWeight: "bold",
+    color: "white", // Text color for the initial
   },
 });
