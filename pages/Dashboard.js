@@ -277,57 +277,57 @@ export default function Dashboard({ navigation, route }) {
             countDown="2 weeks"
           />
           <View style={styles.horizontalContainer}>
-          {/* Tutor Availability Button */}
-          <ButtonDiv
-              type="wide"
-              loading={loading}
-              showIcon={false}
-              buttonText="Your Availability"
-              buttonSubtext={
-                availabilityDays.length
-                  ? `${availabilityDays.join(", ")}\n\n${
-                      availabilityTimes.start_time && availabilityTimes.end_time
-                        ? `${moment.utc(availabilityTimes.start_time, "HH:mm:ssZ").format("h:mm A")} - ${moment.utc(availabilityTimes.end_time, "HH:mm:ssZ").format("h:mm A")}`
-                        : ""
-                    }`
-                  : "No Availability Set"
-              }
+            {/* Tutor Availability Button */}
+            <ButtonDiv
+                type="wide"
+                loading={loading}
+                showIcon={false}
+                buttonText="Your Availability"
+                buttonSubtext={
+                  availabilityDays.length
+                    ? `${availabilityDays.join(", ")}\n\n${
+                        availabilityTimes.start_time && availabilityTimes.end_time
+                          ? `${moment.utc(availabilityTimes.start_time, "HH:mm:ssZ").format("h:mm A")} - ${moment.utc(availabilityTimes.end_time, "HH:mm:ssZ").format("h:mm A")}`
+                          : ""
+                      }`
+                    : "No Availability Set"
+                }
+                buttonSubtextStyle={{
+                  textAlign: 'center',
+                  paddingTop: 30,
+                  whiteSpace: 'pre-line',
+                }}
+                onPress={() => navigation.navigate('UpdateAvailability')}
+              />
+
+            {/* Session Removal Button */}
+            {overdueSession ? (
+              <ButtonDiv
+              buttonText={'Remove Completed Session?'}
+              buttonSubtext={`${overdueSession.subject}\n\n${moment(overdueSession.session_date).format('MMM Do YYYY')}
+                | ${moment(overdueSession.end_time,'HH:mm:ss').format('h:mm A')}`}
               buttonSubtextStyle={{
                 textAlign: 'center',
                 paddingTop: 30,
                 whiteSpace: 'pre-line',
               }}
-              onPress={() => navigation.navigate('UpdateAvailability')}
+              type="wide"
+              iconName="delete-outline"
+              iconSize={24}
+              iconColor="rgba(255, 77, 77, 0.7)"
+              onIconPress={() => handleDeleteSession(overdueSession.session_id)}
             />
-
-          {/* Session Removal Button */}
-          {overdueSession ? (
-                  <ButtonDiv
-                  buttonText={'Remove Completed Session?'}
-                  buttonSubtext={`${overdueSession.subject}\n\n${moment(overdueSession.session_date).format('MMM Do YYYY')}
-                   | ${moment(overdueSession.end_time,'HH:mm:ss').format('h:mm A')}`}
-                  buttonSubtextStyle={{
-                    textAlign: 'center',
-                    paddingTop: 30,
-                    whiteSpace: 'pre-line',
-                  }}
-                  type="wide"
-                  iconName="delete-outline"
-                  iconSize={24}
-                  iconColor="rgba(255, 77, 77, 0.7)"
-                  onIconPress={() => handleDeleteSession(overdueSession.session_id)}
-                />
-                ) : (
-                  <ButtonDiv
-                    buttonText={'No Overdue Sessions'}
-                    buttonSubtext={'No Completed Session Found'}
-                    buttonSubtextStyle={{
-                      textAlign: 'center',
-                      paddingTop: 30,
-                    }}
-                    type="wide"
-                  />
-                )}
+            ) : (
+              <ButtonDiv
+                buttonText={'No Overdue Sessions'}
+                buttonSubtext={'No Completed Session Found'}
+                buttonSubtextStyle={{
+                  textAlign: 'center',
+                  paddingTop: 30,
+                }}
+                type="wide"
+              />
+            )}
           </View>
         </View>
       </View>
