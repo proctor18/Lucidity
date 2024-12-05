@@ -60,11 +60,19 @@ export default function Profile({ route, navigation }) {
           Alert.alert("Error", "Passwords do not match.");
           return;
         }
-        const { user, error } = await supabase.auth.update({
-          password: newPassword,
-        });
+        // Include password in the database update
+        const { data, error } = await supabase
+          .from(role_id === "tutor" ? "tutors" : "students")
+          .update({
+            email: newEmail,
+            first_name: newFirstName,
+            last_name: newLastName,
+            password: newPassword, // Update password in the same request
+          })
+          .eq("student_id", user_id);
+
         if (error) {
-          Alert.alert("Error", "Failed to update password.");
+          Alert.alert("Error", "Failed to update profile.");
           console.error(error);
           return;
         }
