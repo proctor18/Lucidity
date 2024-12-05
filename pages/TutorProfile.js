@@ -1,4 +1,4 @@
-import React, { useContext} from "react";
+import React, { useContext } from "react";
 import {
   View,
   Text,
@@ -11,10 +11,11 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import ReviewsCarousel from "../components/ReviewsCarousel";
-import { UserContext } from '../components/UserContext.js';
+import { UserContext } from "../components/UserContext.js";
 
 const TutorProfile = ({ route }) => {
-  const { name, sessions, rating, description, subject, tutorID } = route.params;
+  const { name, sessions, rating, description, subject, tutorID } =
+    route.params;
   const { user } = useContext(UserContext);
   const navigation = useNavigation();
 
@@ -26,23 +27,23 @@ const TutorProfile = ({ route }) => {
     {
       id: 1,
       rating: 5,
-      text: "Food is absolutely gorgeous and its pricey but really worth it seeing the whole experience",
-      reviewer: "Roger Lipshutz",
-      age: 28,
+      text: "This tutor is incredible! The lessons are very engaging and informative. Highly recommend!",
+      reviewer: "Rachel Green",
+      age: 30,
     },
     {
       id: 2,
       rating: 4,
-      text: "Great experience with engaging lessons!",
-      reviewer: "Jane Doe",
-      age: 35,
+      text: "Great tutor, explains concepts clearly. Sometimes a little fast, but overall great experience.",
+      reviewer: "Chandler Bing",
+      age: 32,
     },
     {
       id: 3,
       rating: 5,
-      text: "Highly recommend for anyone looking to learn!",
-      reviewer: "John Smith",
-      age: 24,
+      text: "The best tutor I’ve ever had! Learned so much in such a short time. Worth every minute!",
+      reviewer: "Phoebe Buffay",
+      age: 28,
     },
   ];
   // ------------------------------------------
@@ -86,27 +87,27 @@ const TutorProfile = ({ route }) => {
             More Information
           </Text>
           <Text style={styles.additionalInfo}>
-            Lorem ipsum odor amet, consectetuer adipiscing elit. Class auctor
-            suspendisse metus, platea magna pellentesque. Est bibendum
-            adipiscing malesuada scelerisque, elementum diam! Parturient lacus
-            netus.
+            I specialize in Mathematics and Physics, and I'm passionate about
+            helping students grasp complex concepts with ease. My approach
+            combines interactive lessons and real-world examples, making
+            learning both fun and practical.
           </Text>
           <Text style={styles.additionalInfo}>
-            Lorem ipsum odor amet, consectetuer adipiscing elit. Class auctor
-            suspendisse metus, platea magna pellentesque. Est bibendum
-            adipiscing malesuada scelerisque, elementum diam! Parturient lacus
-            netus.
+            I offer tutoring for students at various levels, from high school to
+            university. I can help with exam preparation, homework assistance,
+            and deepening your understanding of key concepts.
           </Text>
         </View>
       </ScrollView>
 
       {/* Fixed Book Session Button */}
       <View style={styles.fixedButtonContainer}>
-      {role_id !== 1 && (
-        <TouchableOpacity
+        {role_id !== 1 && (
+          <TouchableOpacity
             style={styles.bookButton}
-            onPress={() => navigation.navigate("BookingPage", { tutorID, subject })}
-          >
+            onPress={() =>
+              navigation.navigate("BookingPage", { tutorID, subject })
+            }>
             <Ionicons name="calendar-outline" size={20} color="#FFFFFF" />
             <Text style={styles.bookButtonText}>Book Session</Text>
           </TouchableOpacity>

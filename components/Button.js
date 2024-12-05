@@ -6,49 +6,50 @@ const IMAGE_MAP = {
   rightarrow: require("../assets/icons/rightarrow.png"),
 };
 
-export default function Button({ type, text, callback, leading, trailing  , active, disabled }) {
+export default function Button({
+  type,
+  text,
+  callback,
+  leading,
+  trailing,
+  active,
+  disabled,
+}) {
   return (
     <View style={styles.container}>
       {type === "small" && (
         <TouchableOpacity
           style={[styles.small, disabled && styles.smallDisabled]}
-          onPress={!disabled ? callback : null} 
-          disabled={disabled} 
-        >
-          <Text style={[styles.text, disabled && styles.textDisabled]}>{text}</Text>
+          onPress={!disabled ? callback : null}
+          disabled={disabled}>
+          <Text style={[styles.text, disabled && styles.textDisabled]}>
+            {text}
+          </Text>
         </TouchableOpacity>
       )}
       {type === "medium" && (
         <TouchableOpacity style={styles.medium} onPress={callback}>
           {leading && (
-            <Image
-              style={styles.buttonImage}
-              source={IMAGE_MAP[leading]}
-            />
+            <Image style={styles.buttonImage} source={IMAGE_MAP[leading]} />
           )}
           <Text style={styles.textMedium}>{text}</Text>
           {trailing && (
-            <Image
-              style={styles.buttonImage}
-              source={IMAGE_MAP[trailing]}
-            />
+            <Image style={styles.buttonImage} source={IMAGE_MAP[trailing]} />
           )}
         </TouchableOpacity>
       )}
       {type === "chip" && (
-        <TouchableOpacity style={[styles.chip  , active && styles.activeChip ]} onPress={callback}>
+        <TouchableOpacity
+          style={[styles.chip, active && styles.activeChip]}
+          onPress={callback}>
           {leading && (
-            <Image
-              style={styles.chipImage}
-              source={IMAGE_MAP[leading]}
-            />
+            <Image style={styles.chipImage} source={IMAGE_MAP[leading]} />
           )}
-          <Text style={[styles.textChip , active && styles.textChipActive]}>{text}</Text>
+          <Text style={[styles.textChip, active && styles.textChipActive]}>
+            {text}
+          </Text>
           {trailing && (
-            <Image
-              style={styles.chipImage}
-              source={IMAGE_MAP[trailing]}
-            />
+            <Image style={styles.chipImage} source={IMAGE_MAP[trailing]} />
           )}
         </TouchableOpacity>
       )}
@@ -58,7 +59,7 @@ export default function Button({ type, text, callback, leading, trailing  , acti
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   small: {
     paddingVertical: 18,
@@ -108,7 +109,7 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: "row",
     paddingVertical: 14,
-    paddingHorizontal: 34, // Change to 16 when you add the images 
+    paddingHorizontal: 34, // Change to 16 when you add the images
     gap: 12,
     alignItems: "center",
     justifyContent: "center",
@@ -122,10 +123,10 @@ const styles = StyleSheet.create({
     shadowRadius: 1,
     backgroundColor: "#222",
   },
-  activeChip  : {
-    backgroundColor : "#27223F",
-    color : '#8770FF', 
-    borderColor : '#3D3761'
+  activeChip: {
+    backgroundColor: "#27223F",
+    color: "#8770FF",
+    borderColor: "#3D3761",
   },
   chipImage: {
     height: 18,
@@ -136,7 +137,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 15,
   },
-  textChipActive : {
-    color : '#8770FF'
+  textChipActive: {
+    color: "#8770FF",
   },
 });

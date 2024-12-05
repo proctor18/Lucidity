@@ -11,7 +11,7 @@ import Start from "./pages/Start.js";
 import BookingPage from "./pages/BookingPage.js";
 import Dashboard from "./pages/Dashboard.js";
 import Signup from "./pages/Signup.js";
-import Notifications from "./pages/Notifications.js"
+import Notifications from "./pages/Notifications.js";
 import UsersList from "./pages/UsersList.js";
 import Search from "./pages/Search.js";
 import SearchResults from "./pages/SearchResults.js";
@@ -20,17 +20,18 @@ import TutorProfile from "./pages/TutorProfile.js";
 import MessagesList from "./pages/MessagesList";
 import Conversation from "./pages/Conversation";
 import TimeOff from "./pages/TimeOff.js";
-import UpdateAvailability from "./pages/UpdateAvailability.js"
-import { UserProvider } from './components/UserContext.js';
+import UpdateAvailability from "./pages/UpdateAvailability.js";
+import { UserProvider } from "./components/UserContext.js";
 import "react-native-gesture-handler";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import NotesPage from "./pages/NotesPage.js";
-import { checkUnreadNotifications } from './scheduling/notificationHelpers.js';
-import { useFocusEffect } from '@react-navigation/native';
+import { checkUnreadNotifications } from "./scheduling/notificationHelpers.js";
+import { useFocusEffect } from "@react-navigation/native";
 import Messages from "./pages/Messages.js"; // New import for Messages screen
-import { supabase } from './lib/supabase.js';
+
+import { supabase } from "./lib/supabase.js";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -88,20 +89,19 @@ function MainTabs({ route }) {
               {showDot && (
                 <View
                   style={{
-                    position: 'absolute',
+                    position: "absolute",
                     top: -2,
                     right: -6,
                     height: 8,
                     width: 8,
                     borderRadius: 4,
-                    backgroundColor: '#7257FF', // Purple dot for unread notifications
+                    backgroundColor: "#7257FF", // Purple dot for unread notifications
                   }}
                 />
               )}
             </View>
           );
         },
-        
       })}>
       <Tab.Screen
         name="DashboardTab"
@@ -138,34 +138,40 @@ function MainTabs({ route }) {
   );
 }
 
-
 // Root Stack for managing all navigation flows
 export default function App() {
   return (
     <UserProvider>
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Onboarding" component={Onboarding} />
-        <Stack.Screen name="SessionDetails" component={SessionDetailsPage} />
-        <Stack.Screen name="Start" component={Start} />
-        <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="Signup" component={Signup} />
-        <Stack.Screen name="PopulateInfo" component={PopulateInfo} />
-        <Stack.Screen name="Launch" component={Launch} />
-        <Stack.Screen name="Dashboard" component={Dashboard} />
-        <Stack.Screen name="TimeOff" component={TimeOff} />
-        <Stack.Screen name="UpdateAvailability" component={UpdateAvailability} />
-        <Stack.Screen name="MainTabs" component={MainTabs} />
-        <Stack.Screen name="SearchResults" component={SearchResults} />
-        <Stack.Screen name="TutorProfile" component={TutorProfile} />
-        <Stack.Screen name="BookingPage" component={BookingPage} />
-        <Stack.Screen name="Messages" component={Messages} />
-        <Stack.Screen name="NotesPage" component={NotesPage} /*options={{ title: 'Session Notes' }}*/ />
-        <Stack.Screen name="MessagesList" component={MessagesList} />
-        <Stack.Screen name="Conversation" component={Conversation} />
-      </Stack.Navigator>
-      <StatusBar style="light" />
-    </NavigationContainer>
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Onboarding" component={Onboarding} />
+          <Stack.Screen name="SessionDetails" component={SessionDetailsPage} />
+          <Stack.Screen name="Start" component={Start} />
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="Signup" component={Signup} />
+          <Stack.Screen name="PopulateInfo" component={PopulateInfo} />
+          <Stack.Screen name="Launch" component={Launch} />
+          <Stack.Screen name="Dashboard" component={Dashboard} />
+          <Stack.Screen name="TimeOff" component={TimeOff} />
+          <Stack.Screen
+            name="UpdateAvailability"
+            component={UpdateAvailability}
+          />
+          <Stack.Screen name="MainTabs" component={MainTabs} />
+          <Stack.Screen name="SearchResults" component={SearchResults} />
+          <Stack.Screen name="TutorProfile" component={TutorProfile} />
+          <Stack.Screen name="BookingPage" component={BookingPage} />
+          <Stack.Screen name="Messages" component={Messages} />
+
+          <Stack.Screen
+            name="NotesPage"
+            component={NotesPage} /*options={{ title: 'Session Notes' }}*/
+          />
+          <Stack.Screen name="MessagesList" component={MessagesList} />
+          <Stack.Screen name="Conversation" component={Conversation} />
+        </Stack.Navigator>
+        <StatusBar style="light" />
+      </NavigationContainer>
     </UserProvider>
   );
 }
