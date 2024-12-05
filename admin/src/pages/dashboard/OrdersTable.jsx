@@ -153,6 +153,7 @@ export default function OrderTable() {
             minWidth: '320px', 
             width: 'auto', 
             height: 'auto', 
+            borderRadius : "2%" , 
           }}
         >
           {selectedRequest && (

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState  , useEffect } from 'react';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -30,6 +30,8 @@ import GiftOutlined from '@ant-design/icons/GiftOutlined';
 import MessageOutlined from '@ant-design/icons/MessageOutlined';
 import SettingOutlined from '@ant-design/icons/SettingOutlined';
 
+import { supabase } from 'lib/supabase.js' ; 
+
 // sx styles
 const avatarSX = {
   width: 36,
@@ -49,17 +51,39 @@ const actionSX = {
 
 // ==============================|| HEADER CONTENT - NOTIFICATION ||============================== //
 
-export default function Notification() {
+export default function Notification( ) {
   const theme = useTheme();
   const matchesXs = useMediaQuery(theme.breakpoints.down('md'));
 
   const anchorRef = useRef(null);
   const [read, setRead] = useState(2);
   const [open, setOpen] = useState(false);
+  const [ notifications , setNotifications ] = useState({}); 
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
 
+
+
+  useEffect( async () => {
+    if (!supabase) {
+      throw new Error('Supabase is undefined') ; 
+    }
+    try {
+      const { data , error } = await supabase 
+      .from('auth_request')  
+      .select('*')  
+      if (data) {
+        setNotifications(data)
+        console.log('Successfully udpated notifications' , notifications )  ; 
+      }else{
+        console.log('Error , data returned null') ; 
+      }
+    } catch (error) {
+      console.log('Error occured while fetching data' , error )   ; 
+    }
+  }, [])
+  
   const handleClose = (event) => {
     if (anchorRef.current && anchorRef.current.contains(event.target)) {
       return;
@@ -127,113 +151,32 @@ export default function Notification() {
                       }
                     }}
                   >
-                    <ListItemButton selected={read > 0}>
-                      <ListItemAvatar>
-                        <Avatar sx={{ color: 'success.main', bgcolor: 'success.lighter' }}>
-                          <GiftOutlined />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            It&apos;s{' '}
-                            <Typography component="span" variant="subtitle1">
-                              Cristina danny&apos;s
-                            </Typography>{' '}
-                            birthday today.
-                          </Typography>
-                        }
-                        secondary="2 min ago"
-                      />
-                      <ListItemSecondaryAction>
-                        <Typography variant="caption" noWrap>
-                          3:00 AM
-                        </Typography>
-                      </ListItemSecondaryAction>
-                    </ListItemButton>
-                    <Divider />
-                    <ListItemButton>
-                      <ListItemAvatar>
-                        <Avatar sx={{ color: 'primary.main', bgcolor: 'primary.lighter' }}>
-                          <MessageOutlined />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            <Typography component="span" variant="subtitle1">
-                              Aida Burg
-                            </Typography>{' '}
-                            commented your post.
-                          </Typography>
-                        }
-                        secondary="5 August"
-                      />
-                      <ListItemSecondaryAction>
-                        <Typography variant="caption" noWrap>
-                          6:00 PM
-                        </Typography>
-                      </ListItemSecondaryAction>
-                    </ListItemButton>
-                    <Divider />
-                    <ListItemButton selected={read > 0}>
-                      <ListItemAvatar>
-                        <Avatar sx={{ color: 'error.main', bgcolor: 'error.lighter' }}>
-                          <SettingOutlined />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            Your Profile is Complete &nbsp;
-                            <Typography component="span" variant="subtitle1">
-                              60%
-                            </Typography>{' '}
-                          </Typography>
-                        }
-                        secondary="7 hours ago"
-                      />
-                      <ListItemSecondaryAction>
-                        <Typography variant="caption" noWrap>
-                          2:45 PM
-                        </Typography>
-                      </ListItemSecondaryAction>
-                    </ListItemButton>
-                    <Divider />
-                    <ListItemButton>
-                      <ListItemAvatar>
-                        <Avatar sx={{ color: 'primary.main', bgcolor: 'primary.lighter' }}>C</Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6">
-                            <Typography component="span" variant="subtitle1">
-                              Cristina Danny
-                            </Typography>{' '}
-                            invited to join{' '}
-                            <Typography component="span" variant="subtitle1">
-                              Meeting.
+                    {Object.entries(notifications).map(([key, value]) => (
+                      <ListItemButton key={key} selected={value.read > 0}>
+                        <ListItemAvatar>
+                          <Avatar sx={{ color: 'success.main', bgcolor: 'success.lighter' }}>
+                            <GiftOutlined />
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={
+                            <Typography variant="h6">
+                              It&apos;s{' '}
+                              <Typography component="span" variant="subtitle1">
+                                {value.senderName}&apos;s
+                              </Typography>{' '}
+                              birthday today.
                             </Typography>
+                          }
+                          secondary={value.timeAgo || '2 min ago'}
+                        />
+                        <ListItemSecondaryAction>
+                          <Typography variant="caption" noWrap>
+                            {value.timestamp || '3:00 AM'}
                           </Typography>
-                        }
-                        secondary="Daily scrum meeting time"
-                      />
-                      <ListItemSecondaryAction>
-                        <Typography variant="caption" noWrap>
-                          9:10 PM
-                        </Typography>
-                      </ListItemSecondaryAction>
-                    </ListItemButton>
-                    <Divider />
-                    <ListItemButton sx={{ textAlign: 'center', py: `${12}px !important` }}>
-                      <ListItemText
-                        primary={
-                          <Typography variant="h6" color="primary">
-                            View All
-                          </Typography>
-                        }
-                      />
-                    </ListItemButton>
+                        </ListItemSecondaryAction>
+                      </ListItemButton>
+                    ))}
                   </List>
                 </MainCard>
               </ClickAwayListener>
